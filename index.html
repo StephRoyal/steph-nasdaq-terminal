@@ -21,7 +21,7 @@
 body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:calc(72px + env(safe-area-inset-bottom));overflow-x:hidden}
 
 /* TICKER */
-#ticker-bar{position:sticky;top:0;z-index:200;background:var(--ink2);border-bottom:1px solid var(--border);height:42px;overflow:hidden}
+#ticker-bar{position:sticky;top:0;z-index:200;background:var(--ink2);border-bottom:1px solid var(--border);height:44px;overflow:hidden}
 
 /* HEADER */
 .hdr{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;z-index:1;position:relative}
@@ -130,10 +130,10 @@ canvas{display:block;width:100%}
 
 <!-- TICKER -->
 <div id="ticker-bar">
-  <div class="tradingview-widget-container" style="height:42px">
+  <div class="tradingview-widget-container" style="height:44px;overflow:hidden">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin $"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum $"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
+    {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr","largeChartUrl":"","width":"100%"}
     
 // ─── SIMULATOR ───────────────────────────────────────────────────
 let simAccounts = 1;
@@ -244,6 +244,18 @@ function runSim() {
   }
 }
 
+
+// ─── DAILY QUOTE ──────────────────────────────────────────────────
+function showDailyQuote() {
+  const quotes = ['"Discipline is the bridge between goals and accomplishment." — Jim Rohn', '"The market is a device for transferring money from the impatient to the patient." — Warren Buffett', '"Trade what you see, not what you think." — anonymous', '"The goal of a successful trader is to make the best trades. Money is secondary." — Alexander Elder', '"Risk comes from not knowing what you\'re doing." — Warren Buffett', '"The most important quality for an investor is temperament, not intellect." — Warren Buffett', '"Cut your losses, let your profits run." — Règle d\'or du trading', '"In trading, the impossible happens about twice a year." — Henri M. Schwartz', '"Luck is what happens when preparation meets opportunity." — Sénèque', '"Do not anticipate and move without market confirmation." — Jesse Livermore', '"The trend is your friend until it ends." — Règle classique', '"Every loss is a tuition fee." — anonymous', '"Confidence comes from preparation." — anonymous', '"The market can remain irrational longer than you can remain solvent." — Keynes', '"Patience is not the ability to wait, but how you act while waiting." — anonymous', '"Protect your capital first, profits second." — anonymous', '"Size kills traders. Trade small, stay in the game." — anonymous', '"One trade won\'t make you rich. One trade can make you poor." — anonymous', '"The best trade is sometimes no trade at all." — anonymous', '"Your edge is only as good as your execution." — anonymous', '"Think in probabilities, not certainties." — anonymous', '"Follow the plan. Trust the process." — anonymous', '"Fear and greed are your biggest enemies." — anonymous', '"Journal every trade. Learn every day." — anonymous', '"The market rewards patience, not activity." — anonymous', '"Setups don\'t fail, traders do." — anonymous', '"Never risk more than you can afford to lose." — anonymous', '"Consistency beats intensity every time." — anonymous', '"Your mindset is your most valuable asset." — anonymous', '"Small wins compound into big results." — anonymous', '"Emotions are expensive in the market." — anonymous', '"Process over outcome. Every single day." — anonymous'];
+  const idx = new Date().getDate() % quotes.length;
+  const el = document.getElementById('daily-quote');
+  if (el) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--text2);line-height:1.6;font-style:italic;text-align:center;padding:16px">${quotes[idx]}</div>`;
+  }
+}
+
+showDailyQuote();
 </script>
   </div>
 </div>
@@ -276,6 +288,8 @@ function runSim() {
     <button class="btn ba bs" onclick="loadNews()">↻</button>
   </div>
   <div id="news-feed"><div class="empty"><div class="spn"></div></div></div>
+
+  <div class="card" id="daily-quote" style="margin-top:8px"></div>
 </div>
 
 <!-- JOURNAL -->
@@ -321,7 +335,7 @@ function runSim() {
 </div>
 
 <!-- FORECAST -->
-<div id="pg-forecast" class="page">
+<div id="pg-forecast" class="page" style="display:none!important">
   <div class="sl">📊 Sentiment Analystes — QQQ</div>
   <div class="card" id="fg-sentiment"><div class="empty"><div class="spn"></div></div></div>
 
@@ -445,10 +459,7 @@ function runSim() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     <span>Journal</span>
   </button>
-  <button class="nb" id="nav-forecast" onclick="goPage('forecast',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    <span>Forecast</span>
-  </button>
+
   <button class="nb" id="nav-sim" onclick="goPage('sim',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     <span>Sim</span>
@@ -553,7 +564,7 @@ function runSim() {
 // ─── CONFIG ──────────────────────────────────────────────────────
 const FH = 'd7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300';
 const API = 'https://finnhub.io/api/v1';
-const TOP30 = ['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','ASML','NFLX','COST','AMD','MU','CSCO','LRCX','TMUS','AMAT','ISRG','PEP','INTC','QCOM','AMGN','INTU','BKNG','KLAC','TXN','ADBE','PANW','ARM','MRVL'];
+const TOP30 = ['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','ASML','NFLX','COST','AMD','TSLA','AMAT','QCOM'];
 
 // ─── STORE ───────────────────────────────────────────────────────
 const SK = 'nqt-v8';
@@ -656,71 +667,75 @@ async function loadEarnings() {
   }
 }
 
-// ─── ECO CALENDAR ─────────────────────────────────────────────────
+// ─── ECO CALENDAR — via FXStreet RSS proxy ─────────────────────
 async function loadEco() {
   const el = document.getElementById('eco-card');
   const todayStr = tod();
-  const now = new Date();
-  const from = new Date(now - 1*86400000).toISOString().slice(0,10);
-  const to   = new Date(now.getTime() + 14*86400000).toISOString().slice(0,10);
 
-  // Try Finnhub first
-  let scored = [];
+  // Use FXStreet economic calendar RSS (free, no API key)
+  const fxsUrl = 'https://calendar.fxstreet.com/eventdate/?f=rss&v=2&timezone=America/New_York&rows=30&importance=high,medium';
   try {
-    const r = await fetch(`${API}/calendar/economic?from=${from}&to=${to}&token=${FH}`, {signal: AbortSignal.timeout(8000)});
-    const d = await r.json();
-    const usd = (d.economicCalendar||[]).filter(e => e.country==='US' || e.currency==='USD');
-    const HIGH = ['fomc','federal reserve','minutes','nonfarm','nfp','cpi','interest rate','gdp','pce'];
-    const MED  = ['ppi','unemployment','jobless','ism','pmi','retail sales','payroll','adp','durable','housing','inflation','manufacturing','services'];
-    scored = usd.map(ev => {
-      const n = (ev.event||'').toLowerCase();
-      let s = 0;
-      HIGH.forEach(k => { if(n.includes(k)) s += 10; });
-      MED.forEach(k  => { if(n.includes(k)) s += 5; });
-      return {...ev, s};
-    }).filter(ev => ev.s > 0)
-      .sort((a,b) => {
-        const aFut = a.date >= todayStr, bFut = b.date >= todayStr;
-        if (aFut !== bFut) return aFut ? -1 : 1;
-        if (b.s !== a.s) return b.s - a.s;
-        return new Date(a.date) - new Date(b.date);
-      }).slice(0, 14);
-  } catch(e) {}
+    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(fxsUrl)}`;
+    const r = await fetch(proxy, {signal: AbortSignal.timeout(7000)});
+    const data = await r.json();
+    const xml = new DOMParser().parseFromString(data.contents, 'text/xml');
+    const items = Array.from(xml.querySelectorAll('item'));
 
-  if (scored.length > 0) {
-    el.innerHTML = scored.map(ev => {
-      const hasA = ev.actual != null && ev.actual !== '';
-      const hasF = ev.estimate != null && ev.estimate !== '';
-      let col = 'var(--text2)', icon = '';
-      if (hasA && hasF) { const a=parseFloat(ev.actual), f=parseFloat(ev.estimate); if(!isNaN(a)&&!isNaN(f)){col=a>=f?'var(--green2)':'var(--red2)';icon=a>=f?'▲ ':'▼ ';}}
-      const isToday = ev.date === todayStr;
-      const isPast  = ev.date < todayStr;
-      const ds = new Date((ev.time||(ev.date+'T12:00:00'))).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-      const hi = ev.s >= 10;
-      return `<div class="row" style="${isToday?'background:rgba(59,130,246,.07)':''}${isPast?';opacity:.55':''}">
+    if (!items.length) throw new Error('empty');
+
+    // Filter USD/US events
+    const HIGH_KW = ['fomc','federal reserve','minutes','nonfarm','nfp','cpi','interest rate','gdp','pce','fed '];
+    const MED_KW  = ['ppi','unemployment','jobless','ism','pmi','retail sales','payroll','adp','durable','housing','manufacturing'];
+
+    const events = items.map(item => {
+      const title    = item.querySelector('title')?.textContent || '';
+      const pubDate  = item.querySelector('pubDate')?.textContent || '';
+      const desc     = (item.querySelector('description')?.textContent || '').replace(/<[^>]+>/g,'');
+      const link     = item.querySelector('link')?.textContent || '#';
+      const tl = title.toLowerCase();
+      let score = 0;
+      HIGH_KW.forEach(k => { if(tl.includes(k)) score += 10; });
+      MED_KW.forEach(k  => { if(tl.includes(k)) score += 5;  });
+      // also check if it's USD related
+      if (!tl.includes('usd') && !tl.includes('u.s.') && !tl.includes('us ') && !tl.includes('fed') && score === 0) return null;
+      const dt = pubDate ? new Date(pubDate) : null;
+      return {title, dt, desc, link, score};
+    }).filter(e => e && e.score > 0)
+      .sort((a,b) => {
+        if (!a.dt && !b.dt) return 0;
+        if (!a.dt) return 1; if (!b.dt) return -1;
+        return a.dt - b.dt;
+      }).slice(0, 12);
+
+    if (events.length === 0) throw new Error('no usd events');
+
+    el.innerHTML = events.map(ev => {
+      const ds = ev.dt ? ev.dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      const evDateStr = ev.dt ? ev.dt.toISOString().slice(0,10) : '';
+      const isToday = evDateStr === todayStr;
+      const isPast  = ev.dt && ev.dt < new Date();
+      const hi = ev.score >= 10;
+      return `<a href="${ev.link}" target="_blank" style="text-decoration:none;display:block" class="row" style="${isToday?'background:rgba(59,130,246,.07)':''}${isPast?';opacity:.6':''}">
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span style="font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;background:${hi?'rgba(239,68,68,.2)':'rgba(245,158,11,.15)'};color:${hi?'var(--red2)':'#FCD34D'}">${hi?'🔴':'🟡'}</span>
-            <div style="font-size:13px;font-weight:600;color:${isToday?'var(--acc2)':'var(--text)'}">${ev.event}</div>
+            <div style="font-size:13px;font-weight:600;color:${isToday?'var(--acc2)':'var(--text)'}">${ev.title}</div>
           </div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">${isToday?'<strong style="color:var(--acc2)">AUJOURD\'HUI</strong> · ':''}${ds}${hasF?` · Prév: <span style="color:var(--acc2)">${ev.estimate}</span>`:''}${ev.prev?` · Préc: ${ev.prev}`:''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${isToday?'<strong style="color:var(--acc2)">AUJOURD\'HUI</strong> · ':''}${ds}</div>
         </div>
-        <div style="flex-shrink:0;text-align:right">
-          ${hasA ? `<div style="font-size:14px;font-weight:700;font-family:var(--mono);color:${col}">${icon}${ev.actual}</div>` : `<span class="chip cx" style="font-size:10px">À venir</span>`}
-        </div>
-      </div>`;
+        <span style="color:var(--acc2);font-size:14px;flex-shrink:0">↗</span>
+      </a>`;
     }).join('');
     return;
-  }
+  } catch(e) {}
 
-  // Finnhub returned nothing → show direct links to calendars
+  // Fallback: direct links
   el.innerHTML = `<div style="padding:14px 16px">
-    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">⚠️ Données indisponibles (plan Finnhub) — Accès direct :</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Accès direct aux calendriers :</div>
     ${[
-      ['ForexFactory','https://www.forexfactory.com/calendar','Calendrier complet haute importance'],
+      ['ForexFactory','https://www.forexfactory.com/calendar','Calendrier haute importance'],
       ['Investing.com','https://www.investing.com/economic-calendar/','Economic Calendar USD'],
       ['FXStreet','https://www.fxstreet.com/economic-calendar','FX Economic Calendar'],
-      ['Briefing.com','https://www.briefing.com/calendars/economic-calendar','Economic Releases'],
     ].map(([n,u,d])=>`<a href="${u}" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr2);text-decoration:none">
       <div><div style="font-size:13px;font-weight:600;color:var(--text)">${n}</div><div style="font-size:11px;color:var(--text3)">${d}</div></div>
       <span style="color:var(--acc2);font-size:16px">↗</span>
@@ -1340,6 +1355,18 @@ function runSim() {
   }
 }
 
+
+// ─── DAILY QUOTE ──────────────────────────────────────────────────
+function showDailyQuote() {
+  const quotes = ['"Discipline is the bridge between goals and accomplishment." — Jim Rohn', '"The market is a device for transferring money from the impatient to the patient." — Warren Buffett', '"Trade what you see, not what you think." — anonymous', '"The goal of a successful trader is to make the best trades. Money is secondary." — Alexander Elder', '"Risk comes from not knowing what you\'re doing." — Warren Buffett', '"The most important quality for an investor is temperament, not intellect." — Warren Buffett', '"Cut your losses, let your profits run." — Règle d\'or du trading', '"In trading, the impossible happens about twice a year." — Henri M. Schwartz', '"Luck is what happens when preparation meets opportunity." — Sénèque', '"Do not anticipate and move without market confirmation." — Jesse Livermore', '"The trend is your friend until it ends." — Règle classique', '"Every loss is a tuition fee." — anonymous', '"Confidence comes from preparation." — anonymous', '"The market can remain irrational longer than you can remain solvent." — Keynes', '"Patience is not the ability to wait, but how you act while waiting." — anonymous', '"Protect your capital first, profits second." — anonymous', '"Size kills traders. Trade small, stay in the game." — anonymous', '"One trade won\'t make you rich. One trade can make you poor." — anonymous', '"The best trade is sometimes no trade at all." — anonymous', '"Your edge is only as good as your execution." — anonymous', '"Think in probabilities, not certainties." — anonymous', '"Follow the plan. Trust the process." — anonymous', '"Fear and greed are your biggest enemies." — anonymous', '"Journal every trade. Learn every day." — anonymous', '"The market rewards patience, not activity." — anonymous', '"Setups don\'t fail, traders do." — anonymous', '"Never risk more than you can afford to lose." — anonymous', '"Consistency beats intensity every time." — anonymous', '"Your mindset is your most valuable asset." — anonymous', '"Small wins compound into big results." — anonymous', '"Emotions are expensive in the market." — anonymous', '"Process over outcome. Every single day." — anonymous'];
+  const idx = new Date().getDate() % quotes.length;
+  const el = document.getElementById('daily-quote');
+  if (el) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--text2);line-height:1.6;font-style:italic;text-align:center;padding:16px">${quotes[idx]}</div>`;
+  }
+}
+
+showDailyQuote();
 </script>
 </body>
 </html>
