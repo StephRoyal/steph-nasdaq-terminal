@@ -146,6 +146,30 @@ canvas{display:block;width:100%}
   </div>
 </div>
 
+<!-- SESSION BAR -->
+<div id="session-bar" style="background:var(--ink2);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow-x:auto" class="hs">
+  <div id="sess-london" style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+    <div id="sess-ldn-dot" style="width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0"></div>
+    <div>
+      <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.05em">LONDON</div>
+      <div id="sess-ldn-time" style="font-size:12px;font-weight:700;font-family:var(--mono)">—</div>
+    </div>
+    <div id="sess-ldn-status" style="font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:2px"></div>
+  </div>
+  <div id="sess-timer" style="text-align:center;flex:1">
+    <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.05em" id="sess-timer-label">SESSION</div>
+    <div style="font-size:14px;font-weight:700;font-family:var(--mono)" id="sess-timer-val">—</div>
+  </div>
+  <div id="sess-ny" style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-direction:row-reverse">
+    <div id="sess-ny-dot" style="width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0"></div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.05em">NEW YORK</div>
+      <div id="sess-ny-time" style="font-size:12px;font-weight:700;font-family:var(--mono)">—</div>
+    </div>
+    <div id="sess-ny-status" style="font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-right:2px"></div>
+  </div>
+</div>
+
 <!-- PAGE: BRIEF -->
 <div id="pg-brief" class="page on">
 
@@ -157,9 +181,6 @@ canvas{display:block;width:100%}
 
   <div class="sl">📊 Earnings</div>
   <div class="card" id="earnings-card"><div class="empty"><div class="spn"></div></div></div>
-
-  <div class="sl">📅 Calendrier Économique USD</div>
-  <div class="card" id="eco-card"><div class="empty"><div class="spn"></div></div></div>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px">
     <div class="sl" style="margin:0">📰 Actualités</div>
@@ -206,7 +227,18 @@ canvas{display:block;width:100%}
 <!-- PAGE: SIMULATEUR -->
 <div id="pg-sim" class="page">
   <div style="font-size:18px;font-weight:700;margin-bottom:4px">Simulateur de Revenus</div>
-  <div style="font-size:13px;color:var(--text3);margin-bottom:16px">Projette tes gains selon ton edge</div>
+  <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Projette tes gains selon ton edge</div>
+
+  <!-- RISK CALCULATOR -->
+  <div class="card" style="padding:14px 16px;margin-bottom:14px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px">⚡ Risk Calculator MNQ</div>
+    <div class="frow" style="margin-bottom:8px">
+      <div><label class="fl">Capital ($)</label><input type="number" class="fi" id="rc-capital" value="50000" step="1000" oninput="runRC()"/></div>
+      <div><label class="fl">Risque (%)</label><input type="number" class="fi" id="rc-pct" value="1" step="0.1" min="0.1" max="5" oninput="runRC()"/></div>
+    </div>
+    <div><label class="fl">Stop Loss (points)</label><input type="number" class="fi" id="rc-stop" value="20" step="1" oninput="runRC()"/></div>
+    <div id="rc-result" style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+  </div>
   <div class="card" style="padding:16px">
     <div class="frow" style="margin-bottom:12px">
       <div><label class="fl">Risque / trade ($)</label><input type="number" class="fi" id="sim-risk" value="500" step="50" oninput="runSim()"/></div>
@@ -421,8 +453,8 @@ const fpc = n => n > 0 ? 'var(--green2)' : n < 0 ? 'var(--red2)' : 'var(--amber)
 load();
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 document.getElementById('quote-text').textContent = QUOTES[new Date().getDate() % QUOTES.length];
-renderStats(); renderList(); renderNotes();
-loadWeather(); loadEarnings(); loadEco(); loadNews();
+renderStats(); renderList(); renderNotes(); setTimeout(runRC, 100);
+loadWeather(); loadEarnings(); loadNews();
 
 // ── NAV ───────────────────────────────────────────────────────────
 function goPage(id, btn) {
@@ -431,7 +463,7 @@ function goPage(id, btn) {
   document.getElementById('pg-' + id).classList.add('on');
   btn.classList.add('on');
   if (id === 'journal') renderStats();
-  if (id === 'sim') runSim();
+  if (id === 'sim') { runSim(); runRC(); }
 }
 function showTab(id, btn) {
   ['stats','calendar','list','csv'].forEach(t => document.getElementById('tab-'+t).style.display = t===id?'block':'none');
@@ -471,118 +503,46 @@ async function loadEarnings() {
     const byDate = {};
     list.forEach(e => { if(!byDate[e.date]) byDate[e.date]=[]; byDate[e.date].push(e); });
     const todayStr = tod();
-    let html = '<div style="padding:10px 14px">';
+    let html = '';
     Object.entries(byDate).forEach(([date, items]) => {
       const dt = new Date(date+'T12:00:00');
       const isToday = date === todayStr;
-      const ds = dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'short'});
-      html += `<div style="margin-bottom:12px">
-        <div style="font-size:11px;font-weight:700;color:${isToday?'var(--acc2)':'var(--text3)'};text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">${isToday?'🔥 AUJ.':'📅'} ${ds}</div>
-        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px" class="hs">`;
+      const ds = dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
+      // Date separator
+      html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 14px 6px;background:${isToday?'rgba(59,130,246,.06)':''};">
+        <span style="font-size:10px;font-weight:700;color:${isToday?'var(--acc2)':'var(--text3)'};text-transform:uppercase;letter-spacing:.08em">${isToday?'🔥 AUJOURD’HUI':'📅 '+ds}</span>
+        <div style="flex:1;height:1px;background:var(--bdr2)"></div>
+      </div>`;
       items.forEach(e => {
         const hasA = e.epsActual != null, hasE = e.epsEstimate != null;
-        let badge = '', bCol = 'var(--border)';
-        if (hasA && hasE) { const b=e.epsActual>=e.epsEstimate; badge=b?'▲ BEAT':'▼ MISS'; bCol=b?'rgba(34,197,94,.25)':'rgba(239,68,68,.25)'; }
-        const when = e.hour==='bmo'?'🌅':e.hour==='amc'?'🌙':'📅';
-        html += `<div style="flex-shrink:0;background:var(--ink3);border-radius:10px;padding:10px 12px;border:1px solid ${badge?bCol:'var(--bdr2)'};min-width:90px;text-align:center">
-          <div style="font-size:14px;font-weight:800;letter-spacing:-.3px">${e.symbol}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">${when}</div>
-          ${hasE?`<div style="font-size:11px;color:var(--text2);margin-top:4px;font-family:var(--mono)">Est $${e.epsEstimate.toFixed(2)}</div>`:''}
-          ${badge?`<div style="font-size:10px;font-weight:700;margin-top:3px;color:${bCol.includes('34,197')?'var(--green2)':'var(--red2)'}">${badge}</div>`:''}
+        let beat = null, surprise = 0;
+        if (hasA && hasE && e.epsEstimate !== 0) {
+          beat = e.epsActual >= e.epsEstimate;
+          surprise = ((e.epsActual - e.epsEstimate) / Math.abs(e.epsEstimate) * 100);
+        }
+        const when = e.hour==='bmo'?'🌅 Pré-mkt':e.hour==='amc'?'🌙 After-hrs':'📅 Pendant';
+        const beatColor = beat===null?'':beat?'var(--green2)':'var(--red2)';
+        html += `<div class="row" style="${isToday?'background:rgba(59,130,246,.03)':''}">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--ink4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2);flex-shrink:0;letter-spacing:-.3px">${e.symbol.slice(0,4)}</div>
+          <div style="flex:1;min-width:0;margin-left:10px">
+            <div style="display:flex;align-items:center;gap:7px">
+              <span style="font-size:14px;font-weight:700">${e.symbol}</span>
+              ${beat!==null?`<span class="chip ${beat?'cg':'cr'}" style="font-size:9px;padding:1px 6px">${beat?'▲ BEAT':'▼ MISS'} ${Math.abs(surprise).toFixed(0)}%</span>`:''}
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${when}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            ${hasA?`<div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${beatColor}">$${e.epsActual.toFixed(2)}</div>`:''}
+            ${hasE?`<div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:${hasA?'1':'0'}px">Est $${e.epsEstimate.toFixed(2)}</div>`:''}
+            ${!hasA&&!hasE?'<span class="chip cx" style="font-size:10px">TBA</span>':''}
+          </div>
         </div>`;
       });
-      html += '</div></div>';
     });
-    html += '</div>';
     el.innerHTML = html;
   } catch(e) {
     el.innerHTML='<div class="empty" style="padding:14px">Erreur · <a href="https://www.earningswhispers.com" target="_blank" style="color:var(--acc2)">Earnings Whispers ↗</a></div>';
   }
-}
-
-// ── ECO CALENDAR — FXStreet + ForexFactory ──────────────────────
-async function loadEco() {
-  const el = document.getElementById('eco-card');
-  const todayStr = tod();
-
-  const HIGH = ['fomc','federal reserve','minutes','nonfarm','nfp','cpi','interest rate','gdp','pce','fed rate','fed funds'];
-  const MED  = ['ppi','unemployment','jobless','ism','pmi','retail sales','payroll','adp','durable','housing','manufacturing','consumer confidence'];
-
-  // Try multiple sources
-  const FEEDS = [
-    'https://calendar.fxstreet.com/eventdate/?f=rss&v=2&timezone=America/New_York&rows=50&importance=high,medium',
-    'https://nfs.faireconomy.media/ff_calendar_thisweek.xml',
-    'https://nfs.faireconomy.media/ff_calendar_nextweek.xml',
-  ];
-
-  for (const feedUrl of FEEDS) {
-    try {
-      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`;
-      const resp = await fetch(proxy, {signal: AbortSignal.timeout(6000)});
-      const data = await resp.json();
-      if (!data.contents || data.contents.length < 100) continue;
-
-      const xml = new DOMParser().parseFromString(data.contents, 'text/xml');
-      const parseErr = xml.querySelector('parsererror');
-      if (parseErr) continue;
-
-      const items = Array.from(xml.querySelectorAll('item'));
-      if (!items.length) continue;
-
-      const events = [];
-      items.forEach(item => {
-        const title   = (item.querySelector('title')?.textContent || '').trim();
-        const pubDate = item.querySelector('pubDate')?.textContent || '';
-        const link    = item.querySelector('link')?.textContent || item.querySelector('link')?.nextSibling?.textContent || '#';
-        const desc    = (item.querySelector('description')?.textContent || '').replace(/<[^>]+>/g,'').toLowerCase();
-        const tl      = title.toLowerCase();
-        // USD filter: title or description must indicate USD/US
-        const isUSD = tl.includes('usd') || tl.includes('u.s.') || tl.includes('united states')
-          || tl.includes('fed') || tl.includes('fomc') || tl.includes('nonfarm')
-          || tl.includes('cpi') || tl.includes('gdp') || tl.includes('nfp')
-          || desc.includes('usd') || desc.includes('u.s.');
-        if (!isUSD) return;
-        let score = 0;
-        HIGH.forEach(k => { if(tl.includes(k)) score += 10; });
-        MED.forEach(k  => { if(tl.includes(k)) score += 5;  });
-        if (score === 0) return;
-        const dt = pubDate ? new Date(pubDate) : null;
-        events.push({title, dt, link, score, hi: score >= 10});
-      });
-
-      if (events.length === 0) continue;
-
-      events.sort((a,b) => {
-        if (!a.dt && !b.dt) return 0;
-        if (!a.dt) return 1; if (!b.dt) return -1;
-        return a.dt - b.dt;
-      });
-
-      el.innerHTML = events.slice(0, 12).map(ev => {
-        const isToday = ev.dt ? ev.dt.toISOString().slice(0,10) === todayStr : false;
-        const isPast  = ev.dt && ev.dt < new Date();
-        const timeStr = ev.dt ? ev.dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
-        const dateStr = ev.dt ? ev.dt.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}) : '';
-        return `<a href="${ev.link}" target="_blank" class="row" style="text-decoration:none;${isToday?'background:rgba(59,130,246,.07)':''}${isPast?';opacity:.6':''}">
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <span style="font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;background:${ev.hi?'rgba(239,68,68,.2)':'rgba(245,158,11,.15)'};color:${ev.hi?'var(--red2)':'#FCD34D'}">${ev.hi?'🔴':'🟡'}</span>
-              <span style="font-size:13px;font-weight:600;color:${isToday?'var(--acc2)':'var(--text)'}">${ev.title}</span>
-            </div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px">${isToday?'<strong style="color:var(--acc2)">AUJOURD’HUI</strong> · ':''}${dateStr}${timeStr?' · '+timeStr:''}</div>
-          </div>
-          <span style="color:var(--acc2);font-size:13px;flex-shrink:0">↗</span>
-        </a>`;
-      }).join('');
-      return; // success
-    } catch(err) { continue; }
-  }
-
-  // All RSS failed — show direct links
-  el.innerHTML = `<div style="padding:14px 16px">
-    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Accès direct (données RSS indisponibles) :</div>
-    ${[['ForexFactory','https://www.forexfactory.com/calendar'],['Investing.com','https://www.investing.com/economic-calendar/'],['FXStreet','https://www.fxstreet.com/economic-calendar']].map(([n,u])=>`<a href="${u}" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr2);text-decoration:none"><span style="font-size:13px;font-weight:600;color:var(--text)">${n}</span><span style="color:var(--acc2)">↗</span></a>`).join('')}
-  </div>`;
 }
 
 // ── NEWS ──────────────────────────────────────────────────────────
@@ -883,6 +843,138 @@ function runSim(){
   mot.style.display='block';
   motT.innerHTML=p60Mo>0?`Avec <strong style="color:var(--acc2)">60% de win rate</strong>, tu génères <strong style="color:var(--green2)">+$${Math.abs(p60Mo).toFixed(0)}/mois</strong>${acc>1?` sur ${acc} comptes`:''} avec ce setup.<br><br>🎯 L'edge existe. La discipline fait la différence.`:`⚠️ Ce R:R avec 60% WR donne une espérance négative.<br>Améliore ton ratio ou ton win rate.`;
 }
+
+
+// ── RISK CALCULATOR ───────────────────────────────────────────────
+function runRC() {
+  const capital = parseFloat(document.getElementById('rc-capital').value) || 50000;
+  const pct     = parseFloat(document.getElementById('rc-pct').value) || 1;
+  const stop    = parseFloat(document.getElementById('rc-stop').value) || 20;
+  const riskAmt = capital * pct / 100;
+  const mnqContracts = Math.floor(riskAmt / (stop * 2)); // MNQ = $2/pt
+  const nqContracts  = Math.floor(riskAmt / (stop * 20)); // NQ = $20/pt
+  const el = document.getElementById('rc-result');
+  if (!el) return;
+  el.innerHTML = [
+    {l:'Risque $', v:'$'+riskAmt.toFixed(0), c:'var(--red2)'},
+    {l:'MNQ ($2/pt)', v:mnqContracts + ' contrat' + (mnqContracts!==1?'s':''), c:'var(--acc2)'},
+    {l:'NQ ($20/pt)',  v:nqContracts  + ' contrat' + (nqContracts!==1?'s':''),  c:'var(--amber)'},
+    {l:'Par contrat', v:'$'+(stop*2).toFixed(0)+'/MNQ', c:'var(--text2)'},
+  ].map(s=>`<div style="background:var(--ink3);border-radius:var(--r);padding:10px 12px;border:1px solid var(--bdr2)"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">${s.l}</div><div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${s.c}">${s.v}</div></div>`).join('');
+}
+
+
+// ── SESSION TIMER & CLOCKS ────────────────────────────────────────
+// London: 08:00–17:00 UK time | NY: 13:30–20:00 UK time (9:30–16:00 ET)
+// We work in UTC offsets dynamically (BST/GMT, ET/EDT)
+
+function updateSessions() {
+  const now = new Date();
+
+  // Get London time (Europe/London)
+  const ldnStr = now.toLocaleString('en-GB', {timeZone:'Europe/London', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
+  const nyStr  = now.toLocaleString('en-US', {timeZone:'America/New_York', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
+
+  // Parse hours/minutes
+  const [lH, lM, lS] = ldnStr.split(':').map(Number);
+  const [nH, nM, nS] = nyStr.split(':').map(Number);
+  const lTot = lH*60 + lM; // London minutes since midnight
+  const nTot = nH*60 + nM; // NY minutes since midnight
+
+  // Session windows (minutes)
+  const LDN_OPEN = 8*60, LDN_CLOSE = 17*60;        // 08:00 - 17:00 London
+  const NY_OPEN  = 9*60+30, NY_CLOSE = 16*60;       // 09:30 - 16:00 NY
+
+  const ldnOpen = lTot >= LDN_OPEN && lTot < LDN_CLOSE;
+  const nyOpen  = nTot >= NY_OPEN  && nTot < NY_CLOSE;
+
+  // Update clocks
+  document.getElementById('sess-ldn-time').textContent = ldnStr.slice(0,5);
+  document.getElementById('sess-ny-time').textContent  = nyStr.slice(0,5);
+
+  // Update dots & status
+  const ldnDot = document.getElementById('sess-ldn-dot');
+  const nyDot  = document.getElementById('sess-ny-dot');
+  const ldnSt  = document.getElementById('sess-ldn-status');
+  const nySt   = document.getElementById('sess-ny-status');
+
+  if (ldnOpen) {
+    ldnDot.style.background = 'var(--green)';
+    ldnDot.style.boxShadow  = '0 0 8px var(--green)';
+    ldnSt.textContent = 'OPEN';
+    ldnSt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:2px;background:rgba(34,197,94,.15);color:var(--green2)';
+  } else {
+    ldnDot.style.background = 'var(--text3)';
+    ldnDot.style.boxShadow  = 'none';
+    // Next open
+    const minsToOpen = lTot < LDN_OPEN ? LDN_OPEN - lTot : (24*60 - lTot + LDN_OPEN);
+    const h = Math.floor(minsToOpen/60), m = minsToOpen%60;
+    ldnSt.textContent = h > 0 ? `dans ${h}h${m>0?m+'m':''}` : `dans ${m}m`;
+    ldnSt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;margin-left:2px;background:var(--ink4);color:var(--text3)';
+  }
+
+  if (nyOpen) {
+    nyDot.style.background = 'var(--green)';
+    nyDot.style.boxShadow  = '0 0 8px var(--green)';
+    nySt.textContent = 'OPEN';
+    nySt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-right:2px;background:rgba(34,197,94,.15);color:var(--green2)';
+  } else {
+    nyDot.style.background = 'var(--text3)';
+    nyDot.style.boxShadow  = 'none';
+    const minsToOpen = nTot < NY_OPEN ? NY_OPEN - nTot : (24*60 - nTot + NY_OPEN);
+    const h = Math.floor(minsToOpen/60), m = minsToOpen%60;
+    nySt.textContent = h > 0 ? `dans ${h}h${m>0?m+'m':''}` : `dans ${m}m`;
+    nySt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;margin-right:2px;background:var(--ink4);color:var(--text3)';
+  }
+
+  // Center timer: show active session countdown or next open
+  const timerLabel = document.getElementById('sess-timer-label');
+  const timerVal   = document.getElementById('sess-timer-val');
+
+  if (ldnOpen && nyOpen) {
+    // Overlap — show NY close (more relevant for NQ)
+    const remNY = (NY_CLOSE - nTot) * 60 - nS;
+    timerLabel.textContent = 'NY FERME DANS';
+    timerLabel.style.color = 'var(--green2)';
+    timerVal.textContent   = fmtCountdown(remNY);
+    timerVal.style.color   = 'var(--green2)';
+  } else if (ldnOpen) {
+    // London only — show time left
+    const remLdn = (LDN_CLOSE - lTot) * 60 - lS;
+    timerLabel.textContent = 'LONDON FERME';
+    timerLabel.style.color = 'var(--amber)';
+    timerVal.textContent   = fmtCountdown(remLdn);
+    timerVal.style.color   = 'var(--amber)';
+  } else if (nyOpen) {
+    const remNY = (NY_CLOSE - nTot) * 60 - nS;
+    timerLabel.textContent = 'NY FERME DANS';
+    timerLabel.style.color = 'var(--green2)';
+    timerVal.textContent   = fmtCountdown(remNY);
+    timerVal.style.color   = 'var(--green2)';
+  } else {
+    // Both closed — next to open
+    const minsLdn = lTot < LDN_OPEN ? (LDN_OPEN - lTot)*60 - lS : (24*60 - lTot + LDN_OPEN)*60;
+    const minsNY  = nTot < NY_OPEN  ? (NY_OPEN  - nTot)*60 - nS  : (24*60 - nTot + NY_OPEN)*60;
+    const nextSec = Math.min(minsLdn, minsNY);
+    const nextName = minsLdn < minsNY ? 'LONDON OUVRE' : 'NY OUVRE';
+    timerLabel.textContent = nextName;
+    timerLabel.style.color = 'var(--text3)';
+    timerVal.textContent   = fmtCountdown(nextSec);
+    timerVal.style.color   = 'var(--text2)';
+  }
+}
+
+function fmtCountdown(totalSecs) {
+  if (totalSecs <= 0) return '00:00:00';
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// Start session timer
+updateSessions();
+setInterval(updateSessions, 1000);
 
 // ── OVERLAY ───────────────────────────────────────────────────────
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
