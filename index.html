@@ -91,7 +91,7 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 /* OVERLAY */
 .ov{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
 .ov.on{opacity:1;pointer-events:all}
-.sheet{background:var(--ink2);border-top:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:720px;margin:0 auto;max-height:92vh;overflow-y:auto;padding:0 20px calc(32px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.23,1)}
+.sheet{background:var(--ink2);border-top:1px solid var(--border);border-radius:20px 20px 0 0;width:100%;max-width:720px;margin:0 auto;max-height:92vh;overflow-y:auto;padding:0 20px calc(90px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.23,1)}
 .ov.on .sheet{transform:translateY(0)}
 .hdl{width:36px;height:4px;border-radius:2px;background:var(--border);margin:12px auto 16px}
 .stitle{font-size:17px;font-weight:700}
@@ -134,7 +134,117 @@ canvas{display:block;width:100%}
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
     {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin $"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum $"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
-    </script>
+    
+// ─── SIMULATOR ───────────────────────────────────────────────────
+let simAccounts = 1;
+
+function setAccounts(n, btn) {
+  simAccounts = n;
+  document.querySelectorAll('#sim-accounts-btns button').forEach(b => {
+    b.className = b.dataset.val == n ? 'chip cb on-sim' : 'chip cx';
+  });
+  runSim();
+}
+
+function runSim() {
+  const risk   = parseFloat(document.getElementById('sim-risk').value)   || 500;
+  const reward = parseFloat(document.getElementById('sim-reward').value) || 600;
+  const tpd    = parseInt(document.getElementById('sim-tpd').value)      || 2;
+  const days   = parseInt(document.getElementById('sim-days').value)     || 20;
+  const acc    = simAccounts;
+
+  const rr = reward / risk;
+  const tradesMo = tpd * days;
+  const tradesWk = tpd * 5;
+
+  document.getElementById('sim-rr-display').innerHTML =
+    `R:R = <strong style="color:var(--acc2)">1:${rr.toFixed(2)}</strong> &nbsp;·&nbsp; ${tradesMo} trades/mois &nbsp;·&nbsp; ${acc} compte${acc>1?'s':''}`;
+
+  const WRS = [0.4, 0.5, 0.6, 0.7, 0.8];
+  const WR_LABELS = ['40%','50%','60%','70%','80%'];
+
+  // Monthly table
+  const tableEl = document.getElementById('sim-table');
+  let thead = `<div style="display:grid;grid-template-columns:80px repeat(${WRS.length},1fr);gap:0;border-bottom:2px solid var(--border)">
+    <div style="padding:10px 12px;font-size:11px;color:var(--text3);font-weight:600">Win Rate</div>
+    ${WR_LABELS.map(l=>`<div style="padding:10px 6px;font-size:11px;color:var(--text3);font-weight:600;text-align:center">${l}</div>`).join('')}
+  </div>`;
+
+  const metrics = [
+    {label:'Semaine',  trades: tradesWk},
+    {label:'Mois',     trades: tradesMo},
+  ];
+
+  let rows = '';
+  metrics.forEach((m,mi) => {
+    rows += `<div style="display:grid;grid-template-columns:80px repeat(${WRS.length},1fr);gap:0;border-bottom:1px solid var(--bdr2);background:${mi%2?'var(--ink3)':''}">
+      <div style="padding:10px 12px;font-size:12px;font-weight:600;color:var(--text2);display:flex;align-items:center">${m.label}</div>
+      ${WRS.map(wr => {
+        const wins   = m.trades * wr;
+        const losses = m.trades * (1-wr);
+        const pnl    = (wins * reward - losses * risk) * acc;
+        const col    = pnl >= 0 ? 'var(--green2)' : 'var(--red2)';
+        return `<div style="padding:10px 4px;text-align:center;font-size:12px;font-weight:700;font-family:var(--mono);color:${col}">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(0)}</div>`;
+      }).join('')}
+    </div>`;
+  });
+
+  tableEl.innerHTML = thead + rows;
+
+  // Expectancy
+  const expRow = `<div style="display:grid;grid-template-columns:80px repeat(${WRS.length},1fr);gap:0">
+    <div style="padding:10px 12px;font-size:11px;color:var(--text3);display:flex;align-items:center">Exp/trade</div>
+    ${WRS.map(wr => {
+      const exp = (wr * reward) - ((1-wr) * risk);
+      return `<div style="padding:10px 4px;text-align:center;font-size:11px;font-family:var(--mono);color:${exp>=0?'var(--green2)':'var(--red2)'}">${exp>=0?'+':''}$${Math.abs(exp).toFixed(0)}</div>`;
+    }).join('')}
+  </div>`;
+  tableEl.innerHTML += expRow;
+
+  // Weekly detail cards
+  const weeklyEl = document.getElementById('sim-weekly');
+  weeklyEl.innerHTML = WRS.map((wr, i) => {
+    const wins   = tradesWk * wr;
+    const losses = tradesWk * (1-wr);
+    const pnlWk  = (wins * reward - losses * risk) * acc;
+    const pnlMo  = pnlWk * (days/5);
+    const col    = pnlWk >= 0 ? 'var(--green2)' : 'var(--red2)';
+    const breakEvenTrades = Math.ceil(risk * tradesWk / (reward + risk));
+    return `<div class="row">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:700;color:var(--acc2)">${WR_LABELS[i]}</span>
+          <span style="font-size:12px;color:var(--text3)">win rate</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">${Math.round(wins)} wins · ${Math.round(losses)} losses / semaine${acc>1?` · ${acc} comptes`:''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">Break-even : ${breakEvenTrades} wins min/semaine</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${col}">${pnlWk>=0?'+':''}$${Math.abs(pnlWk).toFixed(0)}<span style="font-size:11px;color:var(--text3)">/sem</span></div>
+        <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:${col};margin-top:2px">${pnlMo>=0?'+':''}$${Math.abs(pnlMo).toFixed(0)}<span style="font-size:11px;color:var(--text3)">/mois</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Motivational message (based on 60% WR)
+  const pnl60Wk = (tradesWk * 0.6 * reward - tradesWk * 0.4 * risk) * acc;
+  const pnl60Mo = pnl60Wk * (days/5);
+  const motEl = document.getElementById('sim-motive');
+  const motTxt = document.getElementById('sim-motive-text');
+  if (pnl60Mo > 0) {
+    motEl.style.display = 'block';
+    const msgs = [
+      `Avec 60% de win rate, tu génères <strong style="color:var(--green2)">+$${Math.abs(pnl60Wk).toFixed(0)}/semaine</strong> et <strong style="color:var(--green2)">+$${Math.abs(pnl60Mo).toFixed(0)}/mois</strong>${acc>1?` sur ${acc} comptes`:''}.<br><br>🎯 L'edge existe. La discipline fait la différence.`,
+      `En restant consistant, <strong style="color:var(--green2)">+$${Math.abs(pnl60Mo).toFixed(0)}/mois</strong> est atteignable avec ton setup actuel.<br><br>💪 Chaque trade bien exécuté compte.`,
+    ];
+    motTxt.innerHTML = msgs[Math.floor(Math.random() * msgs.length)];
+  } else {
+    motEl.style.display = 'block';
+    motTxt.innerHTML = `⚠️ Avec ce R:R et 60% WR, l'espérance est négative.<br><br>Améliore ton R:R ou ton win rate pour être profitable.`;
+  }
+}
+
+</script>
   </div>
 </div>
 
@@ -257,6 +367,64 @@ canvas{display:block;width:100%}
   </div>
 </div>
 
+
+<!-- SIMULATOR PAGE -->
+<div id="pg-sim" class="page">
+  <div style="font-size:18px;font-weight:700;margin-bottom:4px">Simulateur de Revenus</div>
+  <div style="font-size:13px;color:var(--text3);margin-bottom:16px">Projette tes gains selon ton edge</div>
+
+  <!-- INPUTS -->
+  <div class="card" style="padding:16px">
+    <div class="frow" style="margin-bottom:12px">
+      <div>
+        <label class="fl">Risque par trade ($)</label>
+        <input type="number" class="fi" id="sim-risk" value="500" step="50" oninput="runSim()"/>
+      </div>
+      <div>
+        <label class="fl">Reward par trade ($)</label>
+        <input type="number" class="fi" id="sim-reward" value="600" step="50" oninput="runSim()"/>
+      </div>
+    </div>
+    <div class="frow" style="margin-bottom:12px">
+      <div>
+        <label class="fl">Trades / jour</label>
+        <input type="number" class="fi" id="sim-tpd" value="2" min="1" max="20" step="1" oninput="runSim()"/>
+      </div>
+      <div>
+        <label class="fl">Jours tradés / mois</label>
+        <input type="number" class="fi" id="sim-days" value="20" min="1" max="31" step="1" oninput="runSim()"/>
+      </div>
+    </div>
+    <div>
+      <label class="fl">Nombre de comptes</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="sim-accounts-btns">
+        <button class="chip cb on-sim" data-val="1" onclick="setAccounts(1,this)" style="cursor:pointer;padding:7px 14px;font-size:13px">1</button>
+        <button class="chip cx"        data-val="2" onclick="setAccounts(2,this)" style="cursor:pointer;padding:7px 14px;font-size:13px">2</button>
+        <button class="chip cx"        data-val="3" onclick="setAccounts(3,this)" style="cursor:pointer;padding:7px 14px;font-size:13px">3</button>
+        <button class="chip cx"        data-val="5" onclick="setAccounts(5,this)" style="cursor:pointer;padding:7px 14px;font-size:13px">5</button>
+        <button class="chip cx"       data-val="10" onclick="setAccounts(10,this)" style="cursor:pointer;padding:7px 14px;font-size:13px">10</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- R:R display -->
+  <div id="sim-rr-display" style="text-align:center;padding:10px 0;font-size:13px;color:var(--text3);margin-bottom:4px"></div>
+
+  <!-- RESULTS TABLE -->
+  <div class="sl">Projections mensuelles</div>
+  <div class="card" id="sim-table"></div>
+
+  <!-- WEEKLY DETAIL -->
+  <div class="sl">Détail hebdomadaire</div>
+  <div class="card" id="sim-weekly"></div>
+
+  <!-- MOTIVATION -->
+  <div class="card" id="sim-motive" style="padding:16px;text-align:center;display:none">
+    <div style="font-size:28px;margin-bottom:8px">🚀</div>
+    <div id="sim-motive-text" style="font-size:14px;color:var(--text2);line-height:1.6"></div>
+  </div>
+</div>
+
 <!-- NOTES -->
 <div id="pg-notes" class="page">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -280,6 +448,10 @@ canvas{display:block;width:100%}
   <button class="nb" id="nav-forecast" onclick="goPage('forecast',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
     <span>Forecast</span>
+  </button>
+  <button class="nb" id="nav-sim" onclick="goPage('sim',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span>Sim</span>
   </button>
   <button class="nb" id="nav-notes" onclick="goPage('notes',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
@@ -420,6 +592,7 @@ function goPage(id, btn) {
   btn.classList.add('on');
   if (id === 'journal') renderStats();
   if (id === 'forecast') loadForecast();
+  if (id === 'sim') runSim();
 }
 
 function showTab(id, btn) {
@@ -483,22 +656,23 @@ async function loadEarnings() {
   }
 }
 
-// ─── ECO CALENDAR ────────────────────────────────────────────────
+// ─── ECO CALENDAR ─────────────────────────────────────────────────
 async function loadEco() {
   const el = document.getElementById('eco-card');
+  const todayStr = tod();
+  const now = new Date();
+  const from = new Date(now - 1*86400000).toISOString().slice(0,10);
+  const to   = new Date(now.getTime() + 14*86400000).toISOString().slice(0,10);
+
+  // Try Finnhub first
+  let scored = [];
   try {
-    const now = new Date();
-    const todayStr = tod();
-    const from = new Date(now - 1*86400000).toISOString().slice(0,10);
-    const to   = new Date(now.getTime() + 14*86400000).toISOString().slice(0,10);
     const r = await fetch(`${API}/calendar/economic?from=${from}&to=${to}&token=${FH}`, {signal: AbortSignal.timeout(8000)});
     const d = await r.json();
     const usd = (d.economicCalendar||[]).filter(e => e.country==='US' || e.currency==='USD');
-
     const HIGH = ['fomc','federal reserve','minutes','nonfarm','nfp','cpi','interest rate','gdp','pce'];
     const MED  = ['ppi','unemployment','jobless','ism','pmi','retail sales','payroll','adp','durable','housing','inflation','manufacturing','services'];
-
-    const scored = usd.map(ev => {
+    scored = usd.map(ev => {
       const n = (ev.event||'').toLowerCase();
       let s = 0;
       HIGH.forEach(k => { if(n.includes(k)) s += 10; });
@@ -511,11 +685,9 @@ async function loadEco() {
         if (b.s !== a.s) return b.s - a.s;
         return new Date(a.date) - new Date(b.date);
       }).slice(0, 14);
+  } catch(e) {}
 
-    if (!scored.length) {
-      el.innerHTML = `<div class="empty" style="padding:16px;font-size:13px">Aucun event · <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--acc2)">ForexFactory ↗</a></div>`;
-      return;
-    }
+  if (scored.length > 0) {
     el.innerHTML = scored.map(ev => {
       const hasA = ev.actual != null && ev.actual !== '';
       const hasF = ev.estimate != null && ev.estimate !== '';
@@ -538,9 +710,22 @@ async function loadEco() {
         </div>
       </div>`;
     }).join('');
-  } catch(e) {
-    el.innerHTML = `<div class="empty" style="padding:16px;font-size:13px">Calendrier · <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--acc2)">ForexFactory ↗</a></div>`;
+    return;
   }
+
+  // Finnhub returned nothing → show direct links to calendars
+  el.innerHTML = `<div style="padding:14px 16px">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">⚠️ Données indisponibles (plan Finnhub) — Accès direct :</div>
+    ${[
+      ['ForexFactory','https://www.forexfactory.com/calendar','Calendrier complet haute importance'],
+      ['Investing.com','https://www.investing.com/economic-calendar/','Economic Calendar USD'],
+      ['FXStreet','https://www.fxstreet.com/economic-calendar','FX Economic Calendar'],
+      ['Briefing.com','https://www.briefing.com/calendars/economic-calendar','Economic Releases'],
+    ].map(([n,u,d])=>`<a href="${u}" target="_blank" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr2);text-decoration:none">
+      <div><div style="font-size:13px;font-weight:600;color:var(--text)">${n}</div><div style="font-size:11px;color:var(--text3)">${d}</div></div>
+      <span style="color:var(--acc2);font-size:16px">↗</span>
+    </a>`).join('')}
+  </div>`;
 }
 
 // ─── NEWS ────────────────────────────────────────────────────────
@@ -1045,6 +1230,116 @@ function renderNotes() {
 // ─── OVERLAY ─────────────────────────────────────────────────────
 function openOv(id) { document.getElementById(id).classList.add('on'); document.body.style.overflow='hidden'; }
 function closeOv(id) { document.getElementById(id).classList.remove('on'); document.body.style.overflow=''; }
+
+// ─── SIMULATOR ───────────────────────────────────────────────────
+let simAccounts = 1;
+
+function setAccounts(n, btn) {
+  simAccounts = n;
+  document.querySelectorAll('#sim-accounts-btns button').forEach(b => {
+    b.className = b.dataset.val == n ? 'chip cb on-sim' : 'chip cx';
+  });
+  runSim();
+}
+
+function runSim() {
+  const risk   = parseFloat(document.getElementById('sim-risk').value)   || 500;
+  const reward = parseFloat(document.getElementById('sim-reward').value) || 600;
+  const tpd    = parseInt(document.getElementById('sim-tpd').value)      || 2;
+  const days   = parseInt(document.getElementById('sim-days').value)     || 20;
+  const acc    = simAccounts;
+
+  const rr = reward / risk;
+  const tradesMo = tpd * days;
+  const tradesWk = tpd * 5;
+
+  document.getElementById('sim-rr-display').innerHTML =
+    `R:R = <strong style="color:var(--acc2)">1:${rr.toFixed(2)}</strong> &nbsp;·&nbsp; ${tradesMo} trades/mois &nbsp;·&nbsp; ${acc} compte${acc>1?'s':''}`;
+
+  const WRS = [0.4, 0.5, 0.6, 0.7, 0.8];
+  const WR_LABELS = ['40%','50%','60%','70%','80%'];
+
+  // Monthly table
+  const tableEl = document.getElementById('sim-table');
+  let thead = `<div style="display:grid;grid-template-columns:80px repeat(${WRS.length},1fr);gap:0;border-bottom:2px solid var(--border)">
+    <div style="padding:10px 12px;font-size:11px;color:var(--text3);font-weight:600">Win Rate</div>
+    ${WR_LABELS.map(l=>`<div style="padding:10px 6px;font-size:11px;color:var(--text3);font-weight:600;text-align:center">${l}</div>`).join('')}
+  </div>`;
+
+  const metrics = [
+    {label:'Semaine',  trades: tradesWk},
+    {label:'Mois',     trades: tradesMo},
+  ];
+
+  let rows = '';
+  metrics.forEach((m,mi) => {
+    rows += `<div style="display:grid;grid-template-columns:80px repeat(${WRS.length},1fr);gap:0;border-bottom:1px solid var(--bdr2);background:${mi%2?'var(--ink3)':''}">
+      <div style="padding:10px 12px;font-size:12px;font-weight:600;color:var(--text2);display:flex;align-items:center">${m.label}</div>
+      ${WRS.map(wr => {
+        const wins   = m.trades * wr;
+        const losses = m.trades * (1-wr);
+        const pnl    = (wins * reward - losses * risk) * acc;
+        const col    = pnl >= 0 ? 'var(--green2)' : 'var(--red2)';
+        return `<div style="padding:10px 4px;text-align:center;font-size:12px;font-weight:700;font-family:var(--mono);color:${col}">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(0)}</div>`;
+      }).join('')}
+    </div>`;
+  });
+
+  tableEl.innerHTML = thead + rows;
+
+  // Expectancy
+  const expRow = `<div style="display:grid;grid-template-columns:80px repeat(${WRS.length},1fr);gap:0">
+    <div style="padding:10px 12px;font-size:11px;color:var(--text3);display:flex;align-items:center">Exp/trade</div>
+    ${WRS.map(wr => {
+      const exp = (wr * reward) - ((1-wr) * risk);
+      return `<div style="padding:10px 4px;text-align:center;font-size:11px;font-family:var(--mono);color:${exp>=0?'var(--green2)':'var(--red2)'}">${exp>=0?'+':''}$${Math.abs(exp).toFixed(0)}</div>`;
+    }).join('')}
+  </div>`;
+  tableEl.innerHTML += expRow;
+
+  // Weekly detail cards
+  const weeklyEl = document.getElementById('sim-weekly');
+  weeklyEl.innerHTML = WRS.map((wr, i) => {
+    const wins   = tradesWk * wr;
+    const losses = tradesWk * (1-wr);
+    const pnlWk  = (wins * reward - losses * risk) * acc;
+    const pnlMo  = pnlWk * (days/5);
+    const col    = pnlWk >= 0 ? 'var(--green2)' : 'var(--red2)';
+    const breakEvenTrades = Math.ceil(risk * tradesWk / (reward + risk));
+    return `<div class="row">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:700;color:var(--acc2)">${WR_LABELS[i]}</span>
+          <span style="font-size:12px;color:var(--text3)">win rate</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">${Math.round(wins)} wins · ${Math.round(losses)} losses / semaine${acc>1?` · ${acc} comptes`:''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">Break-even : ${breakEvenTrades} wins min/semaine</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${col}">${pnlWk>=0?'+':''}$${Math.abs(pnlWk).toFixed(0)}<span style="font-size:11px;color:var(--text3)">/sem</span></div>
+        <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:${col};margin-top:2px">${pnlMo>=0?'+':''}$${Math.abs(pnlMo).toFixed(0)}<span style="font-size:11px;color:var(--text3)">/mois</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Motivational message (based on 60% WR)
+  const pnl60Wk = (tradesWk * 0.6 * reward - tradesWk * 0.4 * risk) * acc;
+  const pnl60Mo = pnl60Wk * (days/5);
+  const motEl = document.getElementById('sim-motive');
+  const motTxt = document.getElementById('sim-motive-text');
+  if (pnl60Mo > 0) {
+    motEl.style.display = 'block';
+    const msgs = [
+      `Avec 60% de win rate, tu génères <strong style="color:var(--green2)">+$${Math.abs(pnl60Wk).toFixed(0)}/semaine</strong> et <strong style="color:var(--green2)">+$${Math.abs(pnl60Mo).toFixed(0)}/mois</strong>${acc>1?` sur ${acc} comptes`:''}.<br><br>🎯 L'edge existe. La discipline fait la différence.`,
+      `En restant consistant, <strong style="color:var(--green2)">+$${Math.abs(pnl60Mo).toFixed(0)}/mois</strong> est atteignable avec ton setup actuel.<br><br>💪 Chaque trade bien exécuté compte.`,
+    ];
+    motTxt.innerHTML = msgs[Math.floor(Math.random() * msgs.length)];
+  } else {
+    motEl.style.display = 'block';
+    motTxt.innerHTML = `⚠️ Avec ce R:R et 60% WR, l'espérance est négative.<br><br>Améliore ton R:R ou ton win rate pour être profitable.`;
+  }
+}
+
 </script>
 </body>
 </html>
