@@ -454,8 +454,7 @@ const cp = n => n > 0 ? 'var(--green2)' : n < 0 ? 'var(--red2)' : 'var(--amber)'
 // ── INIT ──────────────────────────────────────────────────────────
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 load(); renderStats(); renderNotes(); renderList();
-loadWeather(); loadEarnings(); loadEco(); loadNews('finnhub');
-loadForecast();
+loadWeather(); loadEarnings(); loadEco(); loadNews();
 
 // ── WEATHER ───────────────────────────────────────────────────────
 async function loadWeather() {
@@ -511,7 +510,7 @@ async function loadEarnings() {
     const now = new Date();
     const from = new Date(now - 8*86400000).toISOString().slice(0,10);
     const to = new Date(now.getTime() + 8*86400000).toISOString().slice(0,10);
-    const res = await fetch(`${FH_URL}/calendar/earnings?from=${from}&to=${to}&token=${FH}`);
+    const res = await fetch(`${FH_URL}/calendar/earnings?from=${from}&to=${to}&token=${FH}`, {signal: AbortSignal.timeout(6000)});
     const data = await res.json();
     const relevant = (data.earningsCalendar||[]).filter(e => TOP.includes(e.symbol)).sort((a,b) => new Date(a.date)-new Date(b.date));
     if(!relevant.length) { card.innerHTML = `<div class="empty" style="padding:24px"><div class="ed">Aucun earnings cette semaine pour le top Nasdaq / SP500.</div></div>`; return; }
@@ -556,7 +555,7 @@ async function loadEco() {
     // Wider window: -2 days to +12 days to catch all nearby events
     const from = new Date(now - 2*86400000).toISOString().slice(0,10);
     const to = new Date(now.getTime() + 12*86400000).toISOString().slice(0,10);
-    const res = await fetch(`${FH_URL}/calendar/economic?from=${from}&to=${to}&token=${FH}`);
+    const res = await fetch(`${FH_URL}/calendar/economic?from=${from}&to=${to}&token=${FH}`, {signal: AbortSignal.timeout(6000)});
     const data = await res.json();
     const allEvents = data.economicCalendar || [];
     const usdEvents = allEvents.filter(e => e.country==='US' || e.currency==='USD');
@@ -623,7 +622,7 @@ async function loadNews() {
 
   // 1. Finnhub general news
   try {
-    const res = await fetch(`${FH_URL}/news?category=general&minId=0&token=${FH}`);
+    const res = await fetch(`${FH_URL}/news?category=general&minId=0&token=${FH}`, {signal: AbortSignal.timeout(6000)});
     const articles = await res.json();
     if(Array.isArray(articles)) {
       articles.slice(0, 4).forEach(a => {
@@ -700,7 +699,7 @@ async function loadForecast() {
 
   // 1. Sentiment via Finnhub — recommendation trends for QQQ (free)
   try {
-    const res = await fetch(`${FH_URL}/stock/recommendation?symbol=QQQ&token=${FH}`);
+    const res = await fetch(`${FH_URL}/stock/recommendation?symbol=QQQ&token=${FH}`, {signal: AbortSignal.timeout(6000)});
     const data = await res.json();
     const latest = Array.isArray(data) && data[0];
     if(latest) {
@@ -784,7 +783,7 @@ async function loadForecast() {
     const now = new Date();
     const from = now.toISOString().slice(0,10);
     const to = new Date(now.getTime() + 7*86400000).toISOString().slice(0,10);
-    const res = await fetch(`${FH_URL}/calendar/economic?from=${from}&to=${to}&token=${FH}`);
+    const res = await fetch(`${FH_URL}/calendar/economic?from=${from}&to=${to}&token=${FH}`, {signal: AbortSignal.timeout(6000)});
     const data = await res.json();
     const kw = ['CPI','FOMC','Fed','NFP','GDP','PCE','Nonfarm','Payroll','Minutes','Interest Rate','Inflation','Employment','ISM','PMI','Retail'];
     const events = (data.economicCalendar||[])
@@ -1247,4 +1246,3 @@ function closeOv(id, e) {
 </script>
 </body>
 </html>
-
