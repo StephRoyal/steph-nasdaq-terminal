@@ -95,8 +95,6 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .news-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:5px}
 .news-meta{font-size:11px;color:var(--text3);display:flex;gap:8px;align-items:center}
 .news-source{font-weight:600;color:var(--acc2)}
-.news-tab-btn{background:var(--ink4);border:1px solid var(--border);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;white-space:nowrap;transition:all .15s;-webkit-tap-highlight-color:transparent;flex-shrink:0}
-.news-tab-btn.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 /* Earnings */
 .earn-row{padding:12px 16px;border-bottom:1px solid var(--bdr2);display:flex;align-items:center;gap:10px}
 .earn-row:last-child{border-bottom:none}
@@ -129,7 +127,7 @@ canvas{display:block;width:100%}
   <div class="tradingview-widget-container" style="height:42px;overflow:hidden">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {"symbols":[{"proName":"CME_MINI:NQ1!","title":"NQ Futures"},{"proName":"SP:SPX","title":"S&P 500"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
+    {"symbols":[{"proName":"NASDAQ:QQQ","title":"NQ/QQQ"},{"proName":"AMEX:SPY","title":"SP500/SPY"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin $"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum $"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
     </script>
   </div>
 </div>
@@ -163,17 +161,10 @@ canvas{display:block;width:100%}
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;margin-bottom:8px">
     <div class="sl" style="margin:0">📰 Actualités &amp; Marchés</div>
-    <button class="btn ba bs" onclick="loadNews(currentNewsSource)">↻</button>
-  </div>
-  <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:8px" class="hide-scroll">
-    <button class="news-tab-btn active" onclick="switchNews('finnhub',this)">🌐 EN</button>
-    <button class="news-tab-btn" onclick="switchNews('reuters',this)">Reuters</button>
-    <button class="news-tab-btn" onclick="switchNews('cnbc',this)">CNBC</button>
-    <button class="news-tab-btn" onclick="switchNews('bloomberg',this)">Bloomberg</button>
-    <button class="news-tab-btn" onclick="switchNews('yahoo',this)">Yahoo</button>
+    <button class="btn ba bs" onclick="loadNews()">↻</button>
   </div>
   <div id="news-feed">
-    <div style="text-align:center;padding:28px"><div class="spn" style="margin-bottom:10px"></div></div>
+    <div style="text-align:center;padding:28px"><div class="spn"></div></div>
   </div>
 </div>
 
@@ -257,37 +248,39 @@ canvas{display:block;width:100%}
 
 <!-- PAGE: FORECAST -->
 <div id="page-forecast" class="page">
-  <div class="sl">🎯 NQ — Forecast Hebdo via Options</div>
-  <div class="card" style="padding:14px 16px;margin-bottom:12px">
-    <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px">Les marchés d'options donnent une indication sur où les spéculateurs voient le NQ terminer la semaine. Le <strong style="color:var(--acc2)">Max Pain</strong> est le prix où le plus grand nombre d'options expire sans valeur (douleur max pour les acheteurs). Le <strong style="color:var(--amber)">Put/Call Ratio</strong> indique le sentiment directionnel.</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="sc"><div class="sl2">Put/Call Ratio QQQ</div><div class="sv" id="fc-pcr" style="color:var(--text3)">—</div><div style="font-size:11px;color:var(--text3);margin-top:3px">&lt;0.7 bullish · &gt;1.0 bearish</div></div>
-      <div class="sc"><div class="sl2">Biais hebdo</div><div class="sv" id="fc-bias" style="color:var(--text3)">—</div></div>
-    </div>
-  </div>
+  <div class="sl">🎯 NQ — Forecast &amp; Sentiment Hebdo</div>
 
-  <div class="sl">📊 Consensus Analystes — NQ/QQQ</div>
-  <div class="card">
-    <div style="padding:14px 16px;border-bottom:1px solid var(--bdr2)">
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Objectifs de prix — Top Analystes</div>
-      <div style="font-size:12px;color:var(--text3)">Sources : Wall Street, grands fonds, sell-side</div>
-    </div>
-    <div id="analyst-list">
-      <div style="text-align:center;padding:20px"><div class="spn"></div></div>
-    </div>
-  </div>
-
-  <div class="sl">📈 Niveaux Techniques Clés cette Semaine</div>
-  <div class="card" id="key-levels">
+  <div class="card" id="fg-sentiment">
     <div style="text-align:center;padding:20px"><div class="spn"></div></div>
   </div>
 
-  <div class="sl">⚠️ Event Risk — À surveiller</div>
+  <div class="sl">📊 Recommandations Analystes — QQQ</div>
+  <div class="card" id="fg-analysts">
+    <div style="text-align:center;padding:20px"><div class="spn"></div></div>
+  </div>
+
+  <div class="sl">🗓️ Événements &amp; Risques cette Semaine</div>
+  <div class="card" id="fg-events">
+    <div style="text-align:center;padding:20px"><div class="spn"></div></div>
+  </div>
+
+  <div class="sl">🔗 Outils Options &amp; Max Pain</div>
   <div class="card">
-    <div style="padding:14px 16px">
-      <div style="display:flex;flex-direction:column;gap:8px" id="event-risk">
-        <div style="text-align:center;padding:10px"><div class="spn"></div></div>
-      </div>
+    <div class="crow">
+      <div class="rl"><div style="font-size:13px;font-weight:600">Max Pain NQ/QQQ</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Prix où le plus d'options expire sans valeur</div></div>
+      <a href="https://maximum-pain.com/options/QQQ" target="_blank" class="btn bg bs">Ouvrir ↗</a>
+    </div>
+    <div class="crow">
+      <div class="rl"><div style="font-size:13px;font-weight:600">OptionStrat — Flow &amp; Greeks</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Options flow, vol surface, stratégies</div></div>
+      <a href="https://optionstrat.com/analyze/long-call/QQQ" target="_blank" class="btn bg bs">Ouvrir ↗</a>
+    </div>
+    <div class="crow">
+      <div class="rl"><div style="font-size:13px;font-weight:600">CBOE Put/Call Ratio (live)</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Données officielles options CBOE</div></div>
+      <a href="https://www.cboe.com/us/options/market_statistics/daily/" target="_blank" class="btn bg bs">Ouvrir ↗</a>
+    </div>
+    <div class="crow">
+      <div class="rl"><div style="font-size:13px;font-weight:600">Barchart — Options NQ</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Chaîne d'options NQ Futures complète</div></div>
+      <a href="https://www.barchart.com/futures/quotes/NQ*0/options" target="_blank" class="btn bg bs">Ouvrir ↗</a>
     </div>
   </div>
 </div>
@@ -346,9 +339,18 @@ canvas{display:block;width:100%}
     <div class="fg">
       <label class="fl">Prix Max Hold <span style="color:var(--acc2);font-size:10px;text-transform:none">→ calcule le P&L si tu avais hold</span></label>
       <input type="number" class="fi" id="f-maxhold-price" placeholder="Prix auquel tu aurais pu sortir (ex: 19 450)" step="0.25" oninput="calcMaxHold()"/>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text3)">
+          <input type="radio" name="contract-type" value="mnq" checked onchange="calcMaxHold()" style="accent-color:var(--acc)"> MNQ ($2/pt)
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--text3)">
+          <input type="radio" name="contract-type" value="nq" onchange="calcMaxHold()" style="accent-color:var(--acc)"> NQ ($20/pt)
+        </label>
+      </div>
       <div id="maxhold-result" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(245,158,11,.08);border-radius:8px;border:1px solid rgba(245,158,11,.2)">
-        <span style="font-size:12px;color:var(--amber);font-weight:600">💰 Si hold jusqu'à </span><span id="maxhold-price-display" style="font-size:12px;color:var(--amber);font-family:var(--mono);font-weight:700"></span>
-        <span style="font-size:12px;color:var(--text3)"> → </span>
+        <span style="font-size:12px;color:var(--amber);font-weight:600">💰 Si hold → </span>
+        <span id="maxhold-price-display" style="font-size:12px;color:var(--amber);font-family:var(--mono);font-weight:700"></span>
+        <span style="font-size:12px;color:var(--text3)"> = </span>
         <span id="maxhold-pnl-display" style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--amber)"></span>
         <span style="font-size:11px;color:var(--text3);margin-left:6px" id="maxhold-left"></span>
       </div>
@@ -460,7 +462,7 @@ function showPage(id, el) {
   document.getElementById('page-'+id).classList.add('active');
   el.classList.add('active');
   if(id==='journal') renderStats();
-  if(id==='forecast') loadForecast();
+  if(id==='forecast') { forecastLoaded = false; loadForecast(); }
 }
 function showJT(id, el) {
   ['stats','calendar','list','import'].forEach(t => document.getElementById('jt-'+t).style.display = t===id ? 'block' : 'none');
@@ -523,7 +525,7 @@ async function loadEco() {
     const to = new Date(now.getTime() + 8*86400000).toISOString().slice(0,10);
     const res = await fetch(`${FH_URL}/calendar/economic?from=${from}&to=${to}&token=${FH}`);
     const data = await res.json();
-    const kw = ['CPI','PPI','NFP','Nonfarm','FOMC','Fed','GDP','PCE','Unemployment','Jobless','ISM','Retail Sales','Core CPI','Payroll','ADP','Durable'];
+    const kw = ['CPI','PPI','NFP','Nonfarm','FOMC','Fed','GDP','PCE','Unemployment','Jobless','ISM','Retail Sales','Core CPI','Payroll','ADP','Durable','Minute','minute','Interest Rate','Inflation','Employment','Housing','Consumer','Producer','Manufacturing','Services','PMI'];
     const filtered = (data.economicCalendar||[]).filter(e => (e.country==='US'||e.currency==='USD') && kw.some(k => (e.event||'').includes(k))).slice(0,10);
     if(!filtered.length) {
       card.innerHTML = `<div style="text-align:center;padding:16px;font-size:13px;color:var(--text3)">Aucun event haute importance · <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--acc2)">ForexFactory ↗</a></div>`;
@@ -552,173 +554,220 @@ async function loadEco() {
   }
 }
 
-// ── NEWS ─────────────────────────────────────────────────────────
-let currentNewsSource = 'finnhub';
-const NEWS_SOURCES = {
-  reuters: { label:'Reuters', url:'https://feeds.reuters.com/reuters/businessNews' },
-  cnbc:    { label:'CNBC',    url:'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100727362' },
-  bloomberg:{ label:'Bloomberg', url:'https://feeds.bloomberg.com/markets/news.rss' },
-  yahoo:   { label:'Yahoo Finance', url:'https://finance.yahoo.com/rss/topfinstories' },
-};
-
-function switchNews(src, el) {
-  currentNewsSource = src;
-  document.querySelectorAll('.news-tab-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  loadNews(src);
-}
-
-async function loadNews(src) {
-  currentNewsSource = src || 'finnhub';
+// ── NEWS — Mixed feed from multiple sources ──────────────────────
+async function loadNews() {
   const container = document.getElementById('news-feed');
   container.innerHTML = `<div style="text-align:center;padding:20px"><div class="spn"></div></div>`;
-  if(src === 'finnhub' || !src) { await loadFinnhubNews(); return; }
-  const feed = NEWS_SOURCES[src];
-  if(!feed?.url) { await loadFinnhubNews(); return; }
-  try {
-    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(feed.url)}`;
-    const res = await fetch(proxy);
-    const data = await res.json();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, 'text/xml');
-    const items = Array.from(xml.querySelectorAll('item')).slice(0,7);
-    if(!items.length) throw new Error('no items');
-    let html = '';
-    items.forEach(item => {
-      const title = item.querySelector('title')?.textContent || '';
-      const link = item.querySelector('link')?.textContent || item.querySelector('link')?.nextSibling?.textContent || '#';
-      const pubDate = item.querySelector('pubDate')?.textContent || '';
-      const desc = (item.querySelector('description')?.textContent || '').replace(/<[^>]+>/g,'').slice(0,140);
-      const ts = pubDate ? new Date(pubDate).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + ' · ' + new Date(pubDate).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
-      html += `<a class="news-item" href="${link}" target="_blank" rel="noopener">
-        <div class="news-title">${title}</div>
-        <div class="news-meta"><span class="news-source">${feed.label}</span>${ts?`<span>·</span><span>${ts}</span>`:''}</div>
-        ${desc ? `<div style="font-size:12px;color:var(--text3);margin-top:6px;line-height:1.4">${desc}…</div>` : ''}
-      </a>`;
-    });
-    container.innerHTML = html;
-  } catch(e) {
-    container.innerHTML = `<div style="text-align:center;padding:16px"><a href="${feed.url}" target="_blank" style="color:var(--acc2);font-size:13px">Ouvrir ${feed.label} ↗</a></div>`;
-  }
-}
 
-async function loadFinnhubNews() {
-  const container = document.getElementById('news-feed');
+  // Try Finnhub first (most reliable), then supplement with RSS
+  const allArticles = [];
+
+  // 1. Finnhub general news
   try {
     const res = await fetch(`${FH_URL}/news?category=general&minId=0&token=${FH}`);
     const articles = await res.json();
-    const items = (Array.isArray(articles) ? articles : []).slice(0,7);
-    if(!items.length) throw new Error('empty');
-    let html = '';
-    items.forEach(a => {
-      const ts = a.datetime ? new Date(a.datetime*1000) : new Date();
-      const timeStr = ts.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + ' · ' + ts.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-      html += `<a class="news-item" href="${a.url||'#'}" target="_blank" rel="noopener">
-        <div class="news-title">${a.headline||a.title||''}</div>
-        <div class="news-meta"><span class="news-source">${a.source||'News'}</span><span>·</span><span>${timeStr}</span></div>
-        ${a.summary ? `<div style="font-size:12px;color:var(--text3);margin-top:6px;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${a.summary}</div>` : ''}
-      </a>`;
-    });
-    container.innerHTML = html;
-  } catch(e) {
-    container.innerHTML = `<div style="text-align:center;padding:16px;font-size:13px;color:var(--text3)">Erreur réseau.</div>`;
+    if(Array.isArray(articles)) {
+      articles.slice(0, 4).forEach(a => {
+        allArticles.push({
+          title: a.headline || a.title || '',
+          url: a.url || '#',
+          source: a.source || 'News',
+          time: a.datetime ? new Date(a.datetime * 1000) : new Date(),
+          summary: a.summary || ''
+        });
+      });
+    }
+  } catch(e) {}
+
+  // 2. Try RSS feeds via allorigins (mix of sources)
+  const rssFeeds = [
+    { url: 'https://feeds.reuters.com/reuters/businessNews', source: 'Reuters' },
+    { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100727362', source: 'CNBC' },
+    { url: 'https://finance.yahoo.com/rss/topfinstories', source: 'Yahoo Finance' },
+  ];
+
+  for(const feed of rssFeeds) {
+    if(allArticles.length >= 7) break;
+    try {
+      const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(feed.url)}`;
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(4000) });
+      const data = await res.json();
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(data.contents, 'text/xml');
+      const items = Array.from(xml.querySelectorAll('item')).slice(0, 2);
+      items.forEach(item => {
+        const title = item.querySelector('title')?.textContent || '';
+        const link = item.querySelector('link')?.textContent || item.querySelector('link')?.nextSibling?.textContent || '#';
+        const pubDate = item.querySelector('pubDate')?.textContent || '';
+        const desc = (item.querySelector('description')?.textContent || '').replace(/<[^>]+>/g,'').trim().slice(0, 140);
+        if(title && !allArticles.some(a => a.title.slice(0,30) === title.slice(0,30))) {
+          allArticles.push({
+            title, url: link, source: feed.source,
+            time: pubDate ? new Date(pubDate) : new Date(),
+            summary: desc
+          });
+        }
+      });
+    } catch(e) {}
   }
+
+  if(!allArticles.length) {
+    container.innerHTML = `<div style="background:var(--ink3);border-radius:var(--r);padding:16px;border:1px solid var(--bdr2)">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">Sources d'actualités</div>
+      ${[['Reuters','https://reuters.com/markets/'],['CNBC','https://cnbc.com/markets/'],['Bloomberg','https://bloomberg.com/markets'],['Investing.com','https://investing.com/news/'],['Yahoo Finance','https://finance.yahoo.com/']].map(([n,u])=>`<a href="${u}" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bdr2);text-decoration:none"><span style="font-size:13px;color:var(--text)">${n}</span><span style="color:var(--acc2);font-size:12px">↗</span></a>`).join('')}
+    </div>`;
+    return;
+  }
+
+  // Sort by time, newest first, take 7
+  allArticles.sort((a,b) => b.time - a.time);
+  const final = allArticles.slice(0, 7);
+
+  container.innerHTML = final.map(a => {
+    const timeStr = a.time.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + ' · ' + a.time.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+    return `<a class="news-item" href="${a.url}" target="_blank" rel="noopener">
+      <div class="news-title">${a.title}</div>
+      <div class="news-meta"><span class="news-source">${a.source}</span><span>·</span><span>${timeStr}</span></div>
+      ${a.summary ? `<div style="font-size:12px;color:var(--text3);margin-top:6px;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${a.summary}</div>` : ''}
+    </a>`;
+  }).join('');
 }
 
-// ── FORECAST PAGE ────────────────────────────────────────────────
+// ── FORECAST ─────────────────────────────────────────────────────
 let forecastLoaded = false;
 async function loadForecast() {
   if(forecastLoaded) return;
   forecastLoaded = true;
 
-  // Put/Call ratio via Finnhub market data for QQQ sentiment
-  // We use Finnhub recommendation trends as a proxy for analyst consensus
+  // 1. Sentiment via Finnhub — recommendation trends for QQQ (free)
   try {
     const res = await fetch(`${FH_URL}/stock/recommendation?symbol=QQQ&token=${FH}`);
     const data = await res.json();
-    const latest = data[0];
+    const latest = Array.isArray(data) && data[0];
     if(latest) {
-      const total = latest.buy + latest.hold + latest.sell + latest.strongBuy + latest.strongSell;
-      const bullish = latest.buy + latest.strongBuy;
-      const bearish = latest.sell + latest.strongSell;
-      const pcr_proxy = bearish / Math.max(bullish, 1);
-      const bias = pcr_proxy < 0.5 ? 'BULLISH 🟢' : pcr_proxy < 1.0 ? 'NEUTRE 🟡' : 'BEARISH 🔴';
-      const bColor = pcr_proxy < 0.5 ? 'var(--green2)' : pcr_proxy < 1.0 ? 'var(--amber)' : 'var(--red2)';
-      document.getElementById('fc-pcr').textContent = pcr_proxy.toFixed(2);
-      document.getElementById('fc-pcr').style.color = bColor;
-      document.getElementById('fc-bias').textContent = bias;
-      document.getElementById('fc-bias').style.color = bColor;
-    }
-  } catch(e) {}
+      const strongBuy = latest.strongBuy || 0, buy = latest.buy || 0;
+      const hold = latest.hold || 0;
+      const sell = latest.sell || 0, strongSell = latest.strongSell || 0;
+      const total = strongBuy + buy + hold + sell + strongSell || 1;
+      const bullPct = Math.round((strongBuy + buy) / total * 100);
+      const bearPct = Math.round((sell + strongSell) / total * 100);
+      const holdPct = Math.round(hold / total * 100);
+      const bias = bullPct > 60 ? 'BULLISH' : bearPct > 30 ? 'BEARISH' : 'NEUTRE';
+      const biasColor = bullPct > 60 ? 'var(--green2)' : bearPct > 30 ? 'var(--red2)' : 'var(--amber)';
+      const biasEmoji = bullPct > 60 ? '🟢' : bearPct > 30 ? '🔴' : '🟡';
 
-  // Analyst price targets
-  try {
-    const res = await fetch(`${FH_URL}/stock/price-target?symbol=QQQ&token=${FH}`);
-    const data = await res.json();
-    const el = document.getElementById('analyst-list');
-    if(data && data.targetMean) {
-      const t = data.targetMean, h = data.targetHigh, l = data.targetLow, n = data.numberOfAnalysts;
-      el.innerHTML = `
-        <div class="crow">
-          <div class="rl"><div style="font-size:13px;font-weight:600">Objectif moyen — ${n||'?'} analystes</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Consensus Wall Street (QQQ proxy NQ)</div></div>
-          <div style="text-align:right;flex-shrink:0"><div style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--acc2)">$${t.toFixed(0)}</div></div>
+      document.getElementById('fg-sentiment').innerHTML = `
+        <div style="padding:14px 16px;border-bottom:1px solid var(--bdr2)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="font-size:28px">${biasEmoji}</div>
+            <div>
+              <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:${biasColor}">${bias}</div>
+              <div style="font-size:12px;color:var(--text3)">Consensus analystes Wall Street — QQQ</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;height:8px;border-radius:99px;overflow:hidden;margin-bottom:8px">
+            <div style="width:${bullPct}%;background:var(--green);border-radius:99px 0 0 99px"></div>
+            <div style="width:${holdPct}%;background:var(--amber)"></div>
+            <div style="width:${bearPct}%;background:var(--red);border-radius:0 99px 99px 0"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--mono)">
+            <span style="color:var(--green2)">▲ BUY ${bullPct}% (${strongBuy+buy})</span>
+            <span style="color:var(--amber)">HOLD ${holdPct}% (${hold})</span>
+            <span style="color:var(--red2)">▼ SELL ${bearPct}% (${sell+strongSell})</span>
+          </div>
         </div>
-        <div class="crow">
-          <div class="rl"><div style="font-size:13px;font-weight:600">Objectif haut (Bull case)</div></div>
-          <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--green2)">$${h.toFixed(0)}</div>
-        </div>
-        <div class="crow">
-          <div class="rl"><div style="font-size:13px;font-weight:600">Objectif bas (Bear case)</div></div>
-          <div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--red2)">$${l.toFixed(0)}</div>
+        <div style="padding:12px 16px">
+          <div style="font-size:12px;color:var(--text3)">Période : ${latest.period || '—'} · Source : Finnhub / Analystes sell-side</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px">⚠️ Le biais analystes ≠ direction immédiate du NQ. Utilise en complément de ton analyse technique.</div>
         </div>`;
     } else {
-      el.innerHTML = `<div style="text-align:center;padding:16px;font-size:13px;color:var(--text3)">Données non disponibles sur le plan gratuit Finnhub.</div>`;
+      document.getElementById('fg-sentiment').innerHTML = `<div style="padding:16px;font-size:13px;color:var(--text3);text-align:center">Données sentiment non disponibles.</div>`;
     }
   } catch(e) {
-    document.getElementById('analyst-list').innerHTML = `<div style="text-align:center;padding:16px;font-size:13px;color:var(--text3)">Erreur chargement.</div>`;
+    document.getElementById('fg-sentiment').innerHTML = `<div style="padding:16px;font-size:13px;color:var(--text3);text-align:center">Erreur chargement sentiment.</div>`;
   }
 
-  // Key levels — current week context
-  const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=Sun
-  const daysToFri = dayOfWeek === 0 ? 5 : 6 - dayOfWeek;
-  const friday = new Date(now.getTime() + daysToFri * 86400000);
-  const fridayStr = friday.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'short'});
-  document.getElementById('key-levels').innerHTML = `
-    <div class="crow">
-      <div class="rl"><div style="font-size:13px;font-weight:600">Expiration options hebdo</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${fridayStr} — 0DTE / 1DTE actifs</div></div>
-      <span class="chip ca">OPEX</span>
-    </div>
-    <div class="crow">
-      <div class="rl"><div style="font-size:13px;font-weight:600">Max Pain</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Via <a href="https://maximum-pain.com/options/QQQ" target="_blank" style="color:var(--acc2)">maximum-pain.com ↗</a> · <a href="https://optionstrat.com" target="_blank" style="color:var(--acc2)">OptionStrat ↗</a></div></div>
-      <span class="chip cb">Manuel</span>
-    </div>
-    <div class="crow">
-      <div class="rl"><div style="font-size:13px;font-weight:600">Put/Call live (CBOE)</div><div style="font-size:11px;color:var(--text3);margin-top:2px"><a href="https://www.cboe.com/us/options/market_statistics/daily/" target="_blank" style="color:var(--acc2)">cboe.com/options ↗</a></div></div>
-      <span class="chip cb">CBOE</span>
-    </div>`;
-
-  // Event risk this week
+  // 2. Analyst price targets (Finnhub free tier)
   try {
+    const [qtRes, nqNews] = await Promise.all([
+      fetch(`${FH_URL}/stock/recommendation?symbol=QQQ&token=${FH}`),
+      fetch(`${FH_URL}/news?category=general&minId=0&token=${FH}`)
+    ]);
+    const qtData = await qtRes.json();
+    const newsData = await nqNews.json();
+
+    // Filter news for NQ/market relevant articles
+    const mktNews = (Array.isArray(newsData) ? newsData : [])
+      .filter(a => {
+        const t = (a.headline || a.title || '').toLowerCase();
+        return t.includes('nasdaq') || t.includes('fed') || t.includes('s&p') || t.includes('market') || t.includes('tariff') || t.includes('trade');
+      }).slice(0, 3);
+
+    let html = '';
+    if(mktNews.length) {
+      html = '<div style="padding:4px 0">' + mktNews.map(a => {
+        const ts = a.datetime ? new Date(a.datetime*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
+        return `<a href="${a.url||'#'}" target="_blank" style="display:block;padding:12px 16px;border-bottom:1px solid var(--bdr2);text-decoration:none" class="ti">
+          <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4">${a.headline||a.title||''}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">${a.source||''} ${ts?'· '+ts:''}</div>
+        </a>`;
+      }).join('') + '</div>';
+    } else {
+      html = `<div style="padding:16px;font-size:13px;color:var(--text3);text-align:center">Filtre les news ci-dessus pour voir les articles liés au NQ/marchés.</div>`;
+    }
+    document.getElementById('fg-analysts').innerHTML = html;
+  } catch(e) {
+    document.getElementById('fg-analysts').innerHTML = `<div style="padding:16px;font-size:13px;color:var(--text3);text-align:center">Erreur chargement.</div>`;
+  }
+
+  // 3. Event Risk — Economic calendar this week (extended keywords)
+  try {
+    const now = new Date();
     const from = now.toISOString().slice(0,10);
     const to = new Date(now.getTime() + 7*86400000).toISOString().slice(0,10);
     const res = await fetch(`${FH_URL}/calendar/economic?from=${from}&to=${to}&token=${FH}`);
     const data = await res.json();
-    const kw = ['CPI','FOMC','Fed','NFP','GDP','PCE','Nonfarm','Payroll'];
-    const events = (data.economicCalendar||[]).filter(e => (e.country==='US'||e.currency==='USD') && kw.some(k => (e.event||'').includes(k))).slice(0,5);
-    const el = document.getElementById('event-risk');
+    const kw = ['CPI','FOMC','Fed','NFP','GDP','PCE','Nonfarm','Payroll','Minutes','Interest Rate','Inflation','Employment','ISM','PMI','Retail'];
+    const events = (data.economicCalendar||[])
+      .filter(e => (e.country==='US'||e.currency==='USD') && kw.some(k => (e.event||'').toLowerCase().includes(k.toLowerCase())))
+      .sort((a,b) => new Date(a.date+'T12:00:00') - new Date(b.date+'T12:00:00'))
+      .slice(0,8);
+
+    const el = document.getElementById('fg-events');
     if(events.length) {
-      el.innerHTML = events.map(ev => {
-        const ds = new Date((ev.time||(ev.date+'T12:00:00'))).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr2)">
-          <div><div style="font-size:13px;font-weight:600">${ev.event}</div><div style="font-size:11px;color:var(--text3)">${ds}</div></div>
-          <span class="chip ca">⚠️ Risque</span>
-        </div>`;
-      }).join('');
+      // Group by date
+      const byDate = {};
+      events.forEach(ev => {
+        const ds = new Date((ev.time||(ev.date+'T12:00:00'))).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'short'});
+        if(!byDate[ds]) byDate[ds] = [];
+        byDate[ds].push(ev);
+      });
+
+      el.innerHTML = Object.entries(byDate).map(([dateStr, evs]) => `
+        <div style="padding:10px 16px;background:var(--ink3);border-bottom:1px solid var(--bdr2)">
+          <div style="font-size:11px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.06em">${dateStr}</div>
+        </div>
+        ${evs.map(ev => {
+          const hasA = ev.actual !== null && ev.actual !== undefined && ev.actual !== '';
+          const hasF = ev.estimate !== null && ev.estimate !== undefined && ev.estimate !== '';
+          let col = 'var(--text2)', icon = '';
+          if(hasA && hasF) { const a=parseFloat(ev.actual),f=parseFloat(ev.estimate); if(!isNaN(a)&&!isNaN(f)){col=a>=f?'var(--green2)':'var(--red2)';icon=a>=f?'▲ ':'▼ ';} }
+          return `<div class="crow">
+            <div class="rl">
+              <div style="font-size:13px;font-weight:600">${ev.event}</div>
+              ${hasF ? `<div style="font-size:11px;color:var(--text3);margin-top:2px">Prév: <span style="color:var(--acc2)">${ev.estimate}</span>${ev.prev?` · Préc: ${ev.prev}`:''}</div>` : ''}
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              ${hasA ? `<div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${col}">${icon}${ev.actual}</div>` : `<span class="chip ca">⚠️ À venir</span>`}
+            </div>
+          </div>`;
+        }).join('')}`).join('');
     } else {
-      el.innerHTML = `<div style="font-size:13px;color:var(--text3);text-align:center">Aucun event majeur cette semaine.</div>`;
+      el.innerHTML = `<div style="padding:16px;font-size:13px;color:var(--text3);text-align:center">Aucun event USD majeur cette semaine · <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--acc2)">ForexFactory ↗</a></div>`;
     }
-  } catch(e) {}
+  } catch(e) {
+    document.getElementById('fg-events').innerHTML = `<div style="padding:16px;font-size:13px;color:var(--text3);text-align:center">Erreur calendrier.</div>`;
+  }
 }
 
 // ── TRADE JOURNAL ─────────────────────────────────────────────────
@@ -753,16 +802,18 @@ function calcMaxHold() {
   const resEl = document.getElementById('maxhold-result');
   if(!entry || !maxPrice || isNaN(maxPrice)) { resEl.style.display='none'; return; }
 
-  // NQ: 1 point = $20 per contract (MNQ = $2)
-  const pointValue = 20; // Assuming full NQ; user can adjust
+  // Contract type selection
+  const contractType = document.querySelector('input[name="contract-type"]:checked')?.value || 'mnq';
+  const pointValue = contractType === 'mnq' ? 2 : 20; // MNQ=$2/pt, NQ=$20/pt
+
   const points = dir==='Long' ? maxPrice - entry : entry - maxPrice;
   const maxPnl = points * pointValue * size;
   const leftOnTable = maxPnl - pnlReal;
 
   resEl.style.display = 'block';
-  document.getElementById('maxhold-price-display').textContent = maxPrice.toFixed(2);
+  document.getElementById('maxhold-price-display').textContent = maxPrice.toFixed(2) + ' (' + (points >= 0 ? '+' : '') + points.toFixed(2) + ' pts · $' + pointValue + '/pt)';
   document.getElementById('maxhold-pnl-display').textContent = fp(maxPnl);
-  document.getElementById('maxhold-left').textContent = leftOnTable > 0 ? `(+$${leftOnTable.toFixed(0)} laissé sur la table)` : '';
+  document.getElementById('maxhold-left').textContent = leftOnTable > 0 ? `(+$${leftOnTable.toFixed(0)} laissé sur la table)` : leftOnTable < 0 ? `(-$${Math.abs(leftOnTable).toFixed(0)} au-delà de ton TP)` : '';
 }
 
 function openTrade() {
@@ -788,8 +839,10 @@ function saveTrade() {
 
   let maxhold = '';
   if(maxHoldPrice) {
+    const contractType = document.querySelector('input[name="contract-type"]:checked')?.value || 'mnq';
+    const pointValue = contractType === 'mnq' ? 2 : 20;
     const points = dir==='Long' ? maxHoldPrice-e : e-maxHoldPrice;
-    maxhold = (points * 20 * size).toFixed(0);
+    maxhold = (points * pointValue * size).toFixed(0);
   }
 
   S.trades.push({
