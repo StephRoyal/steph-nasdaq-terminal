@@ -122,12 +122,12 @@ canvas{display:block;width:100%}
 </head>
 <body>
 
-<!-- TICKER: NQ(QQQ) SP500(SPY) Gold Oil BTC ETH — real prices, with % change -->
+<!-- TICKER: CFD symbols — real-time prices, no CME subscription needed -->
 <div id="ticker-bar">
   <div class="tradingview-widget-container" style="height:42px;overflow:hidden">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {"symbols":[{"proName":"NASDAQ:QQQ","title":"NQ/QQQ"},{"proName":"AMEX:SPY","title":"SP500/SPY"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin $"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum $"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
+    {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ/Nasdaq"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin $"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum $"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
     </script>
   </div>
 </div>
@@ -259,6 +259,37 @@ canvas{display:block;width:100%}
     <div style="text-align:center;padding:20px"><div class="spn"></div></div>
   </div>
 
+  <div class="sl">🎯 TipRanks — Forecast Top Nasdaq (20 stocks)</div>
+  <div class="card">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--bdr2);font-size:12px;color:var(--text3)">Clique sur un ticker pour voir le forecast analyste sur TipRanks</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px">
+      <a href="https://www.tipranks.com/stocks/nvda/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">NVDA</a>
+      <a href="https://www.tipranks.com/stocks/aapl/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">AAPL</a>
+      <a href="https://www.tipranks.com/stocks/msft/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">MSFT</a>
+      <a href="https://www.tipranks.com/stocks/amzn/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">AMZN</a>
+      <a href="https://www.tipranks.com/stocks/meta/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">META</a>
+      <a href="https://www.tipranks.com/stocks/googl/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">GOOGL</a>
+      <a href="https://www.tipranks.com/stocks/tsla/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">TSLA</a>
+      <a href="https://www.tipranks.com/stocks/avgo/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">AVGO</a>
+      <a href="https://www.tipranks.com/stocks/asml/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">ASML</a>
+      <a href="https://www.tipranks.com/stocks/nflx/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">NFLX</a>
+      <a href="https://www.tipranks.com/stocks/cost/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">COST</a>
+      <a href="https://www.tipranks.com/stocks/amd/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">AMD</a>
+      <a href="https://www.tipranks.com/stocks/csco/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">CSCO</a>
+      <a href="https://www.tipranks.com/stocks/amat/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">AMAT</a>
+      <a href="https://www.tipranks.com/stocks/qcom/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">QCOM</a>
+      <a href="https://www.tipranks.com/stocks/intc/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">INTC</a>
+      <a href="https://www.tipranks.com/stocks/amgn/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">AMGN</a>
+      <a href="https://www.tipranks.com/stocks/intu/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">INTU</a>
+      <a href="https://www.tipranks.com/stocks/adbe/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">ADBE</a>
+      <a href="https://www.tipranks.com/stocks/panw/forecast" target="_blank" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:var(--text2);text-decoration:none;font-family:var(--mono)">PANW</a>
+    </div>
+    <div style="padding:0 16px 12px;font-size:11px;color:var(--text3)">
+      📎 <a href="https://www.tipranks.com/etf/qqq/forecast" target="_blank" style="color:var(--acc2)">QQQ ETF Forecast ↗</a> · 
+      <a href="https://www.tipranks.com/stocks/mnq/forecast" target="_blank" style="color:var(--acc2)">NQ Forecast ↗</a>
+    </div>
+  </div>
+
   <div class="sl">🗓️ Événements &amp; Risques cette Semaine</div>
   <div class="card" id="fg-events">
     <div style="text-align:center;padding:20px"><div class="spn"></div></div>
@@ -324,7 +355,7 @@ canvas{display:block;width:100%}
     <div class="fg"><label class="fl">Entry Price</label><input type="number" class="fi" id="f-entry" placeholder="19 250.25" step="0.25" oninput="calcRR()"/></div>
     <div class="frow fg">
       <div><label class="fl">Stop Loss</label><input type="number" class="fi" id="f-sl" placeholder="19 180.00" step="0.25" oninput="calcRR()"/></div>
-      <div><label class="fl">Take Profit</label><input type="number" class="fi" id="f-tp" placeholder="19 390.00" step="0.25" oninput="calcRR()"/></div>
+      <div><label class="fl">Take Profit</label><input type="number" class="fi" id="f-tp" placeholder="19 390.00" step="0.25" oninput="calcRR();calcMaxHold()"/></div>
     </div>
     <div id="rr-wrap" style="display:none;margin-bottom:14px">
       <div class="frow">
@@ -399,7 +430,7 @@ canvas{display:block;width:100%}
 // ── CONFIG ──────────────────────────────────────────────────────
 const FH = 'd7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300';
 const FH_URL = 'https://finnhub.io/api/v1';
-const TOP = ['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','NFLX','AMD','AVGO','ORCL','BRKB'];
+const TOP = ['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','ASML','NFLX','COST','AMD','MU','CSCO','LRCX','TMUS','AMAT','ISRG','PEP','INTC','QCOM','AMGN','INTU','BKNG','KLAC','TXN','ADBE','PANW','ARM','MRVL'];
 
 // ── STATE ────────────────────────────────────────────────────────
 const SK = 'nqt-v7';
@@ -521,27 +552,55 @@ async function loadEco() {
   const card = document.getElementById('eco-card');
   try {
     const now = new Date();
-    const from = now.toISOString().slice(0,10);
-    const to = new Date(now.getTime() + 8*86400000).toISOString().slice(0,10);
+    const todayStr = now.toISOString().slice(0,10);
+    // Wider window: -2 days to +12 days to catch all nearby events
+    const from = new Date(now - 2*86400000).toISOString().slice(0,10);
+    const to = new Date(now.getTime() + 12*86400000).toISOString().slice(0,10);
     const res = await fetch(`${FH_URL}/calendar/economic?from=${from}&to=${to}&token=${FH}`);
     const data = await res.json();
-    const kw = ['CPI','PPI','NFP','Nonfarm','FOMC','Fed','GDP','PCE','Unemployment','Jobless','ISM','Retail Sales','Core CPI','Payroll','ADP','Durable','Minute','minute','Interest Rate','Inflation','Employment','Housing','Consumer','Producer','Manufacturing','Services','PMI'];
-    const filtered = (data.economicCalendar||[]).filter(e => (e.country==='US'||e.currency==='USD') && kw.some(k => (e.event||'').includes(k))).slice(0,10);
-    if(!filtered.length) {
-      card.innerHTML = `<div style="text-align:center;padding:16px;font-size:13px;color:var(--text3)">Aucun event haute importance · <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--acc2)">ForexFactory ↗</a></div>`;
+    const allEvents = data.economicCalendar || [];
+    const usdEvents = allEvents.filter(e => e.country==='US' || e.currency==='USD');
+    // High priority keywords
+    const highKw = ['FOMC','Federal Reserve','Minutes','Nonfarm','NFP','CPI','Interest Rate','GDP','PCE'];
+    // Medium priority keywords
+    const medKw = ['PPI','Unemployment','Jobless','ISM','PMI','Retail Sales','Payroll','ADP','Durable','Housing','Consumer Price','Producer Price','Manufacturing','Services','Trade Balance','Inflation'];
+    const scored = usdEvents.map(ev => {
+      const name = (ev.event || '').toLowerCase();
+      let score = 0;
+      highKw.forEach(k => { if(name.includes(k.toLowerCase())) score += 10; });
+      medKw.forEach(k => { if(name.includes(k.toLowerCase())) score += 5; });
+      return { ...ev, score };
+    }).filter(ev => ev.score > 0)
+      .sort((a,b) => {
+        const dateA = new Date(a.date+'T12:00:00');
+        const dateB = new Date(b.date+'T12:00:00');
+        const isNowA = a.date >= todayStr;
+        const isNowB = b.date >= todayStr;
+        if(isNowA !== isNowB) return isNowA ? -1 : 1; // future first
+        if(b.score !== a.score) return b.score - a.score;
+        return dateA - dateB;
+      }).slice(0, 14);
+    if(!scored.length) {
+      card.innerHTML = `<div style="text-align:center;padding:16px;font-size:13px;color:var(--text3)">Aucun event USD · <a href="https://www.forexfactory.com/calendar" target="_blank" style="color:var(--acc2)">ForexFactory ↗</a></div>`;
       return;
     }
     let html = '';
-    filtered.forEach(ev => {
+    scored.forEach(ev => {
       const hasA = ev.actual !== null && ev.actual !== undefined && ev.actual !== '';
       const hasF = ev.estimate !== null && ev.estimate !== undefined && ev.estimate !== '';
       let col = 'var(--text2)', icon = '';
-      if(hasA && hasF) { const a=parseFloat(ev.actual), f=parseFloat(ev.estimate); if(!isNaN(a)&&!isNaN(f)) { col=a>=f?'var(--green2)':'var(--red2)'; icon=a>=f?'▲ ':'▼ '; } }
+      if(hasA && hasF) { const a=parseFloat(ev.actual), f=parseFloat(ev.estimate); if(!isNaN(a)&&!isNaN(f)){col=a>=f?'var(--green2)':'var(--red2)';icon=a>=f?'▲ ':'▼ ';} }
+      const isToday = ev.date === todayStr;
+      const isPast = ev.date < todayStr;
       const ds = new Date((ev.time||(ev.date+'T12:00:00'))).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
-      html += `<div class="crow">
+      const highImpact = ev.score >= 10;
+      html += `<div class="crow" style="${isToday?'background:rgba(59,130,246,.08)':''}${isPast?'opacity:0.6':''}">
         <div class="rl">
-          <div style="font-size:13px;font-weight:600">${ev.event}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:3px">${ds}${hasF?` · Prév: <span style="color:var(--acc2)">${ev.estimate}</span>`:''} ${ev.prev?`· Préc: ${ev.prev}`:''}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;background:${highImpact?'rgba(239,68,68,.2)':'rgba(245,158,11,.15)'};color:${highImpact?'var(--red2)':'#FCD34D'}">${highImpact?'🔴 HIGH':'🟡 MED'}</span>
+            <div style="font-size:13px;font-weight:600;color:${isToday?'var(--acc2)':'var(--text)'}">${ev.event}</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">${isToday?'<strong style="color:var(--acc2)">AUJOURD'HUI</strong> · ':''}<span>${ds}</span>${hasF?` · Prév: <span style="color:var(--acc2)">${ev.estimate}</span>`:''}${ev.prev?` · Préc: ${ev.prev}`:''}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           ${hasA ? `<div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${col}">${icon}${ev.actual}</div>` : `<span class="chip cx" style="font-size:10px">À venir</span>`}
@@ -795,25 +854,55 @@ function calcRR() {
 
 function calcMaxHold() {
   const entry = parseFloat(document.getElementById('f-entry').value);
+  const tp = parseFloat(document.getElementById('f-tp').value);
   const maxPrice = parseFloat(document.getElementById('f-maxhold-price').value);
-  const pnlReal = parseFloat(document.getElementById('f-pnl').value) || 0;
+  const pnlReal = parseFloat(document.getElementById('f-pnl').value);
   const dir = document.getElementById('f-dir').value;
-  const size = parseFloat(document.getElementById('f-size').value) || 1;
   const resEl = document.getElementById('maxhold-result');
+
   if(!entry || !maxPrice || isNaN(maxPrice)) { resEl.style.display='none'; return; }
 
-  // Contract type selection
-  const contractType = document.querySelector('input[name="contract-type"]:checked')?.value || 'mnq';
-  const pointValue = contractType === 'mnq' ? 2 : 20; // MNQ=$2/pt, NQ=$20/pt
+  // Produit en croix: si mon P&L réel est connu ET mon TP est connu
+  // P&L max hold = P&L réel × (points max hold / points TP)
+  // Sinon fallback sur calcul direct avec type de contrat
+  const ptsMaxHold = dir==='Long' ? maxPrice - entry : entry - maxPrice;
+  let maxPnl;
 
-  const points = dir==='Long' ? maxPrice - entry : entry - maxPrice;
-  const maxPnl = points * pointValue * size;
-  const leftOnTable = maxPnl - pnlReal;
+  if(pnlReal && tp && !isNaN(tp)) {
+    // Règle de 3: pnlReal correspond à (tp - entry) points
+    // → maxPnl = pnlReal × ptsMaxHold / ptsTP
+    const ptsTP = dir==='Long' ? tp - entry : entry - tp;
+    if(ptsTP > 0 && ptsMaxHold !== 0) {
+      maxPnl = pnlReal * ptsMaxHold / ptsTP;
+    } else {
+      maxPnl = null;
+    }
+  } else if(pnlReal && !tp) {
+    // Pas de TP défini → on ne peut pas faire la règle de 3
+    maxPnl = null;
+  } else {
+    // Fallback: calcul direct par type de contrat
+    const contractType = document.querySelector('input[name="contract-type"]:checked')?.value || 'mnq';
+    const pointValue = contractType === 'mnq' ? 2 : 20;
+    const size = parseFloat(document.getElementById('f-size').value) || 1;
+    maxPnl = ptsMaxHold * pointValue * size;
+  }
 
   resEl.style.display = 'block';
-  document.getElementById('maxhold-price-display').textContent = maxPrice.toFixed(2) + ' (' + (points >= 0 ? '+' : '') + points.toFixed(2) + ' pts · $' + pointValue + '/pt)';
-  document.getElementById('maxhold-pnl-display').textContent = fp(maxPnl);
-  document.getElementById('maxhold-left').textContent = leftOnTable > 0 ? `(+$${leftOnTable.toFixed(0)} laissé sur la table)` : leftOnTable < 0 ? `(-$${Math.abs(leftOnTable).toFixed(0)} au-delà de ton TP)` : '';
+  const ptsLabel = (ptsMaxHold >= 0 ? '+' : '') + ptsMaxHold.toFixed(2) + ' pts';
+
+  if(maxPnl !== null) {
+    const leftOnTable = pnlReal ? maxPnl - pnlReal : null;
+    document.getElementById('maxhold-price-display').textContent = maxPrice.toFixed(2) + ' (' + ptsLabel + ')';
+    document.getElementById('maxhold-pnl-display').textContent = fp(maxPnl);
+    document.getElementById('maxhold-left').textContent = leftOnTable !== null
+      ? (leftOnTable > 0 ? `+$${leftOnTable.toFixed(0)} laissé sur la table` : leftOnTable < 0 ? `−$${Math.abs(leftOnTable).toFixed(0)} (déjà au-delà TP)` : '')
+      : '';
+  } else {
+    document.getElementById('maxhold-price-display').textContent = maxPrice.toFixed(2) + ' (' + ptsLabel + ')';
+    document.getElementById('maxhold-pnl-display').textContent = '—';
+    document.getElementById('maxhold-left').textContent = 'Entre ton TP pour calculer par règle de 3';
+  }
 }
 
 function openTrade() {
@@ -1063,7 +1152,7 @@ function renderStats() {
   const aw = wins.length ? wins.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0)/wins.length : 0;
   const al = losses.length ? Math.abs(losses.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0)/losses.length) : 0;
   const maxHolds = tr.filter(t=>t.maxhold&&parseFloat(t.maxhold));
-  const avgLeft = maxHolds.length ? maxHolds.reduce((s,t)=>s+(parseFloat(t.maxhold)-parseFloat(t.pnl)||0),0)/maxHolds.length : 0;
+  const totalLeft = maxHolds.reduce((s,t)=>s+(parseFloat(t.maxhold)-parseFloat(t.pnl)||0),0);
   const rns = tr.filter(t=>t.rr).map(t=>parseFloat(t.rr.replace('1:','')));
   const ar = rns.length ? rns.reduce((a,b)=>a+b,0)/rns.length : 0;
 
@@ -1075,7 +1164,7 @@ function renderStats() {
     {l:'W / L',v:`${wins.length}/${losses.length}`,c:'var(--text2)'},
     {l:'Avg Win',v:'$'+aw.toFixed(0),c:'var(--green2)'},
     {l:'Avg Loss',v:'-$'+al.toFixed(0),c:'var(--red2)'},
-    {l:'Moy. laissé/table',v:maxHolds.length?'$'+avgLeft.toFixed(0):'—',c:'var(--amber)'},
+    {l:'Total laissé/table',v:maxHolds.length?'$'+totalLeft.toFixed(0):'—',c:'var(--amber)'},
   ].map(s=>`<div class="sc"><div class="sl2">${s.l}</div><div class="sv" style="color:${s.c}">${s.v}</div></div>`).join('');
 
   // Equity curve
@@ -1158,3 +1247,4 @@ function closeOv(id, e) {
 </script>
 </body>
 </html>
+
