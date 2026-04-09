@@ -381,6 +381,57 @@ canvas{display:block;width:100%}
   </div>
 </div>
 
+<!-- OVERLAY: EDIT TRADE -->
+<div class="ov" id="ov-edit">
+  <div class="sheet">
+    <div class="hdl"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="stitle">Modifier le Trade</div>
+      <button class="btn bd bs" onclick="closeOv('ov-edit')">✕</button>
+    </div>
+    <input type="hidden" id="e-id"/>
+    <div class="frow fg">
+      <div><label class="fl">Date</label><input type="date" class="fi" id="e-date"/></div>
+      <div><label class="fl">Session</label><select class="fs" id="e-session"><option>London</option><option>New York</option><option>Overlap</option><option>Pre-Market</option></select></div>
+    </div>
+    <div class="frow fg">
+      <div><label class="fl">Direction</label><select class="fs" id="e-dir"><option>Long</option><option>Short</option></select></div>
+      <div><label class="fl">Résultat</label><select class="fs" id="e-status" onchange="autoSignEdit()"><option>Win</option><option>Loss</option><option>Break Even</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Entry Price</label><input type="number" class="fi" id="e-entry" step="0.25"/></div>
+    <div class="frow fg">
+      <div><label class="fl">Stop Loss</label><input type="number" class="fi" id="e-sl" step="0.25"/></div>
+      <div><label class="fl">Take Profit</label><input type="number" class="fi" id="e-tp" step="0.25"/></div>
+    </div>
+    <div class="frow fg">
+      <div><label class="fl">P&amp;L Réel ($)</label><input type="number" class="fi" id="e-pnl" step="0.01" oninput="autoSignEdit()"/></div>
+      <div><label class="fl">Contrats</label><input type="number" class="fi" id="e-size" step="1"/></div>
+    </div>
+    <div class="fg"><label class="fl">Stratégie</label>
+      <select class="fs" id="e-strat">
+        <option>ICT — Order Block + FVG</option><option>ICT — Market Structure Shift</option>
+        <option>SMC — Liquidity Sweep</option><option>Break of Structure</option>
+        <option>VWAP Reclaim</option><option>London Open</option><option>NY Open</option>
+        <option>Supply &amp; Demand</option><option>News Trade</option><option>Scalp</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Discipline &amp; Règles</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <button type="button" id="ed-plan"    onclick="toggleEditDisc('plan')"    style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3)">☐ Plan respecté</button>
+        <button type="button" id="ed-sl"      onclick="toggleEditDisc('sl')"      style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3)">☐ SL respecté</button>
+        <button type="button" id="ed-size"    onclick="toggleEditDisc('size')"    style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3)">☐ Size correcte</button>
+        <button type="button" id="ed-setup"   onclick="toggleEditDisc('setup')"   style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3)">☐ Setup valide</button>
+        <button type="button" id="ed-emotion" onclick="toggleEditDisc('emotion')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3)">☐ Pas d&#x2019;émotion</button>
+        <button type="button" id="ed-revenge" onclick="toggleEditDisc('revenge')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3)">☐ Pas revenge</button>
+      </div>
+      <div id="ed-disc-preview" style="text-align:center;font-size:12px;color:var(--text3);padding:4px 0"></div>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="e-note" placeholder="Contexte, confluences, erreurs…"></textarea></div>
+    <button class="btn ba bw" onclick="saveEdit()">Enregistrer ✓</button>
+  </div>
+</div>
+
 <!-- OVERLAY: NOTE -->
 <div class="ov" id="ov-note">
   <div class="sheet">
@@ -677,7 +728,10 @@ function openDetail(id){
       </div>
       ${t.discDetails?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${Object.entries(t.discDetails).map(([k,v])=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:${v?'var(--green2)':'var(--red2)'}"><span>${v?'✅':'❌'}</span><span>${k==='plan'?'Plan respecté':k==='sl'?'SL respecté':k==='size'?'Size correcte':k==='setup'?'Setup valide':k==='emotion'?'Pas d’émotion':'Pas revenge'}</span></div>`).join('')}</div>`:''}
     </div>`:''}
-    <button class="btn bd bw" onclick="deleteTrade('${t.id}');closeOv('ov-detail');renderList()">Supprimer ce trade</button>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn bg bw" onclick="closeOv('ov-detail');openEdit('${t.id}')">✏️ Modifier</button>
+      <button class="btn bd bw" onclick="deleteTrade('${t.id}');closeOv('ov-detail');renderList()">🗑 Supprimer</button>
+    </div>`;
   openOv('ov-detail');
 }
 
@@ -763,7 +817,10 @@ function renderList(){
       <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.date} · ${t.session}</div>
       <div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px">${t.strategy}</div></div>
       <div style="text-align:right"><div style="font-size:17px;font-weight:700;font-family:var(--mono);color:${fpc(pnl)}">${t.pnl?fp(pnl):'—'}</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.rr||'—'}</div><div style="font-size:10px;color:var(--acc2);margin-top:1px">Détail →</div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.rr||'—'}</div>      <div style="display:flex;gap:8px;margin-top:3px;align-items:center">
+          <span style="font-size:10px;color:var(--acc2)">Détail →</span>
+          <button onclick="event.stopPropagation();openEdit('${t.id}')" style="font-size:10px;background:var(--ink4);border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:2px 7px;cursor:pointer;font-family:var(--font)">✏️</button>
+        </div></div>
     </div>`;
   }).join('');
 }
@@ -1210,6 +1267,52 @@ function showDiscToast(discScore, discDetails) {
 }
 
 // ── OVERLAY ───────────────────────────────────────────────────────
+// ── EDIT TRADE ────────────────────────────────────────────────────
+let editDiscState={plan:false,sl:false,size:false,setup:false,emotion:false,revenge:false};
+const EDL={plan:'Plan respecté',sl:'SL respecté',size:'Size correcte',setup:'Setup valide',emotion:'Pas d\u2019émotion',revenge:'Pas revenge'};
+const EDK=['plan','sl','size','setup','emotion','revenge'];
+
+function setEditDiscBtn(k,v){
+  const b=document.getElementById('ed-'+k); if(!b)return;
+  if(v){b.textContent='\u2705 '+EDL[k];b.style.borderColor='var(--green)';b.style.background='rgba(34,197,94,.1)';b.style.color='var(--green2)';}
+  else{b.textContent='\u2610 '+EDL[k];b.style.borderColor='var(--border)';b.style.background='var(--ink3)';b.style.color='var(--text3)';}
+}
+function updateEditDiscPreview(){
+  const ok=EDK.filter(k=>editDiscState[k]).length,score=Math.round(ok/6*100);
+  const col=score>=80?'var(--green2)':score>=50?'var(--amber)':'var(--red2)';
+  const lbl=score===100?'\ud83c\udfc6 Trade parfait!':score>=80?'\u2705 Bonne discipline':score>=50?'\u26a1 Partielle':'\u26a0\ufe0f Manque';
+  const el=document.getElementById('ed-disc-preview');
+  if(el)el.innerHTML='<span style="color:'+col+';font-weight:700">'+lbl+'</span>&nbsp;<span style="color:var(--text3)">('+ok+'/6)</span>';
+}
+function toggleEditDisc(k){editDiscState[k]=!editDiscState[k];setEditDiscBtn(k,editDiscState[k]);updateEditDiscPreview();}
+function autoSignEdit(){
+  const s=document.getElementById('e-status').value,el=document.getElementById('e-pnl'),v=parseFloat(el.value);
+  if(isNaN(v))return; if(s==='Loss'&&v>0)el.value=-v; if(s==='Win'&&v<0)el.value=-v;
+}
+function openEdit(id){
+  const t=S.trades.find(x=>x.id===id); if(!t)return;
+  ['e-id:id','e-date:date','e-entry:entry','e-sl:sl','e-tp:tp','e-pnl:pnl','e-size:size','e-note:note']
+    .forEach(s=>{const[eid,tk]=s.split(':');const el=document.getElementById(eid);if(el)el.value=t[tk]||'';});
+  const setOpt=(eid,val)=>{const el=document.getElementById(eid);if(!el)return;Array.from(el.options).forEach(o=>o.selected=o.value===val||o.text===val);};
+  setOpt('e-session',t.session);setOpt('e-dir',t.direction);setOpt('e-status',t.status);setOpt('e-strat',t.strategy);
+  EDK.forEach(k=>{editDiscState[k]=t.discDetails?!!t.discDetails[k]:false;setEditDiscBtn(k,editDiscState[k]);});
+  updateEditDiscPreview();
+  openOv('ov-edit');
+}
+function saveEdit(){
+  const id=document.getElementById('e-id').value,idx=S.trades.findIndex(t=>t.id===id);if(idx===-1)return;
+  const ok=EDK.filter(k=>editDiscState[k]).length;
+  S.trades[idx]={...S.trades[idx],
+    date:document.getElementById('e-date').value,session:document.getElementById('e-session').value,
+    direction:document.getElementById('e-dir').value,status:document.getElementById('e-status').value,
+    entry:document.getElementById('e-entry').value,sl:document.getElementById('e-sl').value,
+    tp:document.getElementById('e-tp').value,pnl:document.getElementById('e-pnl').value,
+    size:document.getElementById('e-size').value,strategy:document.getElementById('e-strat').value,
+    note:document.getElementById('e-note').value,disc:Math.round(ok/EDK.length*100),discDetails:{...editDiscState},
+  };
+  save();closeOv('ov-edit');renderStats();renderList();checkDailyAlerts();
+}
+
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
 function closeOv(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
 </script>
