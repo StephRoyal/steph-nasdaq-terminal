@@ -232,6 +232,26 @@ canvas{display:block;width:100%}
   <div style="font-size:18px;font-weight:700;margin-bottom:4px">Simulateur de Revenus</div>
   <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Projette tes gains selon ton edge</div>
 
+  <div class="card" style="padding:16px">
+    <div class="frow" style="margin-bottom:12px">
+      <div><label class="fl">Risque / trade ($)</label><input type="number" class="fi" id="sim-risk" value="500" step="50" oninput="runSim()"/></div>
+      <div><label class="fl">Reward / trade ($)</label><input type="number" class="fi" id="sim-reward" value="600" step="50" oninput="runSim()"/></div>
+    </div>
+    <div class="frow" style="margin-bottom:12px">
+      <div><label class="fl">Trades / jour</label><input type="number" class="fi" id="sim-tpd" value="2" min="1" max="20" oninput="runSim()"/></div>
+      <div><label class="fl">Jours / mois</label><input type="number" class="fi" id="sim-days" value="20" min="1" max="31" oninput="runSim()"/></div>
+    </div>
+    <div>
+      <label class="fl">Nombre de comptes</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="acc-btns">
+        <button class="chip cb" data-v="1"  onclick="setAcc(1,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">1</button>
+        <button class="chip cx" data-v="2"  onclick="setAcc(2,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">2</button>
+        <button class="chip cx" data-v="3"  onclick="setAcc(3,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">3</button>
+        <button class="chip cx" data-v="5"  onclick="setAcc(5,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">5</button>
+        <button class="chip cx" data-v="10" onclick="setAcc(10,this)" style="cursor:pointer;padding:7px 14px;font-size:13px">10</button>
+      </div>
+    </div>
+  </div>
 
   <div id="sim-rr" style="text-align:center;font-size:13px;color:var(--text3);padding:6px 0"></div>
   <div class="sl">Projections</div>
