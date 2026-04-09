@@ -718,7 +718,7 @@ function saveTrade(){
   if(maxP&&tp){const ptsTP=dir==='Long'?tp-e:e-tp,ptsMax=dir==='Long'?maxP-e:e-maxP;if(ptsTP>0&&pnl)maxhold=(pnl*ptsMax/ptsTP).toFixed(0);}
   else if(maxP){const ct=document.querySelector('input[name="ct"]:checked')?.value||'mnq',ptsMax=dir==='Long'?maxP-e:e-maxP;maxhold=(ptsMax*(ct==='mnq'?2:20)*sz).toFixed(0);}
   const disc = getDiscScore(); S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details});
-  save();closeOv('ov-trade'); showDiscToast(disc.score, disc.details); setTimeout(showDailyContextMsg, 600); checkDailyAlerts();
+  save();closeOv('ov-trade'); showDiscToast(disc.score, disc.details); checkDailyAlerts();
   ['f-entry','f-sl','f-tp','f-pnl','f-note','f-maxprice'].forEach(id=>document.getElementById(id).value=''); resetDisc();
   document.getElementById('rr-wrap').style.display='none';document.getElementById('mh-result').style.display='none';
   renderStats();renderList();showTab('stats',document.querySelector('.sgb'));
@@ -1164,75 +1164,70 @@ const MAX_TRADES_DAY = 2;
 const MAX_LOSS_DAY   = 1000; // $
 
 function checkDailyAlerts() {
-  const todayStr = tod();
+  const todayStr    = tod();
   const todayTrades = S.trades.filter(t => t.date === todayStr);
+  const count       = todayTrades.length;
   const todayPnl    = todayTrades.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
   const el = document.getElementById('daily-alerts');
   if (!el) return;
-
   const alerts = [];
 
-  // Overtrading alert
-  if (todayTrades.length > MAX_TRADES_DAY) {
-    alerts.push({
-      type: 'danger',
-      icon: '🚨',
-      title: `OVERTRADING — ${todayTrades.length} trades aujourd’hui`,
-      msg: `Tu as dépassé ta limite de ${MAX_TRADES_DAY} trades par jour. Stop trading maintenant.`,
-      bg: 'rgba(239,68,68,.1)',
-      border: 'rgba(239,68,68,.3)',
-      color: 'var(--red2)',
-    });
+  // OVERTRADING
+  if (count > MAX_TRADES_DAY) {
+    alerts.push({icon:'🚨',
+      title:'OVERTRADING — '+count+' trades aujourd’hui',
+      msg:'Tu as dépassé ta limite de '+MAX_TRADES_DAY+' trades par jour. Stop trading maintenant.',
+      bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
   }
 
-  // Max daily loss alert
+  // MAX LOSS
   if (todayPnl <= -MAX_LOSS_DAY) {
-    alerts.push({
-      type: 'danger',
-      icon: '🚨',
-      title: `PERTE MAXIMALE ATTEINTE — ${fp(todayPnl)} aujourd’hui`,
-      msg: `Tu as atteint ta limite de perte journalière ($${MAX_LOSS_DAY}). Ferme le terminal, reprends demain.`,
-      bg: 'rgba(239,68,68,.1)',
-      border: 'rgba(239,68,68,.3)',
-      color: 'var(--red2)',
-    });
+    alerts.push({icon:'🚨',
+      title:'PERTE MAX ATTEINTE — '+fp(todayPnl)+' aujourd’hui',
+      msg:'Limite journalière de $'+MAX_LOSS_DAY+' atteinte. Ferme le terminal, reprends demain.',
+      bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
   }
 
-  // Perfect discipline day reward
-  const discTrades = todayTrades.filter(t => t.disc != null);
-  if (discTrades.length > 0 && discTrades.every(t => t.disc === 100) && todayTrades.length >= 1) {
-    alerts.push({
-      type: 'success',
-      icon: '🏆',
-      title: 'JOURNÉE PARFAITE — Discipline 100%',
-      msg: 'Tu as respecté toutes tes règles aujourd’hui. C’est ça trader comme un pro.',
-      bg: 'rgba(34,197,94,.08)',
-      border: 'rgba(34,197,94,.25)',
-      color: 'var(--green2)',
-    });
-  } else if (discTrades.length > 0 && discTrades.every(t => t.disc >= 80)) {
-    alerts.push({
-      type: 'good',
-      icon: '✅',
-      title: 'Bonne discipline aujourd’hui',
-      msg: 'Garde ce niveau de rigueur. La discipline constante crée les résultats constants.',
-      bg: 'rgba(34,197,94,.05)',
-      border: 'rgba(34,197,94,.15)',
-      color: 'var(--green2)',
-    });
+  // 1 TRADE DONE, 1 LEFT
+  if (count === 1 && count < MAX_TRADES_DAY) {
+    alerts.push({icon:'⚡',
+      title:'1er trade exécuté — 1 trade restant',
+      msg:'Attends le setup parfait pour le 2ème. Qualité > quantité.',
+      bg:'rgba(59,130,246,.08)',border:'rgba(59,130,246,.3)',color:'var(--acc2)'});
+  }
+
+  // MAX TRADES REACHED + PnL messages
+  if (count >= MAX_TRADES_DAY && count <= MAX_TRADES_DAY) {
+    if (Math.abs(todayPnl) < 1) {
+      alerts.push({icon:'💪',
+        title:'Objectif atteint — Break-even aujourd’hui',
+        msg:'Ni gagné ni perdu — capital protégé. C’est une victoire. Tu feras mieux demain !',
+        bg:'rgba(245,158,11,.07)',border:'rgba(245,158,11,.3)',color:'var(--amber)'});
+    } else if (todayPnl > 0 && todayPnl < 500) {
+      alerts.push({icon:'🚀',
+        title:'Belle journée — '+fp(todayPnl)+' !',
+        msg:'Chaque dollar compte. Les petites victoires constantes font les grands traders. Reviens demain !',
+        bg:'rgba(34,197,94,.07)',border:'rgba(34,197,94,.25)',color:'var(--green2)'});
+    } else if (todayPnl >= 500 && todayPnl < 1000) {
+      alerts.push({icon:'🔥',
+        title:'Tu surnages — '+fp(todayPnl)+' !',
+        msg:'Journée super positive ! L’edge est là, la discipline paye. Maintiens ce niveau.',
+        bg:'rgba(34,197,94,.09)',border:'rgba(34,197,94,.35)',color:'var(--green2)'});
+    } else if (todayPnl >= 1000) {
+      alerts.push({icon:'🏆',
+        title:'Chapeau l’artiste — '+fp(todayPnl)+' !',
+        msg:'Journée exceptionnelle. Tu trades comme un pro. Mérite-le et reviens demain avec le même focus.',
+        bg:'rgba(34,197,94,.11)',border:'rgba(34,197,94,.45)',color:'var(--green2)'});
+    } else if (todayPnl < 0) {
+      alerts.push({icon:'💪',
+        title:'Journée terminée — '+fp(todayPnl),
+        msg:'Encaisse, analyse, passe à autre chose. Le marché sera là demain.',
+        bg:'rgba(239,68,68,.07)',border:'rgba(239,68,68,.2)',color:'var(--red2)'});
+    }
   }
 
   if (alerts.length === 0) { el.innerHTML = ''; return; }
-
-  el.innerHTML = alerts.map(a => `
-    <div style="background:${a.bg};border:1px solid ${a.border};border-radius:var(--r2);padding:12px 14px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <span style="font-size:18px">${a.icon}</span>
-        <span style="font-size:13px;font-weight:700;color:${a.color}">${a.title}</span>
-      </div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:26px">${a.msg}</div>
-    </div>
-  `).join('');
+  el.innerHTML = alerts.map(a => `<div style="background:${a.bg};border:1px solid ${a.border};border-radius:var(--r2);padding:12px 14px;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:18px">${a.icon}</span><span style="font-size:13px;font-weight:700;color:${a.color}">${a.title}</span></div><div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:26px">${a.msg}</div></div>`).join('');
 }
 
 // ── DISCIPLINE TOAST ──────────────────────────────────────────────
@@ -1284,7 +1279,7 @@ function showDiscToast(discScore, discDetails) {
   clearTimeout(window._toastTimer);
   window._toastTimer = setTimeout(() => {
     toast.style.transform = 'translateX(-50%) translateY(-80px)';
-  }, 10000);
+  }, 4000);
 }
 
 // ── DAILY CONTEXT MESSAGES ────────────────
