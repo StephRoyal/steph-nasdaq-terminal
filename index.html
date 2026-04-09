@@ -911,7 +911,7 @@ function renderCalendar(){
       <div class="sc"><div class="sl2">🏆 Meilleur jour</div><div style="font-size:15px;font-weight:700;color:var(--green2);font-family:var(--mono)">${fp(best[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(best[0])}</div></div>
       <div class="sc"><div class="sl2">📉 Pire jour</div><div style="font-size:15px;font-weight:700;color:var(--red2);font-family:var(--mono)">${fp(worst[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(worst[0])}</div></div>
     </div>
-    <div class="card" style="margin-bottom:10px;padding:12px 14px"> class="card" style="margin-bottom:10px;padding:12px 14px">
+    <div class="card" style="margin-bottom:10px;padding:12px 14px">
       <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Perf par jour</div>
       <div style="display:flex;gap:6px">${Object.entries(dow).map(([,d])=>`<div style="flex:1;text-align:center;background:${d.n?d.pnl>=0?'rgba(34,197,94,.08)':'rgba(239,68,68,.08)':'var(--ink4)'};border-radius:7px;padding:6px 4px;border:1px solid var(--bdr2)"><div style="font-size:11px;font-weight:700;font-family:var(--mono);color:${d.n?fpc(d.pnl):'var(--text3)'}">${d.n?fp(d.pnl):'—'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${d.l}</div></div>`).join('')}</div>
     </div>
