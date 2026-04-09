@@ -171,7 +171,7 @@ canvas{display:block;width:100%}
 </div>
 
 <!-- PAGE: BRIEF -->
-<div id="pg-brief" class="page on">
+<div id="pg-brief" class="page">
 
   <!-- QUOTE DU JOUR -->
   <div id="daily-quote" style="background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(59,130,246,.03));border:1px solid rgba(59,130,246,.15);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px;text-align:center">
@@ -191,7 +191,7 @@ canvas{display:block;width:100%}
 </div>
 
 <!-- PAGE: JOURNAL -->
-<div id="pg-journal" class="page">
+<div id="pg-journal" class="page on">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div style="font-size:18px;font-weight:700">Trade Journal</div>
     <button class="btn ba bs" onclick="openTrade()">+ Trade</button>
@@ -211,6 +211,10 @@ canvas{display:block;width:100%}
       <div class="card" style="padding:14px 16px 10px"><canvas id="eqc" height="70"></canvas></div>
       <div class="sl">Par Stratégie</div>
       <div class="card"><div id="strat-list"></div></div>
+      <div class="sl">📊 Streak & Sessions</div>
+      <div class="card" id="best-hour-card" style="padding:14px 16px;margin-bottom:12px"></div>
+      <div class="sl">🏆 Win Rate par Stratégie</div>
+      <div class="card" id="strat-winrate-card" style="margin-bottom:12px"></div>
       <div class="sl">🎯 Discipline par Règle</div>
       <div class="card" id="disc-breakdown"><div class="empty" style="padding:14px;font-size:12px">Aucun trade avec tracking discipline</div></div>
     </div>
@@ -276,11 +280,11 @@ canvas{display:block;width:100%}
 
 <!-- NAV -->
 <nav class="nav">
-  <button class="nb on" onclick="goPage('brief',this)">
+  <button class="nb" onclick="goPage('brief',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="14" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>
     <span>Brief</span>
   </button>
-  <button class="nb" onclick="goPage('journal',this)">
+  <button class="nb on" onclick="goPage('journal',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     <span>Journal</span>
   </button>
@@ -458,7 +462,7 @@ canvas{display:block;width:100%}
     <div class="hdl"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div class="stitle" id="note-title">Note</div>
-      <button class="btn bd bs" id="note-del" onclick="deleteNote()" style="display:none">Supprimer</button>
+      <div style="display:flex;gap:8px"><button class="btn bd bs" id="note-del" onclick="deleteNote()" style="display:none">Supprimer</button><button class="btn bg bs" onclick="closeOv('ov-note')">✕</button></div>
     </div>
     <div class="fg"><label class="fl">Titre</label><input type="text" class="fi" id="n-title" placeholder="Titre…"/></div>
     <div class="fg"><label class="fl">Contenu</label><textarea class="fta" id="n-body" style="min-height:180px" placeholder="Notes, règles, mindset…"></textarea></div>
@@ -706,7 +710,33 @@ function calcMaxHold() {
   document.getElementById('mh-left').textContent=left!==null&&left>0?`+$${left.toFixed(0)} laissé sur la table`:left!==null&&left<0?'Déjà au-delà du TP':'';
 }
 
-function openTrade(){document.getElementById('f-date').value=tod();document.getElementById('rr-wrap').style.display='none';document.getElementById('mh-result').style.display='none';openOv('ov-trade');}
+function openTrade(){
+  document.getElementById('f-date').value=tod();
+  document.getElementById('rr-wrap').style.display='none';
+  document.getElementById('mh-result').style.display='none';
+  // Auto-select strategy and session based on London time
+  const londonH = parseInt(new Date().toLocaleString('en-US',{timeZone:'Europe/London',hour:'numeric',hour12:false}));
+  const londonM = parseInt(new Date().toLocaleString('en-US',{timeZone:'Europe/London',minute:'numeric'}));
+  const totalMin = londonH * 60 + londonM;
+  const stratEl = document.getElementById('f-strat');
+  const sessEl  = document.getElementById('f-session');
+  if (totalMin >= 480 && totalMin < 570) { // 08:00-09:30 London = London Open
+    Array.from(stratEl.options).forEach(o => o.selected = o.text === 'London Open');
+    Array.from(sessEl.options).forEach(o => o.selected = o.text === 'London');
+  } else if (totalMin >= 570 && totalMin < 660) { // 09:30-11:00 = London
+    Array.from(stratEl.options).forEach(o => o.selected = o.text === 'London Open');
+    Array.from(sessEl.options).forEach(o => o.selected = o.text === 'London');
+  } else if (totalMin >= 870 && totalMin < 960) { // 14:30-16:00 London = NY Open
+    Array.from(stratEl.options).forEach(o => o.selected = o.text === 'NY Open');
+    Array.from(sessEl.options).forEach(o => o.selected = o.text === 'New York');
+  } else if (totalMin >= 960 && totalMin < 1050) { // 16:00-17:30 = NY
+    Array.from(stratEl.options).forEach(o => o.selected = o.text === 'NY Open');
+    Array.from(sessEl.options).forEach(o => o.selected = o.text === 'New York');
+  } else if (totalMin >= 840 && totalMin < 870) { // 14:00-14:30 = Overlap
+    Array.from(sessEl.options).forEach(o => o.selected = o.text === 'Overlap');
+  }
+  openOv('ov-trade');
+}
 
 function saveTrade(){
   const entry=document.getElementById('f-entry').value;
@@ -791,7 +821,7 @@ function renderStats(){
     const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,col+'30');g.addColorStop(1,col+'00');
     ctx.beginPath();ctx.moveTo(0,zy);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(W,zy);ctx.closePath();ctx.fillStyle=g;ctx.fill();}
   const byS={};tr.forEach(t=>{if(!byS[t.strategy])byS[t.strategy]={w:0,n:0,pnl:0};byS[t.strategy].n++;if(t.status==='Win')byS[t.strategy].w++;byS[t.strategy].pnl+=parseFloat(t.pnl)||0;});
-  document.getElementById('strat-list').innerHTML=Object.entries(byS).sort((a,b)=>b[1].pnl-a[1].pnl).map(([s,d])=>`<div class="row"><div><div style="font-size:13px;font-weight:600">${s}</div><div style="font-size:11px;color:var(--text3)">${d.w}/${d.n} · ${(d.w/d.n*100).toFixed(0)}% WR</div></div><div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${fpc(d.pnl)}">${fp(d.pnl)}</div></div>`).join('');
+  renderBestHour(); renderStratWinRate(); document.getElementById('strat-list').innerHTML=Object.entries(byS).sort((a,b)=>b[1].pnl-a[1].pnl).map(([s,d])=>`<div class="row"><div><div style="font-size:13px;font-weight:600">${s}</div><div style="font-size:11px;color:var(--text3)">${d.w}/${d.n} · ${(d.w/d.n*100).toFixed(0)}% WR</div></div><div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${fpc(d.pnl)}">${fp(d.pnl)}</div></div>`).join('');
   // Discipline breakdown
   const DISC_RULE_NAMES = {plan:'Plan respecté',sl:'SL respecté',size:'Size correcte',setup:'Setup valide',emotion:'Pas d’émotion',revenge:'Pas revenge'};
   const DISC_RULES = ['plan','sl','size','setup','emotion','revenge'];
@@ -855,6 +885,16 @@ function renderCalendar(){
   const best=allDays.reduce((a,b)=>b[1].pnl>a[1].pnl?b:a,allDays[0]);
   const worst=allDays.reduce((a,b)=>b[1].pnl<a[1].pnl?b:a,allDays[0]);
   const totalPnl=allDays.reduce((s,[,d])=>s+d.pnl,0);
+  // Weekly P&L: current week (Mon-Sun)
+  const todayD = new Date();
+  const dayOfWeek = todayD.getDay() === 0 ? 6 : todayD.getDay() - 1; // Mon=0
+  const weekStart = new Date(todayD.getTime() - dayOfWeek * 86400000);
+  const weekDays = [];
+  for (let i=0; i<7; i++) {
+    const d = new Date(weekStart.getTime() + i*86400000);
+    weekDays.push(d.toISOString().slice(0,10));
+  }
+  const weekPnl = allDays.filter(([d])=>weekDays.includes(d)).reduce((s,[,v])=>s+v.pnl,0);
   const mhTr=S.trades.filter(t=>t.maxhold&&parseFloat(t.maxhold));
   const totalLeft=mhTr.reduce((s,t)=>s+(parseFloat(t.maxhold)-(parseFloat(t.pnl)||0)),0);
   const fmtD=d=>new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
@@ -863,9 +903,664 @@ function renderCalendar(){
   el.innerHTML=`
     <div class="sg" style="margin-bottom:10px">
       <div class="sc"><div class="sl2">P&L Total</div><div class="sv" style="color:${fpc(totalPnl)}">${fp(totalPnl)}</div></div>
-      <div class="sc"><div class="sl2">Total laissé/table</div><div class="sv" style="color:var(--amber)">${totalLeft>0?'$'+totalLeft.toFixed(0):'—'}</div></div>
-      <div class="sc"><div class="sl2">🏆 Meilleur</div><div style="font-size:15px;font-weight:700;color:var(--green2);font-family:var(--mono)">${fp(best[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(best[0])}</div></div>
-      <div class="sc"><div class="sl2">📉 Pire</div><div style="font-size:15px;font-weight:700;color:var(--red2);font-family:var(--mono)">${fp(worst[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(worst[0])}</div></div>
+      <div class="sc"><div class="sl2">P&L Cette semaine</div><div class="sv" style="color:${fpc(weekPnl)}">${weekPnl!==0?fp(weekPnl):'—'}</div></div>
+      <div class="sc"><div class="sl2">Total laissé/table</div><div class="sv" style="color:var(--amber)">${totalLeft>0?'$'+totalLeft.toFixed(0):'\u2014'}</div></div>
+      <div class="sc"><div class="sl2">🏆 Meilleur jour</div><div style="font-size:15px;font-weight:700;color:var(--green2);font-family:var(--mono)">${fp(best[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(best[0])}</div></div>
+      <div class="sc"><div class="sl2">📉 Pire jour</div><div style="font-size:15px;font-weight:700;color:var(--red2);font-family:var(--mono)">${fp(worst[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(worst[0])}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:10px;padding:12px 14px"> class="card" style="margin-bottom:10px;padding:12px 14px">
+      <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Perf par jour</div>
+      <div style="display:flex;gap:6px">${Object.entries(dow).map(([,d])=>`<div style="flex:1;text-align:center;background:${d.n?d.pnl>=0?'rgba(34,197,94,.08)':'rgba(239,68,68,.08)':'var(--ink4)'};border-radius:7px;padding:6px 4px;border:1px solid var(--bdr2)"><div style="font-size:11px;font-weight:700;font-family:var(--mono);color:${d.n?fpc(d.pnl):'var(--text3)'}">${d.n?fp(d.pnl):'—'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${d.l}</div></div>`).join('')}</div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--bdr2)">
+        <button onclick="calPrev()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px">‹</button>
+        <div style="text-align:center">
+          <div id="cal-label" style="font-size:14px;font-weight:700"></div>
+          <div id="cal-month-pnl" style="font-size:12px;font-family:var(--mono);font-weight:700;margin-top:1px"></div>
+        </div>
+        <button onclick="calNext()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px">›</button>
+      </div>
+      <div style="padding:10px">
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">${['L','M','M','J','V','S','D'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:2px">${d}</div>`).join('')}</div>
+        <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px"></div>
+      </div>
+    </div>`;
+  renderCalGrid(byDate,todayStr);
+}
+function renderCalGrid(byDate,todayStr){
+  const first=new Date(calY,calM,1);let sd=first.getDay();sd=sd===0?6:sd-1;
+  const days=new Date(calY,calM+1,0).getDate();
+  document.getElementById('cal-label').textContent=new Date(calY,calM,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  // Monthly P&L
+  let monthPnl=0;
+  for(let d=1;d<=days;d++){const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;if(byDate[ds])monthPnl+=byDate[ds].pnl;}
+  const mpEl=document.getElementById('cal-month-pnl');
+  if(mpEl){mpEl.textContent=monthPnl!==0?fp(monthPnl):'';mpEl.style.color=monthPnl>0?'var(--green2)':monthPnl<0?'var(--red2)':'var(--text3)';}
+  let h='';for(let i=0;i<sd;i++)h+='<div></div>';
+  for(let d=1;d<=days;d++){const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,dd=byDate[ds],isTod=ds===todayStr,cls=dd?(dd.pnl>=0?'pos':'neg'):'';
+    h+=`<div class="cal-day ${cls} ${isTod?'today':''}" onclick="${dd?`showDayTrades('${ds}')`:''}" style="${dd?'cursor:pointer':''}">
+      <div style="font-size:10px;font-weight:${isTod?700:500};color:${isTod?'var(--acc2)':'var(--text3)'}">${d}</div>
+      ${dd?`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:${fpc(dd.pnl)};margin-top:1px">${fp(dd.pnl)}</div><div style="font-size:9px;color:var(--text3)">${dd.n}t</div>`:''}
+    </div>`;}
+  document.getElementById('cal-grid').innerHTML=h;
+}
+function calPrev(){calM--;if(calM<0){calM=11;calY--;}const b={};S.trades.forEach(t=>{if(!b[t.date])b[t.date]={pnl:0,n:0};b[t.date].pnl+=parseFloat(t.pnl)||0;b[t.date].n++;});renderCalGrid(b,tod());}
+function calNext(){calM++;if(calM>11){calM=0;calY++;}const b={};S.trades.forEach(t=>{if(!b[t.date])b[t.date]={pnl:0,n:0};b[t.date].pnl+=parseFloat(t.pnl)||0;b[t.date].n++;});renderCalGrid(b,tod());}
+function showDayTrades(date){
+  const dayTr=S.trades.filter(t=>t.date===date);if(!dayTr.length)return;
+  const tot=dayTr.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+  const ds=new Date(date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('det-title').textContent=ds;
+  document.getElementById('det-content').innerHTML=`<div class="sc" style="text-align:center;margin-bottom:14px"><div class="sl2">P&L du jour</div><div class="sv" style="color:${fpc(tot)}">${fp(tot)}</div><div style="font-size:11px;color:var(--text3);margin-top:3px">${dayTr.length} trade${dayTr.length>1?'s':''}</div></div>
+  ${dayTr.map(t=>{const pnl=parseFloat(t.pnl)||0,dc=t.direction==='Long'?'var(--green2)':'var(--red2)',sc=t.status==='Win'?'cg':t.status==='Loss'?'cr':'ca';
+    return `<div style="background:var(--ink3);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;cursor:pointer;border:1px solid var(--bdr2)" onclick="openDetail('${t.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div><span style="color:${dc};font-weight:600">${t.direction==='Long'?'▲':'▼'} ${t.direction}</span> <span class="chip ${sc}" style="font-size:10px">${t.status}</span></div><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:${fpc(pnl)}">${fp(pnl)}</div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">${t.strategy} · ${t.rr||'—'}</div>
+      ${t.note?`<div style="font-size:12px;color:var(--text2);margin-top:5px">📝 ${t.note.slice(0,80)}${t.note.length>80?'…':''}</div>`:''}
+    </div>`;}).join('')}`;
+  openOv('ov-detail');
+}
+
+// ── CSV IMPORT ────────────────────────────────────────────────────
+function importCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();r.onload=ev=>{const lines=ev.target.result.split('\n').filter(Boolean),hdrs=lines[0].split(',').map(h=>h.trim().toLowerCase());let n=0;
+    lines.slice(1).forEach(line=>{const vals=line.split(','),o={};hdrs.forEach((h,i)=>o[h]=(vals[i]||'').trim());S.trades.push({id:uid(),ts:Date.now(),date:o.date||tod(),session:o.session||'London',direction:o.direction||'Long',status:o.status||o.result||'Win',entry:o.entry||'',sl:o.sl||'',tp:o.tp||'',pnl:o.pnl||'0',maxhold:'',size:o.size||'1',rr:o.rr||'',strategy:o.strategy||'Autre',note:o.note||''});n++;});
+    save();renderStats();renderList();alert(`✅ ${n} trade(s) importé(s)`);};r.readAsText(file);e.target.value='';
+}
+
+// ── NOTES ─────────────────────────────────────────────────────────
+let curNote=null;
+function openNote(id){
+  curNote=id;
+  const n=id?S.notes.find(x=>x.id===id):null;
+  // Auto-generate title for new notes
+  const autoTitle = n ? n.title : (() => {
+    const now = new Date();
+    const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    return 'Leçon du ' + now.getDate() + ' ' + months[now.getMonth()];
+  })();
+  document.getElementById('note-title').textContent = n ? n.title : 'Nouvelle leçon';
+  document.getElementById('n-title').value = autoTitle;
+  document.getElementById('n-body').value = n?.body||'';
+  document.getElementById('note-del').style.display = n?'block':'none';
+  openOv('ov-note');
+}
+function saveNote(){const title=document.getElementById('n-title').value.trim()||'Note',body=document.getElementById('n-body').value.trim();if(!body){alert('Écris quelque chose.');return;}if(curNote)S.notes=S.notes.map(n=>n.id===curNote?{...n,title,body}:n);else S.notes.unshift({id:uid(),title,body,date:tod(),ts:Date.now()});save();renderNotes();closeOv('ov-note');}
+function deleteNote(){if(!curNote||!confirm('Supprimer ?'))return;S.notes=S.notes.filter(n=>n.id!==curNote);save();renderNotes();closeOv('ov-note');}
+function renderNotes(){const list=document.getElementById('notes-list'),empty=document.getElementById('notes-empty');if(!S.notes.length){list.innerHTML='';empty.style.display='block';return;}empty.style.display='none';const sorted=[...S.notes].sort((a,b)=>new Date(b.date||b.ts||0)-new Date(a.date||a.ts||0));list.innerHTML=sorted.map(n=>`<div class="nc" onclick="openNote('${n.id}')"><div style="font-size:15px;font-weight:600">${n.title}</div><div style="font-size:13px;color:var(--text2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.body}</div><div style="font-size:11px;color:var(--text3);margin-top:6px">${n.date}</div></div>`).join('');}
+
+// ── SIMULATOR ─────────────────────────────────────────────────────
+let simAcc=1;
+function setAcc(n,btn){simAcc=n;document.querySelectorAll('#acc-btns button').forEach(b=>b.className=b.dataset.v==n?'chip cb':'chip cx');runSim();}
+function runSim(){
+  const riskEl=document.getElementById('sim-risk');
+  if(!riskEl) return; // page not rendered yet
+  const risk=parseFloat(riskEl.value)||500,reward=parseFloat(document.getElementById('sim-reward').value)||600;
+  const tpd=parseInt(document.getElementById('sim-tpd').value)||2,days=parseInt(document.getElementById('sim-days').value)||20,acc=simAcc;
+  const rr=reward/risk,trMo=tpd*days,trWk=tpd*5;
+  document.getElementById('sim-rr').innerHTML=`R:R = <strong style="color:var(--acc2)">1:${rr.toFixed(2)}</strong> &nbsp;·&nbsp; ${trMo} trades/mois &nbsp;·&nbsp; ${acc} compte${acc>1?'s':''}`;
+  const WRS=[0.4,0.5,0.6,0.7,0.8],WRL=['40%','50%','60%','70%','80%'];
+  const tbl=document.getElementById('sim-table');
+  const rows = [
+    {label:'Semaine', tr:trWk},
+    {label:'Mois',    tr:trMo},
+    {label:'An',      tr:trMo*12},
+  ];
+  let h=`<div style="display:grid;grid-template-columns:64px repeat(5,1fr);border-bottom:2px solid var(--border)"><div style="padding:9px 8px;font-size:11px;color:var(--text3)"></div>${WRL.map(l=>`<div style="padding:9px 3px;font-size:11px;color:var(--text3);text-align:center;font-weight:700">${l}</div>`).join('')}</div>`;
+  rows.forEach((m,i)=>{
+    h+=`<div style="display:grid;grid-template-columns:64px repeat(5,1fr);background:${i%2?'var(--ink3)':''}"><div style="padding:9px 8px;font-size:11px;font-weight:600;color:var(--text3);display:flex;align-items:center">${m.label}</div>`;
+    WRS.forEach(wr=>{const pnl=(m.tr*wr*reward-m.tr*(1-wr)*risk)*acc,col=pnl>=0?'var(--green2)':'var(--red2)';h+=`<div style="padding:9px 3px;text-align:center;font-size:11px;font-weight:700;font-family:var(--mono);color:${col}">${pnl>=0?'+':''}$${Math.abs(Math.round(pnl))}</div>`;});
+    h+='</div>';});
+  tbl.innerHTML=h;
+  document.getElementById('sim-weekly').innerHTML=WRS.map((wr,i)=>{
+    const wins=trWk*wr,losses=trWk*(1-wr),pnlWk=(wins*reward-losses*risk)*acc,pnlMo=pnlWk*(days/5),c=pnlWk>=0?'var(--green2)':'var(--red2)';
+    return `<div class="row"><div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:700;color:var(--acc2)">${WRL[i]}</span><span style="font-size:12px;color:var(--text3)">win rate</span></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">${Math.round(wins)}W · ${Math.round(losses)}L / sem${acc>1?` · ${acc} comptes`:''}</div>
+      <div style="font-size:11px;color:var(--text3)">Min ${Math.ceil(risk*trWk/(reward+risk))} wins pour break-even</div></div>
+      <div style="text-align:right"><div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${c}">${pnlWk>=0?'+':''}$${Math.abs(pnlWk).toFixed(0)}<span style="font-size:10px;color:var(--text3)">/sem</span></div>
+      <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:${c};margin-top:2px">${pnlMo>=0?'+':''}$${Math.abs(pnlMo).toFixed(0)}<span style="font-size:10px;color:var(--text3)">/mois</span></div></div>
+    </div>`;}).join('');
+  const p60Mo=(trWk*0.6*reward-trWk*0.4*risk)*acc*(days/5),mot=document.getElementById('sim-motive'),motT=document.getElementById('sim-motive-text');
+  mot.style.display='block';
+  motT.innerHTML=p60Mo>0?`Avec <strong style="color:var(--acc2)">60% de win rate</strong>, tu génères <strong style="color:var(--green2)">+$${Math.abs(p60Mo).toFixed(0)}/mois</strong>${acc>1?` sur ${acc} comptes`:''} avec ce setup.<br><br>🎯 L'edge existe. La discipline fait la différence.`:`⚠️ Ce R:R avec 60% WR donne une espérance négative.<br>Améliore ton ratio ou ton win rate.`;
+}
+
+
+
+// ── SESSION TIMER & CLOCKS ────────────────────────────────────────
+// London: 08:00–17:00 UK time | NY: 13:30–20:00 UK time (9:30–16:00 ET)
+// We work in UTC offsets dynamically (BST/GMT, ET/EDT)
+
+function updateSessions() {
+  const now = new Date();
+
+  // Get London time (Europe/London)
+  const ldnStr = now.toLocaleString('en-GB', {timeZone:'Europe/London', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
+  const nyStr  = now.toLocaleString('en-US', {timeZone:'America/New_York', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
+
+  // Parse hours/minutes
+  const [lH, lM, lS] = ldnStr.split(':').map(Number);
+  const [nH, nM, nS] = nyStr.split(':').map(Number);
+  const lTot = lH*60 + lM; // London minutes since midnight
+  const nTot = nH*60 + nM; // NY minutes since midnight
+
+  // Session windows (minutes)
+  const LDN_OPEN = 8*60, LDN_CLOSE = 17*60;        // 08:00 - 17:00 London
+  const NY_OPEN  = 9*60+30, NY_CLOSE = 16*60;       // 09:30 - 16:00 NY
+
+  const ldnOpen = lTot >= LDN_OPEN && lTot < LDN_CLOSE;
+  const nyOpen  = nTot >= NY_OPEN  && nTot < NY_CLOSE;
+
+  // Update clocks
+  document.getElementById('sess-ldn-time').textContent = ldnStr.slice(0,5);
+  document.getElementById('sess-ny-time').textContent  = nyStr.slice(0,5);
+
+  // Update dots & status
+  const ldnDot = document.getElementById('sess-ldn-dot');
+  const nyDot  = document.getElementById('sess-ny-dot');
+  const ldnSt  = document.getElementById('sess-ldn-status');
+  const nySt   = document.getElementById('sess-ny-status');
+
+  if (ldnOpen) {
+    ldnDot.style.background = 'var(--green)';
+    ldnDot.style.boxShadow  = '0 0 8px var(--green)';
+    ldnSt.textContent = 'OPEN';
+    ldnSt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:2px;background:rgba(34,197,94,.15);color:var(--green2)';
+  } else {
+    ldnDot.style.background = 'var(--text3)';
+    ldnDot.style.boxShadow  = 'none';
+    // Next open
+    const minsToOpen = lTot < LDN_OPEN ? LDN_OPEN - lTot : (24*60 - lTot + LDN_OPEN);
+    const h = Math.floor(minsToOpen/60), m = minsToOpen%60;
+    ldnSt.textContent = h > 0 ? `dans ${h}h${m>0?m+'m':''}` : `dans ${m}m`;
+    ldnSt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;margin-left:2px;background:var(--ink4);color:var(--text3)';
+  }
+
+  if (nyOpen) {
+    nyDot.style.background = 'var(--green)';
+    nyDot.style.boxShadow  = '0 0 8px var(--green)';
+    nySt.textContent = 'OPEN';
+    nySt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-right:2px;background:rgba(34,197,94,.15);color:var(--green2)';
+  } else {
+    nyDot.style.background = 'var(--text3)';
+    nyDot.style.boxShadow  = 'none';
+    const minsToOpen = nTot < NY_OPEN ? NY_OPEN - nTot : (24*60 - nTot + NY_OPEN);
+    const h = Math.floor(minsToOpen/60), m = minsToOpen%60;
+    nySt.textContent = h > 0 ? `dans ${h}h${m>0?m+'m':''}` : `dans ${m}m`;
+    nySt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;margin-right:2px;background:var(--ink4);color:var(--text3)';
+  }
+
+  // Center timer: show active session countdown or next open
+  const timerLabel = document.getElementById('sess-timer-label');
+  const timerVal   = document.getElementById('sess-timer-val');
+
+  if (ldnOpen && nyOpen) {
+    // Overlap — show NY close (more relevant for NQ)
+    const remNY = (NY_CLOSE - nTot) * 60 - nS;
+    timerLabel.textContent = 'NY FERME DANS';
+    timerLabel.style.color = 'var(--green2)';
+    timerVal.textContent   = fmtCountdown(remNY);
+    timerVal.style.color   = 'var(--green2)';
+  } else if (ldnOpen) {
+    // London only — show time left
+    const remLdn = (LDN_CLOSE - lTot) * 60 - lS;
+    timerLabel.textContent = 'LONDON FERME';
+    timerLabel.style.color = 'var(--amber)';
+    timerVal.textContent   = fmtCountdown(remLdn);
+    timerVal.style.color   = 'var(--amber)';
+  } else if (nyOpen) {
+    const remNY = (NY_CLOSE - nTot) * 60 - nS;
+    timerLabel.textContent = 'NY FERME DANS';
+    timerLabel.style.color = 'var(--green2)';
+    timerVal.textContent   = fmtCountdown(remNY);
+    timerVal.style.color   = 'var(--green2)';
+  } else {
+    // Both closed — next to open
+    const minsLdn = lTot < LDN_OPEN ? (LDN_OPEN - lTot)*60 - lS : (24*60 - lTot + LDN_OPEN)*60;
+    const minsNY  = nTot < NY_OPEN  ? (NY_OPEN  - nTot)*60 - nS  : (24*60 - nTot + NY_OPEN)*60;
+    const nextSec = Math.min(minsLdn, minsNY);
+    const nextName = minsLdn < minsNY ? 'LONDON OUVRE' : 'NY OUVRE';
+    timerLabel.textContent = nextName;
+    timerLabel.style.color = 'var(--text3)';
+    timerVal.textContent   = fmtCountdown(nextSec);
+    timerVal.style.color   = 'var(--text2)';
+  }
+}
+
+function fmtCountdown(totalSecs) {
+  if (totalSecs <= 0) return '00:00:00';
+  const h = Math.floor(totalSecs / 3600);
+  const m = Math.floor((totalSecs % 3600) / 60);
+  const s = totalSecs % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// Start session timer
+updateSessions();
+setInterval(updateSessions, 1000);
+
+
+// ── DISCIPLINE TRACKING ───────────────────────────────────────────
+const DISC_KEYS = ['plan','sl','size','setup','emotion','revenge'];
+const DISC_LABELS = {
+  plan:    'Plan respecté',
+  sl:      'SL respecté',
+  size:    'Size correcte',
+  setup:   'Setup valide',
+  emotion: 'Pas d’émotion',
+  revenge: 'Pas revenge',
+};
+let discState = {plan:false, sl:false, size:false, setup:false, emotion:false, revenge:false};
+
+function toggleDisc(key) {
+  discState[key] = !discState[key];
+  const btn = document.getElementById('disc-' + key);
+  if (discState[key]) {
+    btn.innerHTML = '✅ ' + DISC_LABELS[key];
+    btn.style.borderColor = 'var(--green)';
+    btn.style.background = 'rgba(34,197,94,.1)';
+    btn.style.color = 'var(--green2)';
+  } else {
+    btn.innerHTML = '☐ ' + DISC_LABELS[key];
+    btn.style.borderColor = 'var(--border)';
+    btn.style.background = 'var(--ink3)';
+    btn.style.color = 'var(--text3)';
+  }
+  updateDiscPreview();
+}
+
+function updateDiscPreview() {
+  const total = DISC_KEYS.length;
+  const ok    = DISC_KEYS.filter(k => discState[k]).length;
+  const score = Math.round(ok / total * 100);
+  const el    = document.getElementById('disc-score-preview');
+  if (!el) return;
+  const color = score >= 80 ? 'var(--green2)' : score >= 50 ? 'var(--amber)' : 'var(--red2)';
+  const label = score === 100 ? '🏆 Trade parfait!' : score >= 80 ? '✅ Bonne discipline' : score >= 50 ? '⚡ Discipline partielle' : '⚠️ Manque de discipline';
+  el.innerHTML = `<span style="color:${color};font-weight:700">${label}</span> <span style="color:var(--text3)">(${ok}/${total} règles)</span>`;
+}
+
+function resetDisc() {
+  DISC_KEYS.forEach(k => { discState[k] = false; });
+  DISC_KEYS.forEach(k => {
+    const btn = document.getElementById('disc-' + k);
+    if (btn) {
+      btn.innerHTML = '☐ ' + DISC_LABELS[k];
+      btn.style.borderColor = 'var(--border)';
+      btn.style.background = 'var(--ink3)';
+      btn.style.color = 'var(--text3)';
+    }
+  });
+  const el = document.getElementById('disc-score-preview');
+  if (el) el.innerHTML = '';
+}
+
+function getDiscScore() {
+  const ok = DISC_KEYS.filter(k => discState[k]).length;
+  return { score: Math.round(ok / DISC_KEYS.length * 100), ok, total: DISC_KEYS.length, details: {...discState} };
+}
+
+// ── AUTO-SIGN P&L ─────────────────────────────────────────────────
+function autoSignPnl() {
+  const status = document.getElementById('f-status').value;
+  const pnlEl  = document.getElementById('f-pnl');
+  let val = parseFloat(pnlEl.value);
+  if (isNaN(val)) return;
+  if (status === 'Loss' && val > 0)  { pnlEl.value = -val; }
+  if (status === 'Win'  && val < 0)  { pnlEl.value = -val; }
+  calcMaxHold();
+}
+
+
+// ── STREAK & BEST HOUR & STRAT WR ────────────────────────────────
+function calcStreak(trades){
+  const b={};trades.forEach(t=>{if(!b[t.date])b[t.date]=[];b[t.date].push(t);});
+  let s=0;for(const d of Object.keys(b).sort().reverse()){
+    const tk=b[d].filter(t=>t.disc!=null);if(!tk.length)break;
+    if(tk.reduce((s,t)=>s+t.disc,0)/tk.length>=80)s++;else break;}return s;}
+function calcPnlStreak(trades){
+  const b={};trades.forEach(t=>{if(!b[t.date])b[t.date]=0;b[t.date]+=parseFloat(t.pnl)||0;});
+  let s=0;for(const d of Object.keys(b).sort().reverse()){if(b[d]>0)s++;else break;}return s;}
+function calcBestHour(trades){
+  const m={};trades.forEach(t=>{const s=t.session||"?";if(!m[s])m[s]={wins:0,total:0,pnl:0};
+  m[s].total++;if(t.status==="Win")m[s].wins++;m[s].pnl+=parseFloat(t.pnl)||0;});
+  return Object.entries(m).map(([sess,s])=>({sess,wr:s.total?s.wins/s.total*100:0,pnl:s.pnl,total:s.total})).sort((a,b)=>b.pnl-a.pnl);}
+function calcStratWR(trades){
+  const m={};trades.forEach(t=>{const s=t.strategy||"Autre";if(!m[s])m[s]={wins:0,losses:0,pnl:0,total:0};
+  m[s].total++;if(t.status==="Win")m[s].wins++;else if(t.status==="Loss")m[s].losses++;m[s].pnl+=parseFloat(t.pnl)||0;});
+  return Object.entries(m).map(([name,s])=>({name,wr:s.total?s.wins/s.total*100:0,...s})).sort((a,b)=>b.total-a.total);}
+function renderBestHour(){
+  const el=document.getElementById("best-hour-card");
+  if(!el||!S.trades.length){if(el)el.innerHTML="<div class='empty' style='padding:14px'>Pas encore de données</div>";return;}
+  const streak=calcStreak(S.trades),pnlStreak=calcPnlStreak(S.trades),sess=calcBestHour(S.trades),best=sess[0];
+  let h="<div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px'>";
+  h+="<div style='text-align:center;padding:10px;background:var(--ink3);border-radius:var(--r);border:1px solid var(--bdr2)'><div style='font-size:22px;font-weight:800;color:var(--acc2)'>"+pnlStreak+"</div><div style='font-size:10px;color:var(--text3)'>Jours + streak</div></div>";
+  h+="<div style='text-align:center;padding:10px;background:var(--ink3);border-radius:var(--r);border:1px solid var(--bdr2)'><div style='font-size:22px;font-weight:800;color:var(--green2)'>"+streak+"</div><div style='font-size:10px;color:var(--text3)'>Discipline ≥80%</div></div>";
+  h+="<div style='text-align:center;padding:10px;background:var(--ink3);border-radius:var(--r);border:1px solid var(--bdr2)'><div style='font-size:12px;font-weight:800;color:var(--amber)'>"+(best?best.sess:"—")+"</div><div style='font-size:10px;color:var(--text3)'>Best Session</div><div style='font-size:11px;color:var(--green2)'>"+(best?fp(best.pnl):"—")+"</div></div>";
+  h+="</div>";
+  sess.forEach(s=>{const c=s.wr>=60?"var(--green2)":s.wr>=40?"var(--amber)":"var(--red2)";
+    h+="<div style='padding:8px 0;border-bottom:1px solid var(--bdr2)'><div style='display:flex;justify-content:space-between;margin-bottom:4px'><span style='font-size:12px;font-weight:600'>"+s.sess+"</span><span style='font-size:12px;font-family:var(--mono);color:"+c+"'>"+s.wr.toFixed(0)+"% · "+fp(s.pnl)+"</span></div><div style='height:4px;background:var(--ink4);border-radius:2px'><div style='height:100%;width:"+Math.min(100,s.wr)+"%;background:"+c+";border-radius:2px'></div></div></div>";});
+  el.innerHTML=h;}
+function renderStratWinRate(){
+  const el=document.getElementById("strat-winrate-card");
+  if(!el||!S.trades.length){if(el)el.innerHTML="<div class='empty' style='padding:14px'>Pas encore de données</div>";return;}
+  el.innerHTML=calcStratWR(S.trades).map(s=>{
+    const c=s.wr>=60?"var(--green2)":s.wr>=40?"var(--amber)":"var(--red2)";
+    const n=s.name.replace("ICT — ","").replace("SMC — ","");
+    return "<div class='row'><div style='flex:1'><div style='font-size:13px;font-weight:600'>"+n+"</div><div style='font-size:11px;color:var(--text3);margin-top:2px'>"+s.wins+"W / "+s.losses+"L · "+s.total+" trades</div><div style='height:4px;background:var(--ink4);border-radius:2px;margin-top:5px;width:120px'><div style='height:100%;width:"+s.wr+"%;background:"+c+";border-radius:2px'></div></div></div><div style='text-align:right'><div style='font-size:15px;font-weight:700;font-family:var(--mono);color:"+c+"'>"+s.wr.toFixed(0)+"%</div><div style='font-size:11px;color:"+(s.pnl>=0?"var(--green2)":"var(--red2)")+";font-family:var(--mono)'>"+fp(s.pnl)+"</div></div></div>";
+  }).join("");}
+// ── EXPORT PDF ────────────────────────────────────────────────────
+function exportPDF(){
+  if(!S.trades.length){alert("Aucun trade à exporter.");return;}
+  const trades=[...S.trades].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const wins=trades.filter(t=>t.status==="Win"),losses=trades.filter(t=>t.status==="Loss");
+  const tot=trades.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+  const wr=wins.length/trades.length*100;
+  const dt=trades.filter(t=>t.disc!=null);
+  const avgD=dt.length?Math.round(dt.reduce((s,t)=>s+t.disc,0)/dt.length):null;
+  const streak=calcStreak(trades),pnlS=calcPnlStreak(trades);
+  const stratS=calcStratWR(trades);
+  const now=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+  const avgW=wins.length?Math.round(wins.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0)/wins.length):0;
+  const avgL=losses.length?Math.round(Math.abs(losses.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0)/losses.length)):0;
+  let trows="";
+  trades.forEach(t=>{const pnl=parseFloat(t.pnl)||0;
+    const dc=t.direction==="Long"?"#16a34a":"#dc2626";
+    const pc=pnl>=0?"#16a34a":"#dc2626";
+    const bc=t.status==="Win"?"background:#dcfce7;color:#16a34a":t.status==="Loss"?"background:#fee2e2;color:#dc2626":"background:#fef9c3;color:#854d0e";
+    trows+="<tr><td>"+t.date+"</td><td>"+t.session+"</td><td style='color:"+dc+";font-weight:600'>"+(t.direction==="Long"?"▲":"▼")+" "+t.direction+"</td><td><span style='"+bc+";padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700'>"+t.status+"</span></td><td style='color:"+pc+";font-weight:700'>"+(pnl>=0?"+":"")+"$"+Math.abs(pnl).toFixed(0)+"</td><td>"+(t.rr||"—")+"</td><td>"+(t.strategy||"").replace("ICT — ","").replace("SMC — ","")+"</td><td style='color:"+(t.disc!=null?(t.disc>=80?"#16a34a":t.disc>=50?"#d97706":"#dc2626"):"#aaa")+"'>"+(t.disc!=null?t.disc+"%":"—")+"</td></tr>";});
+  let srows="";
+  stratS.forEach(s=>{const c=s.wr>=60?"#16a34a":s.wr>=40?"#d97706":"#dc2626";const pc=s.pnl>=0?"#16a34a":"#dc2626";
+    srows+="<tr><td>"+s.name.replace("ICT — ","").replace("SMC — ","")+"</td><td>"+s.total+"</td><td style='color:"+c+";font-weight:700'>"+s.wr.toFixed(0)+"%</td><td style='color:"+pc+";font-weight:700'>"+(s.pnl>=0?"+":"")+"$"+Math.abs(s.pnl).toFixed(0)+"</td><td style='color:"+(s.pnl/s.total>=0?"#16a34a":"#dc2626")+"'>"+(s.pnl/s.total>=0?"+":"")+"$"+Math.abs(s.pnl/s.total).toFixed(0)+"</td></tr>";});
+  const css="*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,Arial,sans-serif;padding:40px;color:#111;font-size:13px}.hdr{border-bottom:3px solid #111;padding-bottom:20px;margin-bottom:28px;display:flex;justify-content:space-between}.title{font-size:26px;font-weight:800}.sub{font-size:12px;color:#666;margin-top:4px}.dt{font-size:11px;color:#888;text-align:right}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}.card{background:#f8f8f8;border-radius:10px;padding:13px}.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#888;margin-bottom:5px}.val{font-size:20px;font-weight:800}h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:22px 0 10px;border-left:3px solid #111;padding-left:9px}table{width:100%;border-collapse:collapse;font-size:11px}th{background:#111;color:#fff;padding:7px 9px;text-align:left;font-size:10px;text-transform:uppercase}td{padding:6px 9px;border-bottom:1px solid #eee}tr:nth-child(even)td{background:#fafafa}.ft{margin-top:36px;padding-top:14px;border-top:1px solid #eee;font-size:10px;color:#aaa;display:flex;justify-content:space-between}";
+  const doc="<!DOCTYPE html><html><head><meta charset='UTF-8'><title>NQ Journal</title><style>"+css+"</style></head><body>"+
+    "<div class='hdr'><div><div class='title'>NQ Terminal</div><div class='sub'>Trade Journal — Steph</div></div><div class='dt'>Généré le "+now+"<br>"+trades.length+" trades</div></div>"+
+    "<div class='grid'>"+
+    "<div class='card'><div class='lbl'>P&L Total</div><div class='val' style='color:"+(tot>=0?"#16a34a":"#dc2626")+"'>"+(tot>=0?"+":"")+"$"+Math.abs(tot).toFixed(0)+"</div></div>"+
+    "<div class='card'><div class='lbl'>Win Rate</div><div class='val' style='color:"+(wr>=50?"#16a34a":"#dc2626")+"'>"+wr.toFixed(1)+"%</div></div>"+
+    "<div class='card'><div class='lbl'>W / L</div><div class='val'>"+wins.length+"W / "+losses.length+"L</div></div>"+
+    "<div class='card'><div class='lbl'>Discipline</div><div class='val' style='color:"+(avgD!=null?(avgD>=80?"#16a34a":avgD>=50?"#d97706":"#dc2626"):"#aaa")+"'>"+(avgD!=null?avgD+"%":"—")+"</div></div>"+
+    "<div class='card'><div class='lbl'>Avg Win</div><div class='val' style='color:#16a34a'>$"+avgW+"</div></div>"+
+    "<div class='card'><div class='lbl'>Avg Loss</div><div class='val' style='color:#dc2626'>-$"+avgL+"</div></div>"+
+    "<div class='card'><div class='lbl'>Streak Jours +</div><div class='val' style='color:#2563eb'>"+pnlS+"j</div></div>"+
+    "<div class='card'><div class='lbl'>Streak Discipline</div><div class='val' style='color:#16a34a'>"+streak+"j</div></div>"+
+    "</div>"+
+    "<h2>Performance par Stratégie</h2><table><tr><th>Stratégie</th><th>Trades</th><th>Win Rate</th><th>P&L</th><th>Avg/trade</th></tr>"+srows+"</table>"+
+    "<h2>Historique</h2><table><tr><th>Date</th><th>Session</th><th>Direction</th><th>Résultat</th><th>P&L</th><th>R:R</th><th>Stratégie</th><th>Discipline</th></tr>"+trows+"</table>"+
+    "<div class='ft'><span>NQ Terminal · steph-nasdaq-terminal.vercel.app</span><span>Généré le "+now+"</span></div></body></html>";
+  const blob=new Blob([doc],{type:"text/html"});const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="NQ_Journal_"+new Date().toISOString().slice(0,10)+".html";
+  a.click();URL.revokeObjectURL(url);}
+// ── DAILY ALERTS ──────────────────────────────────────────────────
+const MAX_TRADES_DAY = 2;
+const MAX_LOSS_DAY   = 1000; // $
+
+function checkDailyAlerts() {
+  const todayStr    = tod();
+  const todayTrades = S.trades.filter(t => t.date === todayStr);
+  const count       = todayTrades.length;
+  const todayPnl    = todayTrades.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
+  const el = document.getElementById('daily-alerts');
+  if (!el) return;
+  const alerts = [];
+
+  // 🚨 OVERTRADING
+  if (count > MAX_TRADES_DAY) {
+    alerts.push({icon:'🚨',
+      title:'OVERTRADING — '+count+' trades aujourd’hui',
+      msg:'Tu as dépassé ta limite de '+MAX_TRADES_DAY+' trades par jour. Stop trading maintenant.',
+      bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
+  }
+
+  // 🚨 MAX LOSS
+  if (todayPnl <= -MAX_LOSS_DAY) {
+    alerts.push({icon:'🚨',
+      title:'PERTE MAX ATTEINTE — '+fp(todayPnl)+' aujourd’hui',
+      msg:'Limite journalière de $'+MAX_LOSS_DAY+' atteinte. Ferme le terminal, reprends demain.',
+      bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
+  }
+
+  // After 1 trade
+  if (count === 1 && count < MAX_TRADES_DAY) {
+    if (todayPnl < -0.5) {
+      alerts.push({icon:'💪',
+        title:'1er trade — Perte encaissée',
+        msg:'Les pertes font partie du jeu. Reste focus, le 2ème trade peut tout changer. Pas de revenge.',
+        bg:'rgba(239,68,68,.07)',border:'rgba(239,68,68,.2)',color:'var(--red2)'});
+    } else if (Math.abs(todayPnl) <= 0.5) {
+      alerts.push({icon:'⚪',
+        title:'1er trade — Break-even',
+        msg:'Pas de P&L mais pas de perte. 1 trade restant — attends le meilleur setup de la journée.',
+        bg:'rgba(156,163,175,.08)',border:'rgba(156,163,175,.25)',color:'var(--text2)'});
+    } else if (todayPnl > 0.5 && todayPnl < 500) {
+      alerts.push({icon:'⚡',
+        title:'1er trade positif — '+fp(todayPnl),
+        msg:'Bon départ ! 1 trade restant. Attends le setup parfait — ne gâche pas une bonne journée.',
+        bg:'rgba(59,130,246,.08)',border:'rgba(59,130,246,.3)',color:'var(--acc2)'});
+    } else if (todayPnl >= 500 && todayPnl < 1000) {
+      alerts.push({icon:'🔥',
+        title:'Gros 1er trade — '+fp(todayPnl)+' !',
+        msg:'Excellente exécution ! 1 trade restant. Tu peux aussi sécuriser cette journée et t’arrêter là.',
+        bg:'rgba(34,197,94,.08)',border:'rgba(34,197,94,.3)',color:'var(--green2)'});
+    } else if (todayPnl >= 1000) {
+      alerts.push({icon:'🏆',
+        title:'Trade exceptionnel — '+fp(todayPnl)+' !',
+        msg:'Journée déjà gagnée avec 1 seul trade. 1 restant si tu vois quelque chose d’évident. Sinon, stop.',
+        bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.45)',color:'var(--green2)'});
+    }
+  }
+
+  // After MAX trades reached
+  if (count === MAX_TRADES_DAY) {
+    if (Math.abs(todayPnl) < 1) {
+      alerts.push({icon:'💪',
+        title:'Objectif atteint — Break-even aujourd’hui',
+        msg:'Ni gagné ni perdu — capital protégé. C’est une victoire. Tu feras mieux demain !',
+        bg:'rgba(245,158,11,.07)',border:'rgba(245,158,11,.3)',color:'var(--amber)'});
+    } else if (todayPnl > 0 && todayPnl < 500) {
+      alerts.push({icon:'🚀',
+        title:'Belle journée — '+fp(todayPnl)+' !',
+        msg:'Chaque dollar compte. Les petites victoires constantes font les grands traders. Reviens demain !',
+        bg:'rgba(34,197,94,.07)',border:'rgba(34,197,94,.25)',color:'var(--green2)'});
+    } else if (todayPnl >= 500 && todayPnl < 1000) {
+      alerts.push({icon:'🔥',
+        title:'Tu surnages — '+fp(todayPnl)+' !',
+        msg:'Journée super positive ! L’edge est là, la discipline paye. Maintiens ce niveau.',
+        bg:'rgba(34,197,94,.09)',border:'rgba(34,197,94,.35)',color:'var(--green2)'});
+    } else if (todayPnl >= 1000) {
+      alerts.push({icon:'🏆',
+        title:'Chapeau l’artiste — '+fp(todayPnl)+' !',
+        msg:'Journée exceptionnelle. Tu trades comme un pro. Mérite-le et reviens demain avec le même focus.',
+        bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.45)',color:'var(--green2)'});
+    } else if (todayPnl < 0) {
+      alerts.push({icon:'💪',
+        title:'Journée terminée — '+fp(todayPnl),
+        msg:'Encaisse, analyse ce qui s’est passé, passe à autre chose. Le marché sera là demain.',
+        bg:'rgba(239,68,68,.07)',border:'rgba(239,68,68,.2)',color:'var(--red2)'});
+    }
+  }
+
+  // Discipline 100% + loss (special case — good trade, bad outcome)
+  const discTrades = todayTrades.filter(t => t.disc != null);
+  const lastTrade  = todayTrades[todayTrades.length - 1];
+  if (lastTrade && lastTrade.disc === 100 && lastTrade.status === 'Loss') {
+    alerts.push({icon:'🎯',
+      title:'Perte avec discipline parfaite — c’est un bon trade',
+      msg:'Tu as respecté toutes tes règles et perdu quand même. C’est normal. L’edge se matérialise sur la durée.',
+      bg:'rgba(34,197,94,.05)',border:'rgba(34,197,94,.2)',color:'var(--green2)'});
+  }
+
+  // 3 consecutive losses
+  if (count >= 3) {
+    const last3 = [...todayTrades].slice(-3);
+    if (last3.every(t => t.status === 'Loss')) {
+      alerts.push({icon:'⚠️',
+        title:'3 pertes consécutives — pause obligatoire',
+        msg:'Le marché ne te convient pas en ce moment. Analyse, respire, reviens demain avec un esprit clair.',
+        bg:'rgba(245,158,11,.08)',border:'rgba(245,158,11,.35)',color:'var(--amber)'});
+    }
+  }
+
+  if (alerts.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = alerts.map(a => `<div style="background:${a.bg};border:1px solid ${a.border};border-radius:var(--r2);padding:12px 14px;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:18px">${a.icon}</span><span style="font-size:13px;font-weight:700;color:${a.color}">${a.title}</span></div><div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:26px">${a.msg}</div></div>`).join('');
+}
+
+// ── DISCIPLINE TOAST ──────────────────────────────────────────────
+function showDiscToast(discScore, discDetails) {
+  const toast     = document.getElementById('disc-toast');
+  const iconEl    = document.getElementById('disc-toast-icon');
+  const titleEl   = document.getElementById('disc-toast-title');
+  const msgEl     = document.getElementById('disc-toast-msg');
+  if (!toast) return;
+
+  let icon, title, msg, borderColor;
+
+  if (discScore === 100) {
+    icon = '🏆'; title = 'Trade parfait !';
+    msg  = 'Toutes les règles respectées. C’est exactement comme ça qu’on construit une carrière de trader.';
+    borderColor = 'rgba(34,197,94,.5)';
+    toast.style.background = 'rgba(34,197,94,.12)';
+  } else if (discScore >= 80) {
+    icon = '✅'; title = 'Bonne discipline';
+    msg  = 'Quasi parfait. Continue dans cette direction.';
+    borderColor = 'rgba(34,197,94,.3)';
+    toast.style.background = 'var(--ink2)';
+  } else if (discScore >= 50) {
+    icon = '⚡'; title = 'Discipline partielle';
+    // Find what was missed
+    const missed = Object.entries(discDetails||{}).filter(([k,v])=>!v).map(([k])=>
+      k==='plan'?'Plan':k==='sl'?'SL':k==='size'?'Size':k==='setup'?'Setup':k==='emotion'?'Emotions':'Revenge'
+    );
+    msg = missed.length > 0 ? `Non respecté: ${missed.join(', ')}. Analyse pourquoi.` : 'Revoir les règles non respectées.';
+    borderColor = 'rgba(245,158,11,.4)';
+    toast.style.background = 'rgba(245,158,11,.08)';
+  } else {
+    icon = '⚠️'; title = 'Manque de discipline';
+    const missed = Object.entries(discDetails||{}).filter(([k,v])=>!v).map(([k])=>
+      k==='plan'?'Plan':k==='sl'?'SL':k==='size'?'Size':k==='setup'?'Setup':k==='emotion'?'Emotions':'Revenge'
+    );
+    msg = `${missed.join(', ')} non respecté${missed.length>1?'s':''}. Ce trade aurait-il dû être pris?`;
+    borderColor = 'rgba(239,68,68,.4)';
+    toast.style.background = 'rgba(239,68,68,.08)';
+  }
+
+  toast.style.border = `1px solid ${borderColor}`;
+  iconEl.textContent  = icon;
+  titleEl.textContent = title;
+  msgEl.textContent   = msg;
+
+  // Show
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    toast.style.transform = 'translateX(-50%) translateY(-80px)';
+  }, 4000);
+}
+
+// ── DAILY CONTEXT MESSAGES ────────────────
+function showDailyContextMsg() {
+  const todayStr    = tod();
+  const todayTrades = S.trades.filter(t => t.date === todayStr);
+  const count       = todayTrades.length;
+  const todayPnl    = todayTrades.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
+  const toast    = document.getElementById('disc-toast');
+  const iconEl   = document.getElementById('disc-toast-icon');
+  const titleEl  = document.getElementById('disc-toast-title');
+  const msgEl    = document.getElementById('disc-toast-msg');
+  if (!toast) return;
+  let icon, title, msg, bc, bg;
+  if (count === 1) {
+    icon='⚡'; title='1er trade exécuté';
+    msg='Il te reste 1 trade pour aujourd’hui. Attends le setup parfait — qualité > quantité.';
+    bc='rgba(59,130,246,.4)'; bg='rgba(59,130,246,.08)';
+  } else if (count >= MAX_TRADES_DAY) {
+    if (Math.abs(todayPnl) < 1) {
+      icon='💪'; title='Break-even aujourd’hui';
+      msg='Ni gagné ni perdu — tu as protégé ton capital. C’est une victoire. Tu feras mieux demain !';
+      bc='rgba(245,158,11,.4)'; bg='rgba(245,158,11,.06)';
+    } else if (todayPnl > 0 && todayPnl < 500) {
+      icon='🚀'; title='Belle journée positive !';
+      msg=fp(todayPnl)+' aujourd’hui — chaque dollar compte. Les petites victoires constantes font les grands traders !';
+      bc='rgba(34,197,94,.35)'; bg='rgba(34,197,94,.06)';
+    } else if (todayPnl >= 500 && todayPnl < 1000) {
+      icon='🔥'; title='Tu surnages !';
+      msg=fp(todayPnl)+' — Journée super positive ! L’edge est là, la discipline paye. Maintiens ce niveau.';
+      bc='rgba(34,197,94,.5)'; bg='rgba(34,197,94,.1)';
+    } else if (todayPnl >= 1000) {
+      icon='🏆'; title='Chapeau l’artiste !';
+      msg=fp(todayPnl)+' — Journée exceptionnelle. Tu trades comme un pro. Mérite-le !';
+      bc='rgba(34,197,94,.6)'; bg='rgba(34,197,94,.14)';
+    } else {
+      icon='💪'; title='Journée difficile — tu l’as traversée';
+      msg=fp(todayPnl)+' — Encaisse, analyse, passe à autre chose. Le marché sera là demain.';
+      bc='rgba(239,68,68,.3)'; bg='rgba(239,68,68,.06)';
+    }
+  } else { return; }
+  toast.style.border='1px solid '+bc; toast.style.background=bg;
+  iconEl.textContent=icon; titleEl.textContent=title; msgEl.textContent=msg;
+  toast.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>{toast.style.transform='translateX(-50%) translateY(-80px)';},10000);
+}
+
+// ── OVERLAY ───────────────────────────────────────────────────────
+// ── EDIT TRADE ────────────────────────────────────────────────────
+let editDiscState={plan:false,sl:false,size:false,setup:false,emotion:false,revenge:false};
+const EDL={plan:'Plan respecté',sl:'SL respecté',size:'Size correcte',setup:'Setup valide',emotion:'Pas d\u2019émotion',revenge:'Pas revenge'};
+const EDK=['plan','sl','size','setup','emotion','revenge'];
+
+function setEditDiscBtn(k,v){
+  const b=document.getElementById('ed-'+k); if(!b)return;
+  if(v){b.textContent='\u2705 '+EDL[k];b.style.borderColor='var(--green)';b.style.background='rgba(34,197,94,.1)';b.style.color='var(--green2)';}
+  else{b.textContent='\u2610 '+EDL[k];b.style.borderColor='var(--border)';b.style.background='var(--ink3)';b.style.color='var(--text3)';}
+}
+function updateEditDiscPreview(){
+  const ok=EDK.filter(k=>editDiscState[k]).length,score=Math.round(ok/6*100);
+  const col=score>=80?'var(--green2)':score>=50?'var(--amber)':'var(--red2)';
+  const lbl=score===100?'\ud83c\udfc6 Trade parfait!':score>=80?'\u2705 Bonne discipline':score>=50?'\u26a1 Partielle':'\u26a0\ufe0f Manque';
+  const el=document.getElementById('ed-disc-preview');
+  if(el)el.innerHTML='<span style="color:'+col+';font-weight:700">'+lbl+'</span>&nbsp;<span style="color:var(--text3)">('+ok+'/6)</span>';
+}
+function toggleEditDisc(k){editDiscState[k]=!editDiscState[k];setEditDiscBtn(k,editDiscState[k]);updateEditDiscPreview();}
+function autoSignEdit(){
+  const s=document.getElementById('e-status').value,el=document.getElementById('e-pnl'),v=parseFloat(el.value);
+  if(isNaN(v))return; if(s==='Loss'&&v>0)el.value=-v; if(s==='Win'&&v<0)el.value=-v;
+}
+function openEdit(id){
+  const t=S.trades.find(x=>x.id===id); if(!t)return;
+  ['e-id:id','e-date:date','e-entry:entry','e-sl:sl','e-tp:tp','e-pnl:pnl','e-size:size','e-note:note']
+    .forEach(s=>{const[eid,tk]=s.split(':');const el=document.getElementById(eid);if(el)el.value=t[tk]||'';});
+  const setOpt=(eid,val)=>{const el=document.getElementById(eid);if(!el)return;Array.from(el.options).forEach(o=>o.selected=o.value===val||o.text===val);};
+  setOpt('e-session',t.session);setOpt('e-dir',t.direction);setOpt('e-status',t.status);setOpt('e-strat',t.strategy);
+  EDK.forEach(k=>{editDiscState[k]=t.discDetails?!!t.discDetails[k]:false;setEditDiscBtn(k,editDiscState[k]);});
+  updateEditDiscPreview();
+  openOv('ov-edit');
+}
+function saveEdit(){
+  const id=document.getElementById('e-id').value,idx=S.trades.findIndex(t=>t.id===id);if(idx===-1)return;
+  const ok=EDK.filter(k=>editDiscState[k]).length;
+  S.trades[idx]={...S.trades[idx],
+    date:document.getElementById('e-date').value,session:document.getElementById('e-session').value,
+    direction:document.getElementById('e-dir').value,status:document.getElementById('e-status').value,
+    entry:document.getElementById('e-entry').value,sl:document.getElementById('e-sl').value,
+    tp:document.getElementById('e-tp').value,pnl:document.getElementById('e-pnl').value,
+    size:document.getElementById('e-size').value,strategy:document.getElementById('e-strat').value,
+    note:document.getElementById('e-note').value,disc:Math.round(ok/EDK.length*100),discDetails:{...editDiscState},
+  };
+  save();closeOv('ov-edit');renderStats();renderList();checkDailyAlerts();
+}
+
+function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
+function closeOv(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+</script>
+</body>
+</html>
++totalLeft.toFixed(0):'—'}</div></div>
+      <div class="sc"><div class="sl2">🏆 Meilleur jour</div><div style="font-size:15px;font-weight:700;color:var(--green2);font-family:var(--mono)">${fp(best[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(best[0])}</div></div>
+      <div class="sc"><div class="sl2">📉 Pire jour</div><div style="font-size:15px;font-weight:700;color:var(--red2);font-family:var(--mono)">${fp(worst[1].pnl)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtD(worst[0])}</div></div>
     </div>
     <div class="card" style="margin-bottom:10px;padding:12px 14px">
       <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Perf par jour</div>
@@ -931,10 +1626,25 @@ function importCSV(e){
 
 // ── NOTES ─────────────────────────────────────────────────────────
 let curNote=null;
-function openNote(id){curNote=id;const n=id?S.notes.find(x=>x.id===id):null;document.getElementById('note-title').textContent=n?n.title:'Note';document.getElementById('n-title').value=n?.title||'';document.getElementById('n-body').value=n?.body||'';document.getElementById('note-del').style.display=n?'block':'none';openOv('ov-note');}
+function openNote(id){
+  curNote=id;
+  const n=id?S.notes.find(x=>x.id===id):null;
+  // Auto-generate title for new notes
+  const autoTitle = n ? n.title : (() => {
+    const now = new Date();
+    const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+    const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+    return 'Leçon du ' + now.getDate() + ' ' + months[now.getMonth()];
+  })();
+  document.getElementById('note-title').textContent = n ? n.title : 'Nouvelle leçon';
+  document.getElementById('n-title').value = autoTitle;
+  document.getElementById('n-body').value = n?.body||'';
+  document.getElementById('note-del').style.display = n?'block':'none';
+  openOv('ov-note');
+}
 function saveNote(){const title=document.getElementById('n-title').value.trim()||'Note',body=document.getElementById('n-body').value.trim();if(!body){alert('Écris quelque chose.');return;}if(curNote)S.notes=S.notes.map(n=>n.id===curNote?{...n,title,body}:n);else S.notes.unshift({id:uid(),title,body,date:tod(),ts:Date.now()});save();renderNotes();closeOv('ov-note');}
 function deleteNote(){if(!curNote||!confirm('Supprimer ?'))return;S.notes=S.notes.filter(n=>n.id!==curNote);save();renderNotes();closeOv('ov-note');}
-function renderNotes(){const list=document.getElementById('notes-list'),empty=document.getElementById('notes-empty');if(!S.notes.length){list.innerHTML='';empty.style.display='block';return;}empty.style.display='none';list.innerHTML=S.notes.map(n=>`<div class="nc" onclick="openNote('${n.id}')"><div style="font-size:15px;font-weight:600">${n.title}</div><div style="font-size:13px;color:var(--text2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.body}</div><div style="font-size:11px;color:var(--text3);margin-top:6px">${n.date}</div></div>`).join('');}
+function renderNotes(){const list=document.getElementById('notes-list'),empty=document.getElementById('notes-empty');if(!S.notes.length){list.innerHTML='';empty.style.display='block';return;}empty.style.display='none';const sorted=[...S.notes].sort((a,b)=>new Date(b.date||b.ts||0)-new Date(a.date||a.ts||0));list.innerHTML=sorted.map(n=>`<div class="nc" onclick="openNote('${n.id}')"><div style="font-size:15px;font-weight:600">${n.title}</div><div style="font-size:13px;color:var(--text2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.body}</div><div style="font-size:11px;color:var(--text3);margin-top:6px">${n.date}</div></div>`).join('');}
 
 // ── SIMULATOR ─────────────────────────────────────────────────────
 let simAcc=1;
