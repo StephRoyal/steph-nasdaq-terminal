@@ -192,10 +192,11 @@ canvas{display:block;width:100%}
 
 <!-- PAGE: JOURNAL -->
 <div id="pg-journal" class="page">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div style="font-size:18px;font-weight:700">Trade Journal</div>
     <button class="btn ba bs" onclick="openTrade()">+ Trade</button>
   </div>
+  <div id="daily-alerts"></div>
   <div class="seg hs">
     <button class="sgb on" onclick="showTab('stats',this)">Stats</button>
     <button class="sgb" onclick="showTab('calendar',this)">📅 Calendrier</button>
@@ -210,6 +211,8 @@ canvas{display:block;width:100%}
       <div class="card" style="padding:14px 16px 10px"><canvas id="eqc" height="70"></canvas></div>
       <div class="sl">Par Stratégie</div>
       <div class="card"><div id="strat-list"></div></div>
+      <div class="sl">🎯 Discipline par Règle</div>
+      <div class="card" id="disc-breakdown"><div class="empty" style="padding:14px;font-size:12px">Aucun trade avec tracking discipline</div></div>
     </div>
   </div>
   <div id="tab-calendar" style="display:none"><div id="cal-wrap"><div class="empty">Ajoute des trades pour voir le calendrier</div></div></div>
@@ -229,36 +232,7 @@ canvas{display:block;width:100%}
   <div style="font-size:18px;font-weight:700;margin-bottom:4px">Simulateur de Revenus</div>
   <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Projette tes gains selon ton edge</div>
 
-  <!-- RISK CALCULATOR -->
-  <div class="card" style="padding:14px 16px;margin-bottom:14px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:10px">⚡ Risk Calculator MNQ</div>
-    <div class="frow" style="margin-bottom:8px">
-      <div><label class="fl">Capital ($)</label><input type="number" class="fi" id="rc-capital" value="50000" step="1000" oninput="runRC()"/></div>
-      <div><label class="fl">Risque (%)</label><input type="number" class="fi" id="rc-pct" value="1" step="0.1" min="0.1" max="5" oninput="runRC()"/></div>
-    </div>
-    <div><label class="fl">Stop Loss (points)</label><input type="number" class="fi" id="rc-stop" value="20" step="1" oninput="runRC()"/></div>
-    <div id="rc-result" style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
-  </div>
-  <div class="card" style="padding:16px">
-    <div class="frow" style="margin-bottom:12px">
-      <div><label class="fl">Risque / trade ($)</label><input type="number" class="fi" id="sim-risk" value="500" step="50" oninput="runSim()"/></div>
-      <div><label class="fl">Reward / trade ($)</label><input type="number" class="fi" id="sim-reward" value="600" step="50" oninput="runSim()"/></div>
-    </div>
-    <div class="frow" style="margin-bottom:12px">
-      <div><label class="fl">Trades / jour</label><input type="number" class="fi" id="sim-tpd" value="2" min="1" max="20" oninput="runSim()"/></div>
-      <div><label class="fl">Jours / mois</label><input type="number" class="fi" id="sim-days" value="20" min="1" max="31" oninput="runSim()"/></div>
-    </div>
-    <div>
-      <label class="fl">Nombre de comptes</label>
-      <div style="display:flex;gap:8px;flex-wrap:wrap" id="acc-btns">
-        <button class="chip cb" data-v="1"  onclick="setAcc(1,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">1</button>
-        <button class="chip cx" data-v="2"  onclick="setAcc(2,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">2</button>
-        <button class="chip cx" data-v="3"  onclick="setAcc(3,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">3</button>
-        <button class="chip cx" data-v="5"  onclick="setAcc(5,this)"  style="cursor:pointer;padding:7px 14px;font-size:13px">5</button>
-        <button class="chip cx" data-v="10" onclick="setAcc(10,this)" style="cursor:pointer;padding:7px 14px;font-size:13px">10</button>
-      </div>
-    </div>
-  </div>
+
   <div id="sim-rr" style="text-align:center;font-size:13px;color:var(--text3);padding:6px 0"></div>
   <div class="sl">Projections</div>
   <div class="card" id="sim-table"></div>
@@ -300,6 +274,14 @@ canvas{display:block;width:100%}
   </button>
 </nav>
 
+
+<!-- DISCIPLINE TOAST -->
+<div id="disc-toast" style="position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:9999;background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:14px 20px;text-align:center;transition:transform .4s cubic-bezier(.32,1,.23,1);max-width:320px;width:90%;pointer-events:none">
+  <div id="disc-toast-icon" style="font-size:32px;margin-bottom:6px"></div>
+  <div id="disc-toast-title" style="font-size:15px;font-weight:700;margin-bottom:4px"></div>
+  <div id="disc-toast-msg" style="font-size:12px;color:var(--text3);line-height:1.5"></div>
+</div>
+
 <!-- OVERLAY: TRADE -->
 <div class="ov" id="ov-trade">
   <div class="sheet">
@@ -314,7 +296,7 @@ canvas{display:block;width:100%}
     </div>
     <div class="frow fg">
       <div><label class="fl">Direction</label><select class="fs" id="f-dir" onchange="calcRR()"><option>Long</option><option>Short</option></select></div>
-      <div><label class="fl">Résultat</label><select class="fs" id="f-status"><option>Win</option><option>Loss</option><option>Break Even</option></select></div>
+      <div><label class="fl">Résultat</label><select class="fs" id="f-status" onchange="autoSignPnl()"><option>Win</option><option>Loss</option><option>Break Even</option></select></div>
     </div>
     <div class="fg"><label class="fl">Entry Price</label><input type="number" class="fi" id="f-entry" placeholder="19 250" step="0.25" oninput="calcRR()"/></div>
     <div class="frow fg">
@@ -332,7 +314,7 @@ canvas{display:block;width:100%}
       </div>
     </div>
     <div class="frow fg">
-      <div><label class="fl">P&amp;L Réel ($)</label><input type="number" class="fi" id="f-pnl" placeholder="+325" step="0.01" oninput="calcMaxHold()"/></div>
+      <div><label class="fl">P&amp;L Réel ($)</label><input type="number" class="fi" id="f-pnl" placeholder="+325" step="0.01" oninput="autoSignPnl();calcMaxHold()"/></div>
       <div><label class="fl">Contrats</label><input type="number" class="fi" id="f-size" value="1" step="1"/></div>
     </div>
     <div class="fg">
@@ -357,6 +339,30 @@ canvas{display:block;width:100%}
         <option>VWAP Reclaim</option><option>London Open</option><option>NY Open</option>
         <option>Supply &amp; Demand</option><option>News Trade</option><option>Scalp</option><option>Autre</option>
       </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Discipline & Règles</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <button type="button" class="disc-btn" id="disc-plan" onclick="toggleDisc('plan')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);transition:all .2s">
+          ☐ Plan respecté
+        </button>
+        <button type="button" class="disc-btn" id="disc-sl" onclick="toggleDisc('sl')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);transition:all .2s">
+          ☐ SL respecté
+        </button>
+        <button type="button" class="disc-btn" id="disc-size" onclick="toggleDisc('size')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);transition:all .2s">
+          ☐ Size correcte
+        </button>
+        <button type="button" class="disc-btn" id="disc-setup" onclick="toggleDisc('setup')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);transition:all .2s">
+          ☐ Setup valide
+        </button>
+        <button type="button" class="disc-btn" id="disc-emotion" onclick="toggleDisc('emotion')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);transition:all .2s">
+          ☐ Pas d’émotion
+        </button>
+        <button type="button" class="disc-btn" id="disc-revenge" onclick="toggleDisc('revenge')" style="padding:10px;border-radius:var(--r);border:2px solid var(--border);background:var(--ink3);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);transition:all .2s">
+          ☐ Pas revenge
+        </button>
+      </div>
+      <div id="disc-score-preview" style="text-align:center;font-size:13px;color:var(--text3);padding:6px 0"></div>
     </div>
     <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="f-note" placeholder="Contexte, confluences, erreurs…"></textarea></div>
     <button class="btn ba bw" onclick="saveTrade()">Enregistrer ✓</button>
@@ -453,7 +459,7 @@ const fpc = n => n > 0 ? 'var(--green2)' : n < 0 ? 'var(--red2)' : 'var(--amber)
 load();
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 document.getElementById('quote-text').textContent = QUOTES[new Date().getDate() % QUOTES.length];
-renderStats(); renderList(); renderNotes(); setTimeout(runRC, 100);
+renderStats(); renderList(); renderNotes(); setTimeout(checkDailyAlerts, 200);
 loadWeather(); loadEarnings(); loadNews();
 
 // ── NAV ───────────────────────────────────────────────────────────
@@ -462,8 +468,8 @@ function goPage(id, btn) {
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
   document.getElementById('pg-' + id).classList.add('on');
   btn.classList.add('on');
-  if (id === 'journal') renderStats();
-  if (id === 'sim') { runSim(); runRC(); }
+  if (id === 'journal') { renderStats(); checkDailyAlerts(); }
+  if (id === 'sim') runSim();
 }
 function showTab(id, btn) {
   ['stats','calendar','list','csv'].forEach(t => document.getElementById('tab-'+t).style.display = t===id?'block':'none');
@@ -640,9 +646,9 @@ function saveTrade(){
   let maxhold='';
   if(maxP&&tp){const ptsTP=dir==='Long'?tp-e:e-tp,ptsMax=dir==='Long'?maxP-e:e-maxP;if(ptsTP>0&&pnl)maxhold=(pnl*ptsMax/ptsTP).toFixed(0);}
   else if(maxP){const ct=document.querySelector('input[name="ct"]:checked')?.value||'mnq',ptsMax=dir==='Long'?maxP-e:e-maxP;maxhold=(ptsMax*(ct==='mnq'?2:20)*sz).toFixed(0);}
-  S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value});
-  save();closeOv('ov-trade');
-  ['f-entry','f-sl','f-tp','f-pnl','f-note','f-maxprice'].forEach(id=>document.getElementById(id).value='');
+  const disc = getDiscScore(); S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details});
+  save();closeOv('ov-trade'); showDiscToast(disc.score, disc.details); checkDailyAlerts();
+  ['f-entry','f-sl','f-tp','f-pnl','f-note','f-maxprice'].forEach(id=>document.getElementById(id).value=''); resetDisc();
   document.getElementById('rr-wrap').style.display='none';document.getElementById('mh-result').style.display='none';
   renderStats();renderList();showTab('stats',document.querySelector('.sgb'));
 }
@@ -652,7 +658,7 @@ function deleteTrade(id){if(!confirm('Supprimer ?'))return;S.trades=S.trades.fil
 function openDetail(id){
   const t=S.trades.find(x=>x.id===id);if(!t)return;
   const pnl=parseFloat(t.pnl)||0,mh=parseFloat(t.maxhold)||0,left=mh&&pnl?mh-pnl:null;
-  const dc=t.direction==='Long'?'var(--green2)':'var(--red2)',sc=t.status==='Win'?'cg':t.status==='Loss'?'cr':'ca';
+  const dc=t.direction==='Long'?'var(--green2)':'var(--red2)',sc=t.status==='Win'?'cg':t.status==='Loss'?'cr':'ca'; const discScore=t.disc!=null?t.disc:null;
   document.getElementById('det-title').textContent=(t.direction==='Long'?'▲':'▼')+' '+t.direction+' · '+t.date;
   document.getElementById('det-content').innerHTML=`
     <div class="sg" style="margin-bottom:14px">
@@ -664,6 +670,13 @@ function openDetail(id){
       ${[['Session',t.session],['Direction',`<span style="color:${dc}">${t.direction}</span>`],['Résultat',`<span class="chip ${sc}">${t.status}</span>`],['Entry',t.entry||'—'],['SL',t.sl||'—'],['TP',t.tp||'—'],['R:R',t.rr||'—'],['Stratégie',t.strategy],['Contrats',t.size||'1']].map(([l,v])=>`<div class="row"><span style="font-size:12px;color:var(--text3)">${l}</span><span style="font-size:13px;font-weight:600">${v}</span></div>`).join('')}
     </div>
     ${t.note?`<div style="background:rgba(59,130,246,.07);border-radius:var(--r);padding:14px;border:1px solid rgba(59,130,246,.15);margin-bottom:14px"><div style="font-size:11px;color:var(--acc2);font-weight:600;margin-bottom:6px">📝 NOTES</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${t.note}</div></div>`:''}
+    ${discScore!==null?`<div style="background:${discScore>=80?'rgba(34,197,94,.07)':discScore>=50?'rgba(245,158,11,.07)':'rgba(239,68,68,.07)'};border-radius:var(--r);padding:14px;border:1px solid ${discScore>=80?'rgba(34,197,94,.2)':discScore>=50?'rgba(245,158,11,.2)':'rgba(239,68,68,.2)'};margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">🎯 Score Discipline</div>
+        <div style="font-size:22px;font-weight:800;font-family:var(--mono);color:${discScore>=80?'var(--green2)':discScore>=50?'var(--amber)':'var(--red2)'}">${discScore}%</div>
+      </div>
+      ${t.discDetails?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">${Object.entries(t.discDetails).map(([k,v])=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:${v?'var(--green2)':'var(--red2)'}"><span>${v?'✅':'❌'}</span><span>${k==='plan'?'Plan respecté':k==='sl'?'SL respecté':k==='size'?'Size correcte':k==='setup'?'Setup valide':k==='emotion'?'Pas d’émotion':'Pas revenge'}</span></div>`).join('')}</div>`:''}
+    </div>`:''}
     <button class="btn bd bw" onclick="deleteTrade('${t.id}');closeOv('ov-detail');renderList()">Supprimer ce trade</button>`;
   openOv('ov-detail');
 }
@@ -681,12 +694,18 @@ function renderStats(){
   const ar=rns.length?rns.reduce((a,b)=>a+b,0)/rns.length:0;
   const mhTr=tr.filter(t=>t.maxhold&&parseFloat(t.maxhold));
   const totalLeft=mhTr.reduce((s,t)=>s+(parseFloat(t.maxhold)-(parseFloat(t.pnl)||0)),0);
+  // Discipline score
+  const discTr = tr.filter(t=>t.disc!=null);
+  const avgDisc = discTr.length ? Math.round(discTr.reduce((s,t)=>s+t.disc,0)/discTr.length) : null;
+  const discColor = avgDisc===null?'var(--text3)':avgDisc>=80?'var(--green2)':avgDisc>=50?'var(--amber)':'var(--red2)';
+  const discLabel = avgDisc===null?'—':avgDisc>=80?avgDisc+'% 🏆':avgDisc>=50?avgDisc+'% ⚡':avgDisc+'% ⚠️';
   document.getElementById('sgrid').innerHTML=[
     {l:'P&L Total',v:fp(tot),c:fpc(tot)},{l:'Win Rate',v:wr.toFixed(1)+'%',c:wr>=50?'var(--green2)':'var(--red2)'},
     {l:'Avg R:R',v:ar?'1:'+ar.toFixed(2):'—',c:'var(--acc2)'},{l:'Trades',v:tr.length,c:'var(--text)'},
     {l:'W / L',v:`${wins.length}/${losses.length}`,c:'var(--text2)'},{l:'Avg Win',v:'$'+aw.toFixed(0),c:'var(--green2)'},
     {l:'Avg Loss',v:'-$'+al.toFixed(0),c:'var(--red2)'},{l:'Laissé/table',v:mhTr.length?'$'+totalLeft.toFixed(0):'—',c:'var(--amber)'},
-  ].map(s=>`<div class="sc"><div class="sl2">${s.l}</div><div class="sv" style="color:${s.c}">${s.v}</div></div>`).join('');
+    {l:'Discipline',v:discLabel,c:discColor},{l:'Trades trackés',v:discTr.length?discTr.length+'/'+tr.length:'0',c:'var(--text2)'},
+  ].map(s=>`<div class="sc"><div class="sl2">${s.l}</div><div class="sv" style="color:${s.c};font-size:${s.l==='Discipline'?'16px':'20px'}">${s.v}</div></div>`).join('');
   // Equity
   const cv=document.getElementById('eqc');cv.width=cv.offsetWidth*devicePixelRatio;cv.height=70*devicePixelRatio;cv.style.height='70px';
   const ctx=cv.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
@@ -699,6 +718,36 @@ function renderStats(){
     ctx.beginPath();ctx.moveTo(0,zy);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(W,zy);ctx.closePath();ctx.fillStyle=g;ctx.fill();}
   const byS={};tr.forEach(t=>{if(!byS[t.strategy])byS[t.strategy]={w:0,n:0,pnl:0};byS[t.strategy].n++;if(t.status==='Win')byS[t.strategy].w++;byS[t.strategy].pnl+=parseFloat(t.pnl)||0;});
   document.getElementById('strat-list').innerHTML=Object.entries(byS).sort((a,b)=>b[1].pnl-a[1].pnl).map(([s,d])=>`<div class="row"><div><div style="font-size:13px;font-weight:600">${s}</div><div style="font-size:11px;color:var(--text3)">${d.w}/${d.n} · ${(d.w/d.n*100).toFixed(0)}% WR</div></div><div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${fpc(d.pnl)}">${fp(d.pnl)}</div></div>`).join('');
+  // Discipline breakdown
+  const DISC_RULE_NAMES = {plan:'Plan respecté',sl:'SL respecté',size:'Size correcte',setup:'Setup valide',emotion:'Pas d’émotion',revenge:'Pas revenge'};
+  const DISC_RULES = ['plan','sl','size','setup','emotion','revenge'];
+  const discDetailed = tr.filter(t=>t.discDetails);
+  let discHtml = '';
+  if (discDetailed.length > 0) {
+    const ruleStats = DISC_RULES.map(k => ({
+      key: k, name: DISC_RULE_NAMES[k],
+      ok: discDetailed.filter(t=>t.discDetails[k]).length,
+      total: discDetailed.length,
+    }));
+    discHtml = ruleStats.map(r => {
+      const pct = Math.round(r.ok/r.total*100);
+      const col = pct>=80?'var(--green2)':pct>=50?'var(--amber)':'var(--red2)';
+      const barW = pct + '%';
+      return `<div style="padding:10px 14px;border-bottom:1px solid var(--bdr2)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:13px;font-weight:600">${r.name}</span>
+          <span style="font-size:13px;font-weight:700;font-family:var(--mono);color:${col}">${pct}%</span>
+        </div>
+        <div style="height:5px;background:var(--ink4);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${barW};background:${col};border-radius:3px;transition:width .5s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">${r.ok}/${r.total} trades</div>
+      </div>`;
+    }).join('');
+  }
+  // Insert discipline section before strat-list in DOM
+  const discSection = document.getElementById('disc-breakdown');
+  if (discSection) discSection.innerHTML = discHtml;
 }
 
 // ── TRADE LIST ────────────────────────────────────────────────────
@@ -814,7 +863,9 @@ function renderNotes(){const list=document.getElementById('notes-list'),empty=do
 let simAcc=1;
 function setAcc(n,btn){simAcc=n;document.querySelectorAll('#acc-btns button').forEach(b=>b.className=b.dataset.v==n?'chip cb':'chip cx');runSim();}
 function runSim(){
-  const risk=parseFloat(document.getElementById('sim-risk').value)||500,reward=parseFloat(document.getElementById('sim-reward').value)||600;
+  const riskEl=document.getElementById('sim-risk');
+  if(!riskEl) return; // page not rendered yet
+  const risk=parseFloat(riskEl.value)||500,reward=parseFloat(document.getElementById('sim-reward').value)||600;
   const tpd=parseInt(document.getElementById('sim-tpd').value)||2,days=parseInt(document.getElementById('sim-days').value)||20,acc=simAcc;
   const rr=reward/risk,trMo=tpd*days,trWk=tpd*5;
   document.getElementById('sim-rr').innerHTML=`R:R = <strong style="color:var(--acc2)">1:${rr.toFixed(2)}</strong> &nbsp;·&nbsp; ${trMo} trades/mois &nbsp;·&nbsp; ${acc} compte${acc>1?'s':''}`;
@@ -844,24 +895,6 @@ function runSim(){
   motT.innerHTML=p60Mo>0?`Avec <strong style="color:var(--acc2)">60% de win rate</strong>, tu génères <strong style="color:var(--green2)">+$${Math.abs(p60Mo).toFixed(0)}/mois</strong>${acc>1?` sur ${acc} comptes`:''} avec ce setup.<br><br>🎯 L'edge existe. La discipline fait la différence.`:`⚠️ Ce R:R avec 60% WR donne une espérance négative.<br>Améliore ton ratio ou ton win rate.`;
 }
 
-
-// ── RISK CALCULATOR ───────────────────────────────────────────────
-function runRC() {
-  const capital = parseFloat(document.getElementById('rc-capital').value) || 50000;
-  const pct     = parseFloat(document.getElementById('rc-pct').value) || 1;
-  const stop    = parseFloat(document.getElementById('rc-stop').value) || 20;
-  const riskAmt = capital * pct / 100;
-  const mnqContracts = Math.floor(riskAmt / (stop * 2)); // MNQ = $2/pt
-  const nqContracts  = Math.floor(riskAmt / (stop * 20)); // NQ = $20/pt
-  const el = document.getElementById('rc-result');
-  if (!el) return;
-  el.innerHTML = [
-    {l:'Risque $', v:'$'+riskAmt.toFixed(0), c:'var(--red2)'},
-    {l:'MNQ ($2/pt)', v:mnqContracts + ' contrat' + (mnqContracts!==1?'s':''), c:'var(--acc2)'},
-    {l:'NQ ($20/pt)',  v:nqContracts  + ' contrat' + (nqContracts!==1?'s':''),  c:'var(--amber)'},
-    {l:'Par contrat', v:'$'+(stop*2).toFixed(0)+'/MNQ', c:'var(--text2)'},
-  ].map(s=>`<div style="background:var(--ink3);border-radius:var(--r);padding:10px 12px;border:1px solid var(--bdr2)"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">${s.l}</div><div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${s.c}">${s.v}</div></div>`).join('');
-}
 
 
 // ── SESSION TIMER & CLOCKS ────────────────────────────────────────
@@ -975,6 +1008,206 @@ function fmtCountdown(totalSecs) {
 // Start session timer
 updateSessions();
 setInterval(updateSessions, 1000);
+
+
+// ── DISCIPLINE TRACKING ───────────────────────────────────────────
+const DISC_KEYS = ['plan','sl','size','setup','emotion','revenge'];
+const DISC_LABELS = {
+  plan:    'Plan respecté',
+  sl:      'SL respecté',
+  size:    'Size correcte',
+  setup:   'Setup valide',
+  emotion: 'Pas d’émotion',
+  revenge: 'Pas revenge',
+};
+let discState = {plan:false, sl:false, size:false, setup:false, emotion:false, revenge:false};
+
+function toggleDisc(key) {
+  discState[key] = !discState[key];
+  const btn = document.getElementById('disc-' + key);
+  if (discState[key]) {
+    btn.innerHTML = '✅ ' + DISC_LABELS[key];
+    btn.style.borderColor = 'var(--green)';
+    btn.style.background = 'rgba(34,197,94,.1)';
+    btn.style.color = 'var(--green2)';
+  } else {
+    btn.innerHTML = '☐ ' + DISC_LABELS[key];
+    btn.style.borderColor = 'var(--border)';
+    btn.style.background = 'var(--ink3)';
+    btn.style.color = 'var(--text3)';
+  }
+  updateDiscPreview();
+}
+
+function updateDiscPreview() {
+  const total = DISC_KEYS.length;
+  const ok    = DISC_KEYS.filter(k => discState[k]).length;
+  const score = Math.round(ok / total * 100);
+  const el    = document.getElementById('disc-score-preview');
+  if (!el) return;
+  const color = score >= 80 ? 'var(--green2)' : score >= 50 ? 'var(--amber)' : 'var(--red2)';
+  const label = score === 100 ? '🏆 Trade parfait!' : score >= 80 ? '✅ Bonne discipline' : score >= 50 ? '⚡ Discipline partielle' : '⚠️ Manque de discipline';
+  el.innerHTML = `<span style="color:${color};font-weight:700">${label}</span> <span style="color:var(--text3)">(${ok}/${total} règles)</span>`;
+}
+
+function resetDisc() {
+  DISC_KEYS.forEach(k => { discState[k] = false; });
+  DISC_KEYS.forEach(k => {
+    const btn = document.getElementById('disc-' + k);
+    if (btn) {
+      btn.innerHTML = '☐ ' + DISC_LABELS[k];
+      btn.style.borderColor = 'var(--border)';
+      btn.style.background = 'var(--ink3)';
+      btn.style.color = 'var(--text3)';
+    }
+  });
+  const el = document.getElementById('disc-score-preview');
+  if (el) el.innerHTML = '';
+}
+
+function getDiscScore() {
+  const ok = DISC_KEYS.filter(k => discState[k]).length;
+  return { score: Math.round(ok / DISC_KEYS.length * 100), ok, total: DISC_KEYS.length, details: {...discState} };
+}
+
+// ── AUTO-SIGN P&L ─────────────────────────────────────────────────
+function autoSignPnl() {
+  const status = document.getElementById('f-status').value;
+  const pnlEl  = document.getElementById('f-pnl');
+  let val = parseFloat(pnlEl.value);
+  if (isNaN(val)) return;
+  if (status === 'Loss' && val > 0)  { pnlEl.value = -val; }
+  if (status === 'Win'  && val < 0)  { pnlEl.value = -val; }
+  calcMaxHold();
+}
+
+
+// ── DAILY ALERTS ──────────────────────────────────────────────────
+const MAX_TRADES_DAY = 2;
+const MAX_LOSS_DAY   = 1000; // $
+
+function checkDailyAlerts() {
+  const todayStr = tod();
+  const todayTrades = S.trades.filter(t => t.date === todayStr);
+  const todayPnl    = todayTrades.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
+  const el = document.getElementById('daily-alerts');
+  if (!el) return;
+
+  const alerts = [];
+
+  // Overtrading alert
+  if (todayTrades.length > MAX_TRADES_DAY) {
+    alerts.push({
+      type: 'danger',
+      icon: '🚨',
+      title: `OVERTRADING — ${todayTrades.length} trades aujourd’hui`,
+      msg: `Tu as dépassé ta limite de ${MAX_TRADES_DAY} trades par jour. Stop trading maintenant.`,
+      bg: 'rgba(239,68,68,.1)',
+      border: 'rgba(239,68,68,.3)',
+      color: 'var(--red2)',
+    });
+  }
+
+  // Max daily loss alert
+  if (todayPnl <= -MAX_LOSS_DAY) {
+    alerts.push({
+      type: 'danger',
+      icon: '🚨',
+      title: `PERTE MAXIMALE ATTEINTE — ${fp(todayPnl)} aujourd’hui`,
+      msg: `Tu as atteint ta limite de perte journalière ($${MAX_LOSS_DAY}). Ferme le terminal, reprends demain.`,
+      bg: 'rgba(239,68,68,.1)',
+      border: 'rgba(239,68,68,.3)',
+      color: 'var(--red2)',
+    });
+  }
+
+  // Perfect discipline day reward
+  const discTrades = todayTrades.filter(t => t.disc != null);
+  if (discTrades.length > 0 && discTrades.every(t => t.disc === 100) && todayTrades.length >= 1) {
+    alerts.push({
+      type: 'success',
+      icon: '🏆',
+      title: 'JOURNÉE PARFAITE — Discipline 100%',
+      msg: 'Tu as respecté toutes tes règles aujourd’hui. C’est ça trader comme un pro.',
+      bg: 'rgba(34,197,94,.08)',
+      border: 'rgba(34,197,94,.25)',
+      color: 'var(--green2)',
+    });
+  } else if (discTrades.length > 0 && discTrades.every(t => t.disc >= 80)) {
+    alerts.push({
+      type: 'good',
+      icon: '✅',
+      title: 'Bonne discipline aujourd’hui',
+      msg: 'Garde ce niveau de rigueur. La discipline constante crée les résultats constants.',
+      bg: 'rgba(34,197,94,.05)',
+      border: 'rgba(34,197,94,.15)',
+      color: 'var(--green2)',
+    });
+  }
+
+  if (alerts.length === 0) { el.innerHTML = ''; return; }
+
+  el.innerHTML = alerts.map(a => `
+    <div style="background:${a.bg};border:1px solid ${a.border};border-radius:var(--r2);padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:18px">${a.icon}</span>
+        <span style="font-size:13px;font-weight:700;color:${a.color}">${a.title}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:26px">${a.msg}</div>
+    </div>
+  `).join('');
+}
+
+// ── DISCIPLINE TOAST ──────────────────────────────────────────────
+function showDiscToast(discScore, discDetails) {
+  const toast     = document.getElementById('disc-toast');
+  const iconEl    = document.getElementById('disc-toast-icon');
+  const titleEl   = document.getElementById('disc-toast-title');
+  const msgEl     = document.getElementById('disc-toast-msg');
+  if (!toast) return;
+
+  let icon, title, msg, borderColor;
+
+  if (discScore === 100) {
+    icon = '🏆'; title = 'Trade parfait !';
+    msg  = 'Toutes les règles respectées. C’est exactement comme ça qu’on construit une carrière de trader.';
+    borderColor = 'rgba(34,197,94,.5)';
+    toast.style.background = 'rgba(34,197,94,.12)';
+  } else if (discScore >= 80) {
+    icon = '✅'; title = 'Bonne discipline';
+    msg  = 'Quasi parfait. Continue dans cette direction.';
+    borderColor = 'rgba(34,197,94,.3)';
+    toast.style.background = 'var(--ink2)';
+  } else if (discScore >= 50) {
+    icon = '⚡'; title = 'Discipline partielle';
+    // Find what was missed
+    const missed = Object.entries(discDetails||{}).filter(([k,v])=>!v).map(([k])=>
+      k==='plan'?'Plan':k==='sl'?'SL':k==='size'?'Size':k==='setup'?'Setup':k==='emotion'?'Emotions':'Revenge'
+    );
+    msg = missed.length > 0 ? `Non respecté: ${missed.join(', ')}. Analyse pourquoi.` : 'Revoir les règles non respectées.';
+    borderColor = 'rgba(245,158,11,.4)';
+    toast.style.background = 'rgba(245,158,11,.08)';
+  } else {
+    icon = '⚠️'; title = 'Manque de discipline';
+    const missed = Object.entries(discDetails||{}).filter(([k,v])=>!v).map(([k])=>
+      k==='plan'?'Plan':k==='sl'?'SL':k==='size'?'Size':k==='setup'?'Setup':k==='emotion'?'Emotions':'Revenge'
+    );
+    msg = `${missed.join(', ')} non respecté${missed.length>1?'s':''}. Ce trade aurait-il dû être pris?`;
+    borderColor = 'rgba(239,68,68,.4)';
+    toast.style.background = 'rgba(239,68,68,.08)';
+  }
+
+  toast.style.border = `1px solid ${borderColor}`;
+  iconEl.textContent  = icon;
+  titleEl.textContent = title;
+  msgEl.textContent   = msg;
+
+  // Show
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => {
+    toast.style.transform = 'translateX(-50%) translateY(-80px)';
+  }, 4000);
+}
 
 // ── OVERLAY ───────────────────────────────────────────────────────
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
