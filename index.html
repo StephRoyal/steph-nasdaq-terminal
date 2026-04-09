@@ -1172,7 +1172,7 @@ function checkDailyAlerts() {
   if (!el) return;
   const alerts = [];
 
-  // OVERTRADING
+  // 🚨 OVERTRADING
   if (count > MAX_TRADES_DAY) {
     alerts.push({icon:'🚨',
       title:'OVERTRADING — '+count+' trades aujourd’hui',
@@ -1180,7 +1180,7 @@ function checkDailyAlerts() {
       bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
   }
 
-  // MAX LOSS
+  // 🚨 MAX LOSS
   if (todayPnl <= -MAX_LOSS_DAY) {
     alerts.push({icon:'🚨',
       title:'PERTE MAX ATTEINTE — '+fp(todayPnl)+' aujourd’hui',
@@ -1188,16 +1188,38 @@ function checkDailyAlerts() {
       bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
   }
 
-  // 1 TRADE DONE, 1 LEFT
+  // After 1 trade
   if (count === 1 && count < MAX_TRADES_DAY) {
-    alerts.push({icon:'⚡',
-      title:'1er trade exécuté — 1 trade restant',
-      msg:'Attends le setup parfait pour le 2ème. Qualité > quantité.',
-      bg:'rgba(59,130,246,.08)',border:'rgba(59,130,246,.3)',color:'var(--acc2)'});
+    if (todayPnl < -0.5) {
+      alerts.push({icon:'💪',
+        title:'1er trade — Perte encaissée',
+        msg:'Les pertes font partie du jeu. Reste focus, le 2ème trade peut tout changer. Pas de revenge.',
+        bg:'rgba(239,68,68,.07)',border:'rgba(239,68,68,.2)',color:'var(--red2)'});
+    } else if (Math.abs(todayPnl) <= 0.5) {
+      alerts.push({icon:'⚪',
+        title:'1er trade — Break-even',
+        msg:'Pas de P&L mais pas de perte. 1 trade restant — attends le meilleur setup de la journée.',
+        bg:'rgba(156,163,175,.08)',border:'rgba(156,163,175,.25)',color:'var(--text2)'});
+    } else if (todayPnl > 0.5 && todayPnl < 500) {
+      alerts.push({icon:'⚡',
+        title:'1er trade positif — '+fp(todayPnl),
+        msg:'Bon départ ! 1 trade restant. Attends le setup parfait — ne gâche pas une bonne journée.',
+        bg:'rgba(59,130,246,.08)',border:'rgba(59,130,246,.3)',color:'var(--acc2)'});
+    } else if (todayPnl >= 500 && todayPnl < 1000) {
+      alerts.push({icon:'🔥',
+        title:'Gros 1er trade — '+fp(todayPnl)+' !',
+        msg:'Excellente exécution ! 1 trade restant. Tu peux aussi sécuriser cette journée et t’arrêter là.',
+        bg:'rgba(34,197,94,.08)',border:'rgba(34,197,94,.3)',color:'var(--green2)'});
+    } else if (todayPnl >= 1000) {
+      alerts.push({icon:'🏆',
+        title:'Trade exceptionnel — '+fp(todayPnl)+' !',
+        msg:'Journée déjà gagnée avec 1 seul trade. 1 restant si tu vois quelque chose d’évident. Sinon, stop.',
+        bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.45)',color:'var(--green2)'});
+    }
   }
 
-  // MAX TRADES REACHED + PnL messages
-  if (count >= MAX_TRADES_DAY && count <= MAX_TRADES_DAY) {
+  // After MAX trades reached
+  if (count === MAX_TRADES_DAY) {
     if (Math.abs(todayPnl) < 1) {
       alerts.push({icon:'💪',
         title:'Objectif atteint — Break-even aujourd’hui',
@@ -1217,12 +1239,33 @@ function checkDailyAlerts() {
       alerts.push({icon:'🏆',
         title:'Chapeau l’artiste — '+fp(todayPnl)+' !',
         msg:'Journée exceptionnelle. Tu trades comme un pro. Mérite-le et reviens demain avec le même focus.',
-        bg:'rgba(34,197,94,.11)',border:'rgba(34,197,94,.45)',color:'var(--green2)'});
+        bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.45)',color:'var(--green2)'});
     } else if (todayPnl < 0) {
       alerts.push({icon:'💪',
         title:'Journée terminée — '+fp(todayPnl),
-        msg:'Encaisse, analyse, passe à autre chose. Le marché sera là demain.',
+        msg:'Encaisse, analyse ce qui s’est passé, passe à autre chose. Le marché sera là demain.',
         bg:'rgba(239,68,68,.07)',border:'rgba(239,68,68,.2)',color:'var(--red2)'});
+    }
+  }
+
+  // Discipline 100% + loss (special case — good trade, bad outcome)
+  const discTrades = todayTrades.filter(t => t.disc != null);
+  const lastTrade  = todayTrades[todayTrades.length - 1];
+  if (lastTrade && lastTrade.disc === 100 && lastTrade.status === 'Loss') {
+    alerts.push({icon:'🎯',
+      title:'Perte avec discipline parfaite — c’est un bon trade',
+      msg:'Tu as respecté toutes tes règles et perdu quand même. C’est normal. L’edge se matérialise sur la durée.',
+      bg:'rgba(34,197,94,.05)',border:'rgba(34,197,94,.2)',color:'var(--green2)'});
+  }
+
+  // 3 consecutive losses
+  if (count >= 3) {
+    const last3 = [...todayTrades].slice(-3);
+    if (last3.every(t => t.status === 'Loss')) {
+      alerts.push({icon:'⚠️',
+        title:'3 pertes consécutives — pause obligatoire',
+        msg:'Le marché ne te convient pas en ce moment. Analyse, respire, reviens demain avec un esprit clair.',
+        bg:'rgba(245,158,11,.08)',border:'rgba(245,158,11,.35)',color:'var(--amber)'});
     }
   }
 
