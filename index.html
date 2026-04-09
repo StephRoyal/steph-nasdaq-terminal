@@ -718,7 +718,7 @@ function saveTrade(){
   if(maxP&&tp){const ptsTP=dir==='Long'?tp-e:e-tp,ptsMax=dir==='Long'?maxP-e:e-maxP;if(ptsTP>0&&pnl)maxhold=(pnl*ptsMax/ptsTP).toFixed(0);}
   else if(maxP){const ct=document.querySelector('input[name="ct"]:checked')?.value||'mnq',ptsMax=dir==='Long'?maxP-e:e-maxP;maxhold=(ptsMax*(ct==='mnq'?2:20)*sz).toFixed(0);}
   const disc = getDiscScore(); S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details});
-  save();closeOv('ov-trade'); showDiscToast(disc.score, disc.details); checkDailyAlerts();
+  save();closeOv('ov-trade'); showDiscToast(disc.score, disc.details); setTimeout(showDailyContextMsg, 600); checkDailyAlerts();
   ['f-entry','f-sl','f-tp','f-pnl','f-note','f-maxprice'].forEach(id=>document.getElementById(id).value=''); resetDisc();
   document.getElementById('rr-wrap').style.display='none';document.getElementById('mh-result').style.display='none';
   renderStats();renderList();showTab('stats',document.querySelector('.sgb'));
@@ -1281,9 +1281,56 @@ function showDiscToast(discScore, discDetails) {
 
   // Show
   toast.style.transform = 'translateX(-50%) translateY(0)';
-  setTimeout(() => {
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
     toast.style.transform = 'translateX(-50%) translateY(-80px)';
-  }, 4000);
+  }, 10000);
+}
+
+// ── DAILY CONTEXT MESSAGES ────────────────
+function showDailyContextMsg() {
+  const todayStr    = tod();
+  const todayTrades = S.trades.filter(t => t.date === todayStr);
+  const count       = todayTrades.length;
+  const todayPnl    = todayTrades.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
+  const toast    = document.getElementById('disc-toast');
+  const iconEl   = document.getElementById('disc-toast-icon');
+  const titleEl  = document.getElementById('disc-toast-title');
+  const msgEl    = document.getElementById('disc-toast-msg');
+  if (!toast) return;
+  let icon, title, msg, bc, bg;
+  if (count === 1) {
+    icon='⚡'; title='1er trade exécuté';
+    msg='Il te reste 1 trade pour aujourd’hui. Attends le setup parfait — qualité > quantité.';
+    bc='rgba(59,130,246,.4)'; bg='rgba(59,130,246,.08)';
+  } else if (count >= MAX_TRADES_DAY) {
+    if (Math.abs(todayPnl) < 1) {
+      icon='💪'; title='Break-even aujourd’hui';
+      msg='Ni gagné ni perdu — tu as protégé ton capital. C’est une victoire. Tu feras mieux demain !';
+      bc='rgba(245,158,11,.4)'; bg='rgba(245,158,11,.06)';
+    } else if (todayPnl > 0 && todayPnl < 500) {
+      icon='🚀'; title='Belle journée positive !';
+      msg=fp(todayPnl)+' aujourd’hui — chaque dollar compte. Les petites victoires constantes font les grands traders !';
+      bc='rgba(34,197,94,.35)'; bg='rgba(34,197,94,.06)';
+    } else if (todayPnl >= 500 && todayPnl < 1000) {
+      icon='🔥'; title='Tu surnages !';
+      msg=fp(todayPnl)+' — Journée super positive ! L’edge est là, la discipline paye. Maintiens ce niveau.';
+      bc='rgba(34,197,94,.5)'; bg='rgba(34,197,94,.1)';
+    } else if (todayPnl >= 1000) {
+      icon='🏆'; title='Chapeau l’artiste !';
+      msg=fp(todayPnl)+' — Journée exceptionnelle. Tu trades comme un pro. Mérite-le !';
+      bc='rgba(34,197,94,.6)'; bg='rgba(34,197,94,.14)';
+    } else {
+      icon='💪'; title='Journée difficile — tu l’as traversée';
+      msg=fp(todayPnl)+' — Encaisse, analyse, passe à autre chose. Le marché sera là demain.';
+      bc='rgba(239,68,68,.3)'; bg='rgba(239,68,68,.06)';
+    }
+  } else { return; }
+  toast.style.border='1px solid '+bc; toast.style.background=bg;
+  iconEl.textContent=icon; titleEl.textContent=title; msgEl.textContent=msg;
+  toast.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>{toast.style.transform='translateX(-50%) translateY(-80px)';},10000);
 }
 
 // ── OVERLAY ───────────────────────────────────────────────────────
