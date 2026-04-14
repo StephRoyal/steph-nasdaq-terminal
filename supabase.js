@@ -152,6 +152,7 @@
       // On any error/timeout - just continue with local data
     }
     hideLd();
+    addSignOutBtn();
     refresh();
   }
 
@@ -218,3 +219,24 @@
 
   init();
 })();
+
+  // ── SIGN OUT BUTTON ────────────────────────────────────────────
+  function addSignOutBtn() {
+    var existing = document.getElementById('supa-signout');
+    if (existing) return;
+    var btn = document.createElement('button');
+    btn.id = 'supa-signout';
+    btn.textContent = 'Deconnexion';
+    btn.style.cssText = 'position:fixed;bottom:80px;right:16px;z-index:999;background:#1a1b1e;border:1px solid #333;border-radius:8px;color:#888;font-size:11px;padding:6px 10px;cursor:pointer;font-family:inherit';
+    btn.onclick = async function() {
+      if (!confirm('Se deconnecter ?')) return;
+      try { await db().auth.signOut(); } catch(e) {}
+      _sess = null;
+      window.S.trades = [];
+      window.S.notes = [];
+      refresh();
+      modal.style.display = 'flex';
+      btn.remove();
+    };
+    document.body.appendChild(btn);
+  }
