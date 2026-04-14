@@ -231,7 +231,12 @@
     btn.onclick = async function() {
       if (!confirm('Se deconnecter ?')) return;
       try { await db().auth.signOut(); } catch(e) {}
+      // Clear ALL Supabase session keys from localStorage
+      Object.keys(localStorage).forEach(function(k) {
+        if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
+      });
       _sess = null;
+      _db = null;
       window.S.trades = [];
       window.S.notes = [];
       refresh();
