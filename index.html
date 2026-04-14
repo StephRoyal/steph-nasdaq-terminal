@@ -121,6 +121,7 @@ canvas{display:block;width:100%}
 .hs{-ms-overflow-style:none;scrollbar-width:none}
 @media(min-width:600px){.sg{grid-template-columns:repeat(4,1fr)}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -279,6 +280,24 @@ canvas{display:block;width:100%}
   </div>
   <div class="card" id="notes-empty"><div class="empty">📝<br><br>Carnet vide</div></div>
   <div id="notes-list"></div>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="auth-modal" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.88);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--ink2);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:360px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:32px;margin-bottom:8px">🎯</div>
+      <div style="font-size:20px;font-weight:800">NQ Terminal</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px" id="auth-subtitle">Connecte-toi pour accéder à tes données</div>
+    </div>
+    <div id="auth-error" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--r);padding:10px 12px;font-size:12px;color:var(--red2);margin-bottom:14px"></div>
+    <div style="margin-bottom:12px"><label class="fl">Email</label><input type="email" class="fi" id="auth-email" placeholder="ton@email.com"/></div>
+    <div style="margin-bottom:20px"><label class="fl">Mot de passe</label><input type="password" class="fi" id="auth-pwd" placeholder="••••••••"/></div>
+    <button class="btn ba bw" id="auth-btn" onclick="doAuth()">Se connecter</button>
+    <div style="text-align:center;margin-top:12px">
+      <button onclick="toggleMode()" style="background:none;border:none;color:var(--acc2);font-size:12px;cursor:pointer;font-family:var(--font)" id="auth-toggle">Pas de compte ? S'inscrire</button>
+    </div>
+  </div>
 </div>
 
 <!-- NAV -->
@@ -1293,7 +1312,221 @@ function exportPDF(){
     "</div>"+
     "<h2>Performance par Stratégie</h2><table><tr><th>Stratégie</th><th>Trades</th><th>Win Rate</th><th>P&L</th><th>Avg/trade</th></tr>"+srows+"</table>"+
     "<h2>Historique</h2><table><tr><th>Date</th><th>Session</th><th>Direction</th><th>Résultat</th><th>P&L</th><th>R:R</th><th>Stratégie</th><th>Discipline</th></tr>"+trows+"</table>"+
-    "<div class='ft'><span>NQ Terminal · steph-nasdaq-terminal.vercel.app</span><span>Généré le "+now+"</span></div></body></html>";
+    "<div class='ft'><span>NQ Terminal · steph-nasdaq-terminal.vercel.app</span><span>Généré le "+now+"</span></div>
+<script>
+(function() {
+  var SURL = 'https://tsxlshijuzvaueszmyze.supabase.co';
+  var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzeGxzaGlqdXp2YXVlc3pteXplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MjQ3NDMsImV4cCI6MjA5MTQwMDc0M30.iF9pkDPeph3hTV-_7lPyVlO50r9bm8jd_MJEZeIfBDY';
+  var _db = null;
+  var _sess = null;
+  var _mode = 'signin';
+
+  function db() {
+    if (!_db && window.supabase) _db = window.supabase.createClient(SURL, SKEY);
+    return _db;
+  }
+
+  window.toggleMode = function() {
+    _mode = _mode === 'signin' ? 'signup' : 'signin';
+    document.getElementById('auth-btn').textContent = _mode === 'signin' ? 'Se connecter' : 'Creer le compte';
+    document.getElementById('auth-toggle').textContent = _mode === 'signin' ? 'Pas de compte ? S inscrire' : 'Deja un compte ? Se connecter';
+    document.getElementById('auth-subtitle').textContent = _mode === 'signin' ? 'Connecte-toi pour acceder a tes donnees' : 'Cree ton compte NQ Terminal';
+  };
+
+  window.doAuth = async function() {
+    var email = document.getElementById('auth-email').value.trim();
+    var pwd   = document.getElementById('auth-pwd').value;
+    var errEl = document.getElementById('auth-error');
+    var btn   = document.getElementById('auth-btn');
+    errEl.style.display = 'none';
+    if (!email || !pwd) { errEl.textContent = 'Email et mot de passe requis'; errEl.style.display='block'; return; }
+    btn.textContent = '...'; btn.disabled = true;
+    var res = _mode === 'signin'
+      ? await db().auth.signInWithPassword({ email: email, password: pwd })
+      : await db().auth.signUp({ email: email, password: pwd });
+    btn.disabled = false;
+    btn.textContent = _mode === 'signin' ? 'Se connecter' : 'Creer le compte';
+    if (res.error) { errEl.textContent = res.error.message; errEl.style.display='block'; return; }
+    if (_mode === 'signup' && !res.data.session) {
+      errEl.style.background='rgba(34,197,94,.1)'; errEl.style.borderColor='rgba(34,197,94,.3)'; errEl.style.color='var(--green2)';
+      errEl.textContent = 'Compte cree ! Verifie ton email puis connecte-toi.';
+      errEl.style.display='block'; _mode='signin';
+      btn.textContent='Se connecter'; return;
+    }
+    _sess = res.data.session;
+    document.getElementById('auth-modal').style.display = 'none';
+    await window.supaLoad();
+  };
+
+  window.supaLoad = async function() {
+    if (!_sess) return;
+    showLd('Chargement...');
+    var existing = await db().from('trades').select('id').limit(1);
+    if (!existing.data || existing.data.length === 0) {
+      await migrate();
+    }
+    var t = await db().from('trades').select('*').order('ts', { ascending: false });
+    var n = await db().from('notes').select('*').order('ts', { ascending: false });
+    if (t.data) {
+      window.S.trades = t.data.map(function(x) {
+        return { id:x.id, ts:x.ts, date:x.date, session:x.session, direction:x.direction,
+          status:x.status, entry:x.entry, sl:x.sl, tp:x.tp, pnl:x.pnl, maxhold:x.maxhold,
+          size:x.size, rr:x.rr, strategy:x.strategy, note:x.note, disc:x.disc, discDetails:x.disc_details };
+      });
+    }
+    if (n.data) {
+      window.S.notes = n.data.map(function(x) {
+        return { id:x.id, ts:x.ts, date:x.date, title:x.title, body:x.body };
+      });
+    }
+    try { localStorage.setItem('nqt-v8', JSON.stringify({trades:window.S.trades,notes:window.S.notes})); } catch(e){}
+    hideLd();
+    window.renderStats(); window.renderList(); window.renderNotes();
+    setTimeout(window.checkDailyAlerts, 200);
+  };
+
+  async function migrate() {
+    var local = localStorage.getItem('nqt-v8') || localStorage.getItem('nqt-v7');
+    if (!local) return;
+    try {
+      var d = JSON.parse(local);
+      if (d.trades && d.trades.length > 0) {
+        var rows = d.trades.map(function(t) {
+          return { id:t.id, ts:t.ts, date:t.date, session:t.session, direction:t.direction,
+            status:t.status, entry:t.entry, sl:t.sl||null, tp:t.tp||null, pnl:t.pnl,
+            maxhold:t.maxhold||null, size:t.size, rr:t.rr||null, strategy:t.strategy,
+            note:t.note||null, disc:t.disc!=null?t.disc:null, disc_details:t.discDetails||null };
+        });
+        await db().from('trades').insert(rows);
+        showToastOk(rows.length + ' trades migres vers le cloud!');
+      }
+      if (d.notes && d.notes.length > 0) {
+        var nrows = d.notes.map(function(n) { return {id:n.id,ts:n.ts,date:n.date,title:n.title,body:n.body}; });
+        await db().from('notes').insert(nrows);
+      }
+    } catch(e) { console.error('Migration:', e); }
+  }
+
+  function showLd(msg) {
+    var el = document.getElementById('supa-ld');
+    if (!el) { el=document.createElement('div'); el.id='supa-ld';
+      el.style.cssText='position:fixed;inset:0;background:rgba(10,11,15,.92);z-index:9997;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px';
+      document.body.appendChild(el); }
+    el.innerHTML='<div class="spn" style="width:32px;height:32px;border-width:3px"></div><div style="font-size:14px;color:var(--text2)">'+msg+'</div>';
+    el.style.display='flex';
+  }
+  function hideLd() { var el=document.getElementById('supa-ld'); if(el)el.style.display='none'; }
+
+  function showToastOk(msg) {
+    var t=document.getElementById('disc-toast'),ti=document.getElementById('disc-toast-icon'),tt=document.getElementById('disc-toast-title'),tm=document.getElementById('disc-toast-msg');
+    if(!t)return;
+    t.style.border='1px solid rgba(34,197,94,.5)'; t.style.background='rgba(34,197,94,.1)';
+    if(ti)ti.textContent=''; if(tt)tt.textContent=msg; if(tm)tm.textContent='';
+    t.style.transform='translateX(-50%) translateY(0)';
+    clearTimeout(window._toastTimer);
+    window._toastTimer=setTimeout(function(){t.style.transform='translateX(-50%) translateY(-80px)';},5000);
+  }
+
+  // Override save functions to also sync to Supabase
+  var _origSaveTrade = null;
+  var _origDeleteTrade = null;
+  var _origSaveNote = null;
+
+  function patchFunctions() {
+    // Patch save() to also sync last modified trade
+    var origSave = window.save;
+    window.save = function() { origSave && origSave(); };
+
+    // Patch saveTrade
+    var origSaveTrade = window.saveTrade;
+    window.saveTrade = async function() {
+      origSaveTrade && origSaveTrade();
+      if (_sess && window.S.trades.length > 0) {
+        var t = window.S.trades[window.S.trades.length-1];
+        await db().from('trades').upsert({
+          id:t.id,ts:t.ts,date:t.date,session:t.session,direction:t.direction,
+          status:t.status,entry:t.entry,sl:t.sl||null,tp:t.tp||null,pnl:t.pnl,
+          maxhold:t.maxhold||null,size:t.size,rr:t.rr||null,strategy:t.strategy,
+          note:t.note||null,disc:t.disc!=null?t.disc:null,disc_details:t.discDetails||null
+        });
+      }
+    };
+
+    // Patch saveEdit
+    var origSaveEdit = window.saveEdit;
+    window.saveEdit = async function() {
+      var idEl = document.getElementById('e-id');
+      var id = idEl ? idEl.value : null;
+      origSaveEdit && origSaveEdit();
+      if (_sess && id) {
+        var t = window.S.trades.find(function(x){return x.id===id;});
+        if (t) await db().from('trades').upsert({
+          id:t.id,ts:t.ts,date:t.date,session:t.session,direction:t.direction,
+          status:t.status,entry:t.entry,sl:t.sl||null,tp:t.tp||null,pnl:t.pnl,
+          maxhold:t.maxhold||null,size:t.size,rr:t.rr||null,strategy:t.strategy,
+          note:t.note||null,disc:t.disc!=null?t.disc:null,disc_details:t.discDetails||null
+        });
+      }
+    };
+
+    // Patch deleteTrade
+    var origDel = window.deleteTrade;
+    window.deleteTrade = async function(id) {
+      origDel && origDel(id);
+      if (_sess) await db().from('trades').delete().eq('id', id);
+    };
+
+    // Patch saveNote
+    var origSaveNote = window.saveNote;
+    window.saveNote = async function() {
+      origSaveNote && origSaveNote();
+      if (_sess && window.S.notes.length > 0) {
+        var n = window.S.notes[0];
+        await db().from('notes').upsert({id:n.id,ts:n.ts,date:n.date,title:n.title,body:n.body});
+      }
+    };
+
+    // Patch deleteNote
+    var origDelNote = window.deleteNote;
+    window.deleteNote = async function() {
+      var cid = window.curNote;
+      origDelNote && origDelNote();
+      if (_sess && cid) await db().from('notes').delete().eq('id', cid);
+    };
+  }
+
+  // Init on DOM ready
+  document.addEventListener('DOMContentLoaded', async function() {
+    var d = db();
+    if (!d) { console.error('Supabase not loaded'); return; }
+    
+    // Check existing session
+    var r = await d.auth.getSession();
+    if (r.data && r.data.session) {
+      _sess = r.data.session;
+      document.getElementById('auth-modal').style.display = 'none';
+      patchFunctions();
+      await window.supaLoad();
+    } else {
+      // Show auth modal - but let local data still work
+      patchFunctions();
+    }
+
+    // Listen for auth changes
+    d.auth.onAuthStateChange(async function(event, session) {
+      if (event === 'SIGNED_IN') {
+        _sess = session;
+        document.getElementById('auth-modal').style.display = 'none';
+        patchFunctions();
+      } else if (event === 'SIGNED_OUT') {
+        _sess = null;
+      }
+    });
+  });
+
+})();
+</script>
+</body></html>";
   const blob=new Blob([doc],{type:"text/html"});const url=URL.createObjectURL(blob);
   const a=document.createElement("a");a.href=url;a.download="NQ_Journal_"+new Date().toISOString().slice(0,10)+".html";
   a.click();URL.revokeObjectURL(url);}
