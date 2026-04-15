@@ -2454,14 +2454,18 @@ function calcCurrentStreak() {
 }
 
 function renderHome() {
-  // Always get fresh trades - from S if loaded, otherwise from localStorage
+  // Read trades directly from localStorage - most reliable source
   var trades = [];
-  if(window.S && S.trades && S.trades.length > 0) {
+  try {
+    var stored = localStorage.getItem('nqt-v8');
+    if(stored) {
+      var parsed = JSON.parse(stored);
+      trades = parsed.trades || [];
+    }
+  } catch(e) {}
+  // Also check S.trades in case it's more up to date
+  if(window.S && S.trades && S.trades.length > trades.length) {
     trades = S.trades;
-  } else {
-    try { var d=JSON.parse(localStorage.getItem('nqt-v8')||'{}'); trades=d.trades||[]; } catch(e){}
-    // If localStorage has trades and S is empty, populate S
-    if(window.S && trades.length > 0 && S.trades.length === 0) S.trades = trades;
   }
   var payouts = JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
   var accounts = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
@@ -2501,6 +2505,13 @@ function renderHome() {
   var wkPnl=wkTrades.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
   var wpEl=document.getElementById('home-pnl-week');
   if(wpEl){wpEl.textContent=(wkPnl>=0?'+':'')+Math.round(wkPnl)+'$';wpEl.style.color=wkPnl>=0?'var(--green2)':'var(--red2)';}
+
+  // If no trades yet, retry in 1 second (supabase might still be loading)
+  if(trades.length === 0) {
+    var retryEl = document.getElementById('home-streak');
+    if(retryEl) retryEl.textContent = '...';
+    setTimeout(renderHome, 1000);
+  }
 
   // Heatmap 30 days
   renderHeatmap(trades);
