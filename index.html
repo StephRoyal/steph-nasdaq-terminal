@@ -2311,11 +2311,11 @@ var LEVELS = [
 
 // Payout milestones
 var MILESTONES = [
-  {val:5000,  label:'5k',  msg:'\ud83c\udf89 Premier palier atteint ! 5 000$ sortis. La machine tourne.'},
-  {val:10000, label:'10k', msg:'\ud83d\udd25 10 000$ de payouts ! Tu prouves que c\u2019est r\u00e9p\u00e9table.'},
-  {val:25000, label:'25k', msg:'\ud83d\udcaa 25 000$ ! Tu es dans le top des prop traders actifs.'},
-  {val:50000, label:'50k', msg:'\ud83d\udca5 50 000$ ! Mi-chemin vers le 6 chiffres. \u00c9l\u00e9vation.'},
-  {val:100000,label:'100k',msg:'\ud83c\udf1f 100 000$ de payouts ! L\u00e9gende absolue.'}
+  {val:5000,   label:'5k',   msg:'Premier palier atteint - 5 000$ sortis !'},
+  {val:10000,  label:'10k',  msg:'10 000$ de payouts - tu prouves que c'est repetable.'},
+  {val:25000,  label:'25k',  msg:'25 000$ - dans le top des prop traders actifs.'},
+  {val:50000,  label:'50k',  msg:'50 000$ - mi-chemin vers le 6 chiffres.'},
+  {val:100000, label:'100k', msg:'100 000$ de payouts - legende absolue.'}
 ];
 
 // Badges definitions
@@ -2583,7 +2583,7 @@ function renderHomePayout(payouts) {
         return '<div style="text-align:center"><div style="font-size:11px;font-weight:700;color:'+(done?'var(--green2)':'var(--text3)')+'">$'+m.label+'</div><div style="font-size:8px">'+(done?'✅':'○')+'</div></div>';
       }).join('')+
     '</div>'+
-    (curMs?'<div style="margin-top:10px;font-size:12px;padding:8px 10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;color:var(--green2)">'+curMs.msg+'</div>':'');
+    (curMs?'<div style="margin-top:10px;font-size:12px;padding:8px 10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;color:var(--green2)">'+String(curMs.msg).replace(/'/g,"&#39;")+'</div>':'');
 
   if(!list) return;
   if(!payouts.length){ list.innerHTML=''; return; }
