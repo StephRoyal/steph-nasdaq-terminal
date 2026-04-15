@@ -177,6 +177,120 @@ canvas{display:block;width:100%}
   </div>
 </div>
 
+<!-- PAGE: HOME -->
+<div id="pg-home" class="page">
+
+  <!-- HEADER SECTION -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div>
+      <div style="font-size:22px;font-weight:800">Bonjour, Steph 👋</div>
+      <div id="home-date-sub" style="font-size:12px;color:var(--text3);margin-top:2px"></div>
+    </div>
+    <div id="home-level-badge" style="text-align:center;padding:8px 14px;background:var(--ink2);border:1px solid var(--border);border-radius:12px;cursor:pointer" onclick="goPage('journal',document.querySelector('.nb'))">
+      <div id="home-level-name" style="font-size:11px;font-weight:800;color:var(--acc2);text-transform:uppercase;letter-spacing:.05em"></div>
+      <div id="home-xp-label" style="font-size:10px;color:var(--text3);margin-top:1px"></div>
+    </div>
+  </div>
+
+  <!-- XP BAR -->
+  <div style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Progression</div>
+      <div id="home-next-level" style="font-size:10px;color:var(--text3)"></div>
+    </div>
+    <div style="height:6px;background:var(--ink3);border-radius:99px;overflow:hidden">
+      <div id="home-xp-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s cubic-bezier(.4,0,.2,1);width:0%"></div>
+    </div>
+  </div>
+
+  <!-- STREAK + QUICK STATS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+    <div style="background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center">
+      <div id="home-streak" style="font-size:26px;font-weight:900;color:var(--amber)">—</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Streak 🔥</div>
+    </div>
+    <div style="background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center">
+      <div id="home-wr" style="font-size:22px;font-weight:900;color:var(--green2)">—</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Win Rate</div>
+    </div>
+    <div style="background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center">
+      <div id="home-pnl-week" style="font-size:18px;font-weight:900;color:var(--green2)">—</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Cette sem.</div>
+    </div>
+  </div>
+
+  <!-- FUNDED ACCOUNTS -->
+  <div style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.07em">💼 Comptes Funded</div>
+      <button onclick="openAddAccount()" style="background:var(--acc);border:none;border-radius:8px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">+ Ajouter</button>
+    </div>
+    <div id="home-accounts-list"></div>
+  </div>
+
+  <!-- PAYOUT TRACKER -->
+  <div style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.07em">💰 Payout Tracker</div>
+      <button onclick="openAddPayout()" style="background:var(--green2);border:none;border-radius:8px;padding:4px 10px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">+ Payout</button>
+    </div>
+    <!-- Milestone bar -->
+    <div id="home-payout-card" style="background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px"></div>
+    <!-- Payout history -->
+    <div id="home-payout-list"></div>
+  </div>
+
+  <!-- BADGES -->
+  <div style="margin-bottom:80px">
+    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.07em;margin-bottom:10px">🏆 Badges</div>
+    <div id="home-badges-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+  </div>
+
+</div>
+
+<!-- ADD ACCOUNT OVERLAY -->
+<div id="add-account-ov" class="ov">
+  <div class="ov-box" style="max-width:400px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-size:16px;font-weight:800">Ajouter un compte</div>
+      <button onclick="closeOv('add-account-ov')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3)">✕</button>
+    </div>
+    <div class="fg"><label class="fl">Prop Firm</label><input type="text" id="acc-firm" class="fs" placeholder="ex: Topstep, Lucid, FTMO..."/></div>
+    <div class="fg"><label class="fl">Taille du compte</label><input type="text" id="acc-size" class="fs" placeholder="ex: 50k, 100k..."/></div>
+    <div class="fg"><label class="fl">Statut</label>
+      <select id="acc-status" class="fs">
+        <option value="challenge">🎯 Challenge</option>
+        <option value="funded">✅ Funded</option>
+        <option value="blown">💥 Blown</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Drawdown restant</label><input type="number" id="acc-drawdown" class="fs" placeholder="ex: 2500"/></div>
+    <div class="fg"><label class="fl">Drawdown max</label><input type="number" id="acc-drawdown-max" class="fs" placeholder="ex: 3000"/></div>
+    <button onclick="saveAccount()" class="btn ba bs" style="width:100%;margin-top:8px">Enregistrer</button>
+  </div>
+</div>
+
+<!-- ADD PAYOUT OVERLAY -->
+<div id="add-payout-ov" class="ov">
+  <div class="ov-box" style="max-width:400px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-size:16px;font-weight:800">Ajouter un payout</div>
+      <button onclick="closeOv('add-payout-ov')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3)">✕</button>
+    </div>
+    <div class="fg"><label class="fl">Prop Firm</label><input type="text" id="po-firm" class="fs" placeholder="ex: Topstep 50k #1"/></div>
+    <div class="fg"><label class="fl">Montant ($)</label><input type="number" id="po-amount" class="fs" placeholder="ex: 1500"/></div>
+    <div class="fg"><label class="fl">Date</label><input type="date" id="po-date" class="fs"/></div>
+    <div class="fg"><label class="fl">Statut</label>
+      <select id="po-status" class="fs">
+        <option value="received">✅ Reçu</option>
+        <option value="pending">⏳ En attente</option>
+      </select>
+    </div>
+    <button onclick="savePayout()" class="btn ba bs" style="width:100%;margin-top:8px">Enregistrer</button>
+  </div>
+</div>
+
+
 <!-- PAGE: BRIEF -->
 <div id="pg-brief" class="page">
 
@@ -331,11 +445,15 @@ canvas{display:block;width:100%}
 
 <!-- NAV -->
 <nav class="nav">
+  <button class="nb on" onclick="goPage('home',this)" id="nb-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Home</span>
+  </button>
   <button class="nb" onclick="goPage('brief',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="14" y2="12"/><line x1="7" y1="16" x2="11" y2="16"/></svg>
     <span>Brief</span>
   </button>
-  <button class="nb on" onclick="goPage('journal',this)">
+  <button class="nb" onclick="goPage('journal',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     <span>Journal</span>
   </button>
@@ -602,7 +720,7 @@ load();
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 document.getElementById('quote-text').textContent = QUOTES[new Date().getDate() % QUOTES.length];
 renderStats(); renderList(); renderNotes(); setTimeout(checkDailyAlerts, 200);
-loadWeather(); loadEarnings(); loadNews(); setTimeout(function(){ updateNQFlag(); setInterval(updateNQFlag, 300000); }, 2000); // refresh every 5min setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
+loadWeather(); loadEarnings(); loadNews(); setTimeout(renderHome, 500); setTimeout(function(){ updateNQFlag(); setInterval(updateNQFlag, 300000); }, 2000); // refresh every 5min setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
 
 // ── NAV ───────────────────────────────────────────────────────────
 function goPage(id, btn) {
@@ -610,6 +728,7 @@ function goPage(id, btn) {
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
   document.getElementById('pg-' + id).classList.add('on');
   btn.classList.add('on');
+  if (id === 'home') { renderHome(); }
   if (id === 'journal') { renderStats(); checkDailyAlerts(); }
   if (id === 'eco') { loadEcoCalendar(0, document.getElementById('eco-today-btn')); }
   if (id === 'sim') runSim();
@@ -2163,6 +2282,349 @@ function showToast(msg){
   t.textContent=msg;
   document.body.appendChild(t);
   setTimeout(function(){t.remove();},3000);
+}
+
+// ── HOME PAGE ──────────────────────────────────────────────────────
+
+// XP Levels
+var LEVELS = [
+  {name:'Débutant',    min:0,     max:500,   color:'#9ca3af'},
+  {name:'Apprenti',   min:500,   max:1500,  color:'#60a5fa'},
+  {name:'Trader',     min:1500,  max:3500,  color:'#34d399'},
+  {name:'Confirmé',   min:3500,  max:7000,  color:'#a78bfa'},
+  {name:'Pro',        min:7000,  max:15000, color:'#f59e0b'},
+  {name:'Elite',      min:15000, max:30000, color:'#f97316'},
+  {name:'Legend',     min:30000, max:99999, color:'#ef4444'}
+];
+
+// Payout milestones
+var MILESTONES = [
+  {val:5000,  label:'5k',  msg:'\ud83c\udf89 Premier palier atteint ! 5 000$ sortis. La machine tourne.'},
+  {val:10000, label:'10k', msg:'\ud83d\udd25 10 000$ de payouts ! Tu prouves que c\u2019est r\u00e9p\u00e9table.'},
+  {val:25000, label:'25k', msg:'\ud83d\udcaa 25 000$ ! Tu es dans le top des prop traders actifs.'},
+  {val:50000, label:'50k', msg:'\ud83d\udca5 50 000$ ! Mi-chemin vers le 6 chiffres. \u00c9l\u00e9vation.'},
+  {val:100000,label:'100k',msg:'\ud83c\udf1f 100 000$ de payouts ! L\u00e9gende absolue.'}
+];
+
+// Badges definitions
+var ALL_BADGES = [
+  {id:'first_trade',  icon:'\ud83d\udd25', name:'First Blood',    desc:'Premier trade entré',          xp:50},
+  {id:'first_win',    icon:'\ud83c\udfaf', name:'Premier Win',    desc:'Premier trade profitable',      xp:100},
+  {id:'sniper',       icon:'\ud83d\udc8e', name:'Sniper',         desc:'Trade avec R:R > 3',            xp:200},
+  {id:'discipline_1', icon:'\ud83e\uddd8', name:'Zen Trader',     desc:'Journée à 100% discipline',     xp:150},
+  {id:'streak_3',     icon:'\ud83d\udd25', name:'On Fire',        desc:'3 jours profitables consécutifs',xp:200},
+  {id:'streak_5',     icon:'\u26a1',       name:'Hot Streak',     desc:'5 jours profitables consécutifs',xp:350},
+  {id:'trades_10',    icon:'\ud83d\udcca', name:'Actif',          desc:'10 trades trackés',             xp:100},
+  {id:'trades_50',    icon:'\ud83c\udfc5', name:'Vétéran',        desc:'50 trades trackés',             xp:300},
+  {id:'trades_100',   icon:'\ud83c\udfc6', name:'Century Club',   desc:'100 trades trackés',            xp:500},
+  {id:'first_payout', icon:'\ud83d\udcb0', name:'Premier Chèque', desc:'Premier payout reçu',           xp:300},
+  {id:'payout_10k',   icon:'\ud83d\ude80', name:'10k Club',       desc:'10 000$ de payouts cumulés',    xp:500},
+  {id:'winrate_70',   icon:'\ud83e\udd47', name:'Sniping 70%',    desc:'Win rate ≥ 70% sur 10+ trades', xp:400},
+  {id:'no_revenge',   icon:'\ud83e\uddd0', name:'Ice Cold',       desc:'5 jours sans overtrading',      xp:250},
+  {id:'comeback',     icon:'\ud83d\udd04', name:'Comeback',       desc:'Jour profitable après 2 pertes',xp:200},
+  {id:'funded',       icon:'\ud83d\udcbc', name:'Funded',         desc:'Premier compte Funded ajouté',  xp:400},
+  {id:'perfect_week', icon:'\u2b50',       name:'Perfect Week',   desc:'5 jours sur 5 profitables',     xp:600}
+];
+
+function calcXP() {
+  var xp = 0;
+  var trades = S.trades || [];
+  var pd = JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
+  var ac = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
+  // XP from trades
+  xp += trades.length * 10;
+  // XP from discipline days
+  var byDate = {};
+  trades.forEach(function(t){ if(!byDate[t.date])byDate[t.date]=[]; byDate[t.date].push(t); });
+  Object.values(byDate).forEach(function(dt){
+    var disc = dt.filter(function(t){return t.disc!=null;});
+    if(disc.length && disc.reduce(function(s,t){return s+t.disc;},0)/disc.length >= 80) xp += 50;
+  });
+  // XP from badges
+  var unlocked = calcBadges(trades, pd, ac);
+  unlocked.forEach(function(b){ xp += b.xp; });
+  return xp;
+}
+
+function getLevel(xp) {
+  var lvl = LEVELS[0];
+  for(var i=0;i<LEVELS.length;i++){
+    if(xp >= LEVELS[i].min) lvl = LEVELS[i];
+  }
+  return lvl;
+}
+
+function calcBadges(trades, payouts, accounts) {
+  var unlocked = [];
+  var byDate = {};
+  trades.forEach(function(t){ if(!byDate[t.date])byDate[t.date]=[]; byDate[t.date].push(t); });
+  var dates = Object.keys(byDate).sort();
+  
+  // first_trade
+  if(trades.length > 0) unlocked.push('first_trade');
+  // first_win
+  if(trades.some(function(t){return t.status==='Win';})) unlocked.push('first_win');
+  // sniper — RR > 3
+  if(trades.some(function(t){return t.status==='Win'&&parseFloat(t.rr)>3;})) unlocked.push('sniper');
+  // discipline_1
+  if(Object.values(byDate).some(function(dt){
+    var d=dt.filter(function(t){return t.disc!=null;});
+    return d.length&&d.reduce(function(s,t){return s+t.disc;},0)/d.length>=80;
+  })) unlocked.push('discipline_1');
+  // streak_3 / streak_5
+  var maxStreak=0,cur=0;
+  dates.forEach(function(d){
+    var p=byDate[d].reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    if(p>0){cur++;maxStreak=Math.max(maxStreak,cur);}else cur=0;
+  });
+  if(maxStreak>=3) unlocked.push('streak_3');
+  if(maxStreak>=5) unlocked.push('streak_5');
+  // trades counts
+  if(trades.length>=10) unlocked.push('trades_10');
+  if(trades.length>=50) unlocked.push('trades_50');
+  if(trades.length>=100) unlocked.push('trades_100');
+  // payout badges
+  var totalPayout=(payouts||[]).filter(function(p){return p.status==='received';}).reduce(function(s,p){return s+(parseFloat(p.amount)||0);},0);
+  if((payouts||[]).some(function(p){return p.status==='received';})) unlocked.push('first_payout');
+  if(totalPayout>=10000) unlocked.push('payout_10k');
+  // winrate_70
+  var wins=trades.filter(function(t){return t.status==='Win';}).length;
+  if(trades.length>=10&&wins/trades.length>=0.7) unlocked.push('winrate_70');
+  // no_revenge — 5 days with ≤2 trades
+  var noRevengeDays=dates.filter(function(d){return byDate[d].length<=2;});
+  if(noRevengeDays.length>=5) unlocked.push('no_revenge');
+  // comeback
+  for(var i=2;i<dates.length;i++){
+    var prev2=byDate[dates[i-2]].reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    var prev1=byDate[dates[i-1]].reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    var curr=byDate[dates[i]].reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    if(prev2<0&&prev1<0&&curr>0){unlocked.push('comeback');break;}
+  }
+  // funded account
+  if((accounts||[]).some(function(a){return a.status==='funded';})) unlocked.push('funded');
+  // perfect_week
+  var weekDays=['1','2','3','4','5'];
+  // check any week where all 5 weekdays were profitable
+  var byWeek={};
+  dates.forEach(function(d){
+    var dt=new Date(d+'T12:00:00');
+    var wd=dt.getDay();
+    if(wd>=1&&wd<=5){
+      var wy=dt.getFullYear()+'-W'+String(Math.ceil(dt.getDate()/7));
+      if(!byWeek[wy])byWeek[wy]={};
+      byWeek[wy][wd]=byDate[d].reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    }
+  });
+  Object.values(byWeek).forEach(function(wk){
+    if(Object.keys(wk).length===5&&Object.values(wk).every(function(p){return p>0;})){
+      unlocked.push('perfect_week');
+    }
+  });
+  return ALL_BADGES.filter(function(b){return unlocked.indexOf(b.id)>-1;});
+}
+
+function calcCurrentStreak() {
+  var byDate={};
+  (S.trades||[]).forEach(function(t){if(!byDate[t.date])byDate[t.date]=[];byDate[t.date].push(t);});
+  var dates=Object.keys(byDate).sort().reverse();
+  var streak=0;
+  for(var i=0;i<dates.length;i++){
+    var p=byDate[dates[i]].reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    if(p>0) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function renderHome() {
+  var trades = S.trades || [];
+  var payouts = JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
+  var accounts = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
+
+  // Date subtitle
+  var now = new Date();
+  var dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  var months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Août','Sep','Oct','Nov','Déc'];
+  var el=document.getElementById('home-date-sub');
+  if(el) el.textContent = dayNames[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+
+  // XP & Level
+  var xp = calcXP();
+  var lvl = getLevel(xp);
+  var nextLvl = LEVELS[LEVELS.indexOf(lvl)+1];
+  var pct = nextLvl ? Math.round((xp-lvl.min)/(nextLvl.min-lvl.min)*100) : 100;
+  var lnEl=document.getElementById('home-level-name');
+  if(lnEl){lnEl.textContent=lvl.name;lnEl.style.color=lvl.color;}
+  var xlEl=document.getElementById('home-xp-label');
+  if(xlEl) xlEl.textContent = xp+' XP';
+  var xbEl=document.getElementById('home-xp-bar');
+  if(xbEl) setTimeout(function(){xbEl.style.width=pct+'%';},100);
+  var nlEl=document.getElementById('home-next-level');
+  if(nlEl) nlEl.textContent = nextLvl ? 'Prochain : '+nextLvl.name+' ('+nextLvl.min+' XP)' : 'Niveau max atteint 🏆';
+
+  // Quick stats
+  var streak = calcCurrentStreak();
+  var stEl=document.getElementById('home-streak');
+  if(stEl) stEl.textContent = streak>0?'🔥'+streak:'0';
+  var wins=trades.filter(function(t){return t.status==='Win';}).length;
+  var wr=trades.length?Math.round(wins/trades.length*100):0;
+  var wrEl=document.getElementById('home-wr');
+  if(wrEl){wrEl.textContent=wr+'%';wrEl.style.color=wr>=60?'var(--green2)':wr>=40?'var(--amber)':'var(--red2)';}
+  var wd=now.getDay()||7;
+  var ws=new Date(now.getTime()-(wd-1)*86400000);ws.setHours(0,0,0,0);
+  var wkTrades=trades.filter(function(t){return t.date&&new Date(t.date+'T12:00:00')>=ws;});
+  var wkPnl=wkTrades.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+  var wpEl=document.getElementById('home-pnl-week');
+  if(wpEl){wpEl.textContent=(wkPnl>=0?'+':'')+Math.round(wkPnl)+'$';wpEl.style.color=wkPnl>=0?'var(--green2)':'var(--red2)';}
+
+  // Funded accounts
+  renderHomeAccounts(accounts);
+
+  // Payout tracker
+  renderHomePayout(payouts);
+
+  // Badges
+  renderHomeBadges(trades, payouts, accounts);
+}
+
+function renderHomeAccounts(accounts) {
+  var el = document.getElementById('home-accounts-list');
+  if(!el) return;
+  if(!accounts.length){
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;background:var(--ink2);border:1px solid var(--border);border-radius:12px">Aucun compte ajouté<br><span style="font-size:11px">Clique + Ajouter pour commencer</span></div>';
+    return;
+  }
+  var statusInfo = {
+    challenge: {label:'Challenge 🎯', col:'var(--amber)', bg:'rgba(245,158,11,.08)', border:'rgba(245,158,11,.25)'},
+    funded:    {label:'Funded ✅',    col:'var(--green2)', bg:'rgba(34,197,94,.08)', border:'rgba(34,197,94,.25)'},
+    blown:     {label:'Blown 💥',     col:'var(--red2)',   bg:'rgba(239,68,68,.08)', border:'rgba(239,68,68,.25)'}
+  };
+  el.innerHTML = accounts.map(function(a,i){
+    var si = statusInfo[a.status]||statusInfo.challenge;
+    var ddPct = a.drawdownMax ? Math.round(a.drawdown/a.drawdownMax*100) : 100;
+    return '<div style="background:'+si.bg+';border:1px solid '+si.border+';border-radius:12px;padding:12px 14px;margin-bottom:8px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+        '<div>'+
+          '<div style="font-size:14px;font-weight:700">'+a.firm+'</div>'+
+          '<div style="font-size:11px;color:var(--text3)">'+a.size+'</div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:11px;font-weight:700;color:'+si.col+';background:var(--ink3);padding:3px 8px;border-radius:6px">'+si.label+'</span>'+
+          '<button onclick="deleteAccount('+i+')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px">✕</button>'+
+        '</div>'+
+      '</div>'+
+      (a.drawdown!=null&&a.drawdownMax?
+        '<div>'+
+          '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px">'+
+            '<span>Drawdown restant</span><span style="color:'+si.col+'">$'+a.drawdown+' / $'+a.drawdownMax+'</span>'+
+          '</div>'+
+          '<div style="height:4px;background:var(--ink3);border-radius:99px"><div style="height:100%;width:'+ddPct+'%;background:'+si.col+';border-radius:99px;transition:width .4s"></div></div>'+
+        '</div>':'')+
+    '</div>';
+  }).join('');
+}
+
+function renderHomePayout(payouts) {
+  var card = document.getElementById('home-payout-card');
+  var list = document.getElementById('home-payout-list');
+  if(!card) return;
+  var received = payouts.filter(function(p){return p.status==='received';});
+  var total = received.reduce(function(s,p){return s+(parseFloat(p.amount)||0);},0);
+  // Find current milestone
+  var curMs = null, nextMs = null;
+  for(var i=0;i<MILESTONES.length;i++){
+    if(total>=MILESTONES[i].val) curMs=MILESTONES[i];
+    else if(!nextMs) nextMs=MILESTONES[i];
+  }
+  var pct = nextMs ? Math.min(100,Math.round(total/nextMs.val*100)) : 100;
+  card.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'+
+      '<div style="font-size:28px;font-weight:900;color:var(--green2);font-family:var(--mono)">$'+Math.round(total).toLocaleString()+'</div>'+
+      '<div style="font-size:11px;color:var(--text3)">'+received.length+' payout'+(received.length>1?'s':'')+' reçu'+(received.length>1?'s':'')+'</div>'+
+    '</div>'+
+    (nextMs?
+      '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Prochain palier : <span style="color:var(--acc2);font-weight:700">$'+nextMs.val.toLocaleString()+'</span></div>':
+      '<div style="font-size:12px;color:var(--amber);font-weight:700;margin-bottom:6px">\u2b50 Objectif maximum atteint !</div>')+
+    '<div style="height:8px;background:var(--ink3);border-radius:99px;overflow:hidden;margin-bottom:6px">'+
+      '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:99px;transition:width .6s"></div>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:space-between">'+
+      MILESTONES.map(function(m){
+        var done=total>=m.val;
+        return '<div style="text-align:center"><div style="font-size:11px;font-weight:700;color:'+(done?'var(--green2)':'var(--text3)')+'">$'+m.label+'</div><div style="font-size:8px">'+(done?'✅':'○')+'</div></div>';
+      }).join('')+
+    '</div>'+
+    (curMs?'<div style="margin-top:10px;font-size:12px;padding:8px 10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;color:var(--green2)">'+curMs.msg+'</div>':'');
+
+  if(!list) return;
+  if(!payouts.length){ list.innerHTML=''; return; }
+  var sorted=[...payouts].sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  list.innerHTML='<div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:600;margin-bottom:6px;letter-spacing:.06em">Historique</div>'+
+    sorted.map(function(p,i){
+      var isPend=p.status==='pending';
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--ink2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px">'+
+        '<div>'+
+          '<div style="font-size:13px;font-weight:700">'+p.firm+'</div>'+
+          '<div style="font-size:11px;color:var(--text3)">'+p.date+'</div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:13px;font-weight:800;color:'+(isPend?'var(--amber)':'var(--green2)')+';font-family:var(--mono)">'+(isPend?'⏳':'+')+'$'+parseFloat(p.amount).toLocaleString()+'</span>'+
+          '<button onclick="deletePayout('+i+')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+}
+
+function renderHomeBadges(trades, payouts, accounts) {
+  var el = document.getElementById('home-badges-grid');
+  if(!el) return;
+  var unlocked = calcBadges(trades, payouts, accounts).map(function(b){return b.id;});
+  el.innerHTML = ALL_BADGES.map(function(b){
+    var done = unlocked.indexOf(b.id)>-1;
+    return '<div style="background:'+(done?'var(--ink2)':'var(--ink3)')+';border:1px solid '+(done?'var(--border)':'var(--bdr2)')+';border-radius:12px;padding:10px 6px;text-align:center;opacity:'+(done?'1':'0.4')+';transition:all .3s" title="'+b.desc+' (+'+b.xp+' XP)">'+
+      '<div style="font-size:22px;margin-bottom:4px">'+b.icon+'</div>'+
+      '<div style="font-size:9px;font-weight:700;color:'+(done?'var(--text)':'var(--text3)');'>'+b.name+'</div>'+
+      (done?'<div style="font-size:8px;color:var(--acc2);margin-top:1px">+'+b.xp+' XP</div>':'')+
+    '</div>';
+  }).join('');
+}
+
+// Account CRUD
+function openAddAccount(){ document.getElementById('acc-firm').value=''; document.getElementById('acc-size').value=''; document.getElementById('acc-status').value='challenge'; document.getElementById('acc-drawdown').value=''; document.getElementById('acc-drawdown-max').value=''; openOv('add-account-ov'); }
+function saveAccount(){
+  var firm=document.getElementById('acc-firm').value.trim();
+  var size=document.getElementById('acc-size').value.trim();
+  if(!firm){return;}
+  var accounts=JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
+  accounts.push({firm:firm,size:size,status:document.getElementById('acc-status').value,drawdown:parseFloat(document.getElementById('acc-drawdown').value)||null,drawdownMax:parseFloat(document.getElementById('acc-drawdown-max').value)||null});
+  localStorage.setItem('nqt-accounts',JSON.stringify(accounts));
+  closeOv('add-account-ov');
+  renderHome();
+}
+function deleteAccount(i){
+  var accounts=JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
+  accounts.splice(i,1);
+  localStorage.setItem('nqt-accounts',JSON.stringify(accounts));
+  renderHome();
+}
+
+// Payout CRUD
+function openAddPayout(){ document.getElementById('po-firm').value=''; document.getElementById('po-amount').value=''; document.getElementById('po-date').value=new Date().toISOString().slice(0,10); document.getElementById('po-status').value='received'; openOv('add-payout-ov'); }
+function savePayout(){
+  var firm=document.getElementById('po-firm').value.trim();
+  var amount=parseFloat(document.getElementById('po-amount').value);
+  if(!firm||!amount){return;}
+  var payouts=JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
+  payouts.push({firm:firm,amount:amount,date:document.getElementById('po-date').value,status:document.getElementById('po-status').value});
+  localStorage.setItem('nqt-payouts',JSON.stringify(payouts));
+  closeOv('add-payout-ov');
+  renderHome();
+}
+function deletePayout(i){
+  var payouts=JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
+  payouts.splice(i,1);
+  localStorage.setItem('nqt-payouts',JSON.stringify(payouts));
+  renderHome();
 }
 
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
