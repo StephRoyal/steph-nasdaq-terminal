@@ -135,14 +135,14 @@
       ]), 10000);
 
       var t = results[0], n = results[1];
-      if (t.data) {
+      if (t.data && t.data.length > 0) {
         window.S.trades = t.data.map(function(x) {
           return { id:x.id, ts:x.ts, date:x.date, session:x.session, direction:x.direction,
             status:x.status, entry:x.entry, sl:x.sl, tp:x.tp, pnl:x.pnl, maxhold:x.maxhold,
             size:x.size, rr:x.rr, strategy:x.strategy, note:x.note, disc:x.disc, discDetails:x.disc_details };
         });
       }
-      if (n.data) {
+      if (n.data && n.data.length > 0) {
         window.S.notes = n.data.map(function(x) {
           return { id:x.id, ts:x.ts, date:x.date, title:x.title, body:x.body };
         });
