@@ -9,12 +9,12 @@
 :root{--ink:#0A0B0F;--ink2:#111318;--ink3:#181B22;--ink4:#1E2229;--border:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.04);--text:#F0F2F5;--text2:#9BA3AF;--text3:#5C6470;--acc:#3B82F6;--acc2:#60A5FA;--green:#22C55E;--green2:#4ADE80;--red:#EF4444;--red2:#F87171;--amber:#F59E0B;--r:10px;--r2:14px;--font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:calc(72px + env(safe-area-inset-bottom));overflow-x:hidden}
- 
+
 /* TICKER */
 #ticker-bar{position:sticky;top:0;z-index:200;background:var(--ink2);border-bottom:1px solid var(--border);height:46px;overflow:hidden}
 .tradingview-widget-container{height:46px!important;overflow:hidden}
 .tradingview-widget-container__widget{height:46px!important}
- 
+
 /* HEADER */
 .hdr{background:var(--ink2);border-bottom:1px solid var(--border);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
 .hdr-logo{display:flex;align-items:center;gap:10px}
@@ -25,25 +25,25 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 .hdr-right{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
 .hdr-weather{font-size:14px}
 .hdr-date{font-size:11px;color:var(--text3)}
- 
+
 /* NAV */
 .nav{position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(17,19,24,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);-webkit-tap-highlight-color:transparent;padding:4px 0}
 .nb svg{width:22px;height:22px}
 .nb span{font-size:10px;font-weight:600}
 .nb.on{color:var(--acc2)}
- 
+
 /* PAGES */
 .page{display:none;padding:16px;max-width:720px;margin:0 auto;position:relative;z-index:1}
 .page.on{display:block}
- 
+
 /* CARDS & ROWS */
 .card{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);margin-bottom:12px;overflow:hidden}
 .row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bdr2);gap:12px}
 .row:last-child{border-bottom:none}
 .sl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:18px 0 8px 2px}
 .sl:first-child{margin-top:0}
- 
+
 /* CHIPS */
 .chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;font-family:var(--mono)}
 .cg{background:rgba(34,197,94,.12);color:var(--green2)}
@@ -51,7 +51,7 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 .ca{background:rgba(245,158,11,.12);color:#FCD34D}
 .cb{background:rgba(59,130,246,.15);color:var(--acc2)}
 .cx{background:var(--ink4);color:var(--text2)}
- 
+
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--r);padding:10px 18px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .btn:active{transform:scale(.97)}
@@ -60,7 +60,7 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 .bg{background:var(--ink4);color:var(--text2);border:1px solid var(--border)}
 .bs{font-size:12px;padding:7px 14px;border-radius:8px}
 .bw{width:100%}
- 
+
 /* FORMS */
 .fg{margin-bottom:14px}
 .fl{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
@@ -70,18 +70,18 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 .fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235C6470'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 .fta{resize:vertical;min-height:80px;font-size:14px;line-height:1.5}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
- 
+
 /* STATS */
 .sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .sc{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:12px}
 .sl2{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
 .sv{font-size:20px;font-weight:700;font-family:var(--mono)}
- 
+
 /* TRADE LIST */
 .ti{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--bdr2);cursor:pointer}
 .ti:last-child{border-bottom:none}
 .ti:active{background:var(--ink3)}
- 
+
 /* OVERLAY */
 .ov{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
 .ov.on{opacity:1;pointer-events:all}
@@ -89,25 +89,25 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 .ov.on .sheet{transform:translateY(0)}
 .hdl{width:36px;height:4px;border-radius:2px;background:var(--border);margin:12px auto 16px}
 .stitle{font-size:17px;font-weight:700}
- 
+
 /* NEWS */
 .ni{display:block;background:var(--ink3);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;border:1px solid var(--bdr2);text-decoration:none}
 .ni:active{opacity:.8}
 .nt{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:4px}
 .nm{font-size:11px;color:var(--text3);display:flex;gap:6px}
 .ns{font-weight:600;color:var(--acc2)}
- 
+
 /* CALENDAR GRID */
 .cal-day{background:var(--ink3);border-radius:7px;padding:6px 4px;min-height:48px;border:1px solid var(--bdr2)}
 .cal-day.pos{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.05)}
 .cal-day.neg{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05)}
 .cal-day.today{border-color:var(--acc)!important}
- 
+
 /* TABS */
 .seg{display:flex;background:var(--ink3);border-radius:var(--r);padding:3px;gap:2px;margin-bottom:14px;border:1px solid var(--border);overflow-x:auto}
 .sgb{flex:1;min-width:fit-content;padding:7px 8px;border:none;border-radius:8px;background:none;font-family:var(--font);font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;white-space:nowrap}
 .sgb.on{background:var(--ink4);color:var(--text)}
- 
+
 /* MISC */
 .spn{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -123,7 +123,7 @@ canvas{display:block;width:100%}
 </style>
 </head>
 <body>
- 
+
 <!-- TICKER -->
 <div id="ticker-bar">
   <div class="tradingview-widget-container">
@@ -133,7 +133,7 @@ canvas{display:block;width:100%}
     </script>
   </div>
 </div>
- 
+
 <!-- HEADER -->
 <div class="hdr">
   <div class="hdr-logo">
@@ -145,7 +145,7 @@ canvas{display:block;width:100%}
     <div class="hdr-date" id="hdr-date"></div>
   </div>
 </div>
- 
+
 <!-- SESSION BAR -->
 <div id="session-bar" style="background:var(--ink2);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;overflow-x:auto" class="hs">
   <div id="sess-london" style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -156,6 +156,9 @@ canvas{display:block;width:100%}
     </div>
     <div id="sess-ldn-status" style="font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-left:2px"></div>
   </div>
+<!-- NQ FLAG + EVENT BANNER -->
+<div id="nq-event-banner" style="display:none;padding:6px 16px;font-size:12px;font-weight:600;text-align:center;transition:all .3s"></div>
+
   <div id="sess-timer" style="text-align:center;flex:1">
     <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.05em" id="sess-timer-label">SESSION</div>
     <div style="font-size:14px;font-weight:700;font-family:var(--mono)" id="sess-timer-val">—</div>
@@ -169,27 +172,27 @@ canvas{display:block;width:100%}
     <div id="sess-ny-status" style="font-size:10px;padding:2px 7px;border-radius:99px;font-weight:700;margin-right:2px"></div>
   </div>
 </div>
- 
+
 <!-- PAGE: BRIEF -->
 <div id="pg-brief" class="page">
- 
+
   <!-- QUOTE DU JOUR -->
   <div id="daily-quote" style="background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(59,130,246,.03));border:1px solid rgba(59,130,246,.15);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px;text-align:center">
     <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--acc2);margin-bottom:6px">💭 Citation du jour</div>
     <div id="quote-text" style="font-size:13px;color:var(--text2);line-height:1.6;font-style:italic"></div>
   </div>
- 
+
   <div class="sl">📊 Earnings</div>
   <div class="card" id="earnings-card"><div class="empty"><div class="spn"></div></div></div>
- 
+
   <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px">
     <div class="sl" style="margin:0">📰 Actualités</div>
     <button class="btn ba bs" onclick="loadNews()">↻</button>
   </div>
   <div id="news-feed"><div class="empty"><div class="spn"></div></div></div>
- 
+
 </div>
- 
+
 <!-- PAGE: JOURNAL -->
 <div id="pg-journal" class="page on">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -241,12 +244,12 @@ canvas{display:block;width:100%}
     </div></div>
   </div>
 </div>
- 
+
 <!-- PAGE: SIMULATEUR -->
 <div id="pg-sim" class="page">
   <div style="font-size:18px;font-weight:700;margin-bottom:4px">Simulateur de Revenus</div>
   <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Projette tes gains selon ton edge</div>
- 
+
   <div class="card" style="padding:16px">
     <div class="frow" style="margin-bottom:12px">
       <div><label class="fl">Risque / trade ($)</label><input type="number" class="fi" id="sim-risk" value="500" step="50" oninput="runSim()"/></div>
@@ -270,7 +273,7 @@ canvas{display:block;width:100%}
       </div>
     </div>
   </div>
- 
+
   <div id="sim-rr" style="text-align:center;font-size:13px;color:var(--text3);padding:6px 0"></div>
   <div class="sl">Projections</div>
   <div class="card" id="sim-table"></div>
@@ -281,7 +284,29 @@ canvas{display:block;width:100%}
     <div id="sim-motive-text" style="font-size:14px;color:var(--text2);line-height:1.6"></div>
   </div>
 </div>
- 
+
+
+<!-- PAGE: ECO CALENDAR -->
+<div id="pg-eco" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div>
+      <div style="font-size:18px;font-weight:800">Calendrier Économique</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">Events macro — impact sur le NQ</div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="chip cx" onclick="loadEcoCalendar(-1,this)" style="cursor:pointer;font-size:11px;padding:5px 10px">Hier</button>
+      <button class="chip cb" id="eco-today-btn" onclick="loadEcoCalendar(0,this)" style="cursor:pointer;font-size:11px;padding:5px 10px">Aujourd'hui</button>
+      <button class="chip cx" onclick="loadEcoCalendar(1,this)" style="cursor:pointer;font-size:11px;padding:5px 10px">Demain</button>
+    </div>
+  </div>
+  <div id="eco-date-label" style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px;text-align:center"></div>
+  <div id="eco-loading" style="display:none;text-align:center;padding:30px">
+    <div class="spn" style="width:28px;height:28px;margin:0 auto 10px"></div>
+    <div style="font-size:12px;color:var(--text3)">Chargement des events...</div>
+  </div>
+  <div id="eco-list"></div>
+</div>
+
 <!-- PAGE: NOTES -->
 <div id="pg-notes" class="page">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -291,8 +316,8 @@ canvas{display:block;width:100%}
   <div class="card" id="notes-empty"><div class="empty">📝<br><br>Carnet vide</div></div>
   <div id="notes-list"></div>
 </div>
- 
- 
+
+
 <!-- NAV -->
 <nav class="nav">
   <button class="nb" onclick="goPage('brief',this)">
@@ -307,20 +332,24 @@ canvas{display:block;width:100%}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     <span>Sim</span>
   </button>
+  <button class="nb" onclick="goPage('eco',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Eco</span>
+  </button>
   <button class="nb" onclick="goPage('notes',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
     <span>Notes</span>
   </button>
 </nav>
- 
- 
+
+
 <!-- DISCIPLINE TOAST -->
 <div id="disc-toast" style="position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:9999;background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:14px 20px;text-align:center;transition:transform .4s cubic-bezier(.32,1,.23,1);max-width:320px;width:90%;pointer-events:none">
   <div id="disc-toast-icon" style="font-size:32px;margin-bottom:6px"></div>
   <div id="disc-toast-title" style="font-size:15px;font-weight:700;margin-bottom:4px"></div>
   <div id="disc-toast-msg" style="font-size:12px;color:var(--text3);line-height:1.5"></div>
 </div>
- 
+
 <!-- OVERLAY: TRADE -->
 <div class="ov" id="ov-trade">
   <div class="sheet">
@@ -419,7 +448,7 @@ canvas{display:block;width:100%}
     <button class="btn ba bw" onclick="saveTrade()">Enregistrer ✓</button>
   </div>
 </div>
- 
+
 <!-- OVERLAY: DETAIL -->
 <div class="ov" id="ov-detail">
   <div class="sheet">
@@ -431,7 +460,7 @@ canvas{display:block;width:100%}
     <div id="det-content"></div>
   </div>
 </div>
- 
+
 <!-- OVERLAY: EDIT TRADE -->
 <div class="ov" id="ov-edit">
   <div class="sheet">
@@ -482,7 +511,7 @@ canvas{display:block;width:100%}
     <button class="btn ba bw" onclick="saveEdit()">Enregistrer ✓</button>
   </div>
 </div>
- 
+
 <!-- OVERLAY: NOTE -->
 <div class="ov" id="ov-note">
   <div class="sheet">
@@ -496,13 +525,13 @@ canvas{display:block;width:100%}
     <button class="btn ba bw" onclick="saveNote()">Enregistrer</button>
   </div>
 </div>
- 
+
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────
 const FH = 'd7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300';
 const API = 'https://finnhub.io/api/v1';
 const TOP15 = ['AAPL','MSFT','NVDA','AMZN','META','GOOGL','TSLA','AVGO','ASML','NFLX','COST','AMD','AMAT','QCOM','INTC'];
- 
+
 const QUOTES = [
   "Trade what you see, not what you think.",
   "The market rewards patience, not activity.",
@@ -537,7 +566,7 @@ const QUOTES = [
   "Be patient with winners, impatient with losers.",
   "Amateurs think about how much they can make. Pros think about how much they can lose.",
 ];
- 
+
 // ── STORE ─────────────────────────────────────────────────────────
 const SK = 'nqt-v8';
 let S = {trades:[], notes:[]};
@@ -556,14 +585,14 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5
 const tod = () => new Date().toISOString().slice(0,10);
 const fp  = n => (n >= 0 ? '+' : '') + '$' + Math.abs(n).toFixed(0);
 const fpc = n => n > 0 ? 'var(--green2)' : n < 0 ? 'var(--red2)' : 'var(--amber)';
- 
+
 // ── INIT ──────────────────────────────────────────────────────────
 load();
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 document.getElementById('quote-text').textContent = QUOTES[new Date().getDate() % QUOTES.length];
 renderStats(); renderList(); renderNotes(); setTimeout(checkDailyAlerts, 200);
-loadWeather(); loadEarnings(); loadNews(); setTimeout(updateNQFlag, 3000); setTimeout(checkMajorEvents, 4000);
- 
+loadWeather(); loadEarnings(); loadNews(); setTimeout(updateNQFlag, 3000); setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
+
 // ── NAV ───────────────────────────────────────────────────────────
 function goPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
@@ -571,6 +600,7 @@ function goPage(id, btn) {
   document.getElementById('pg-' + id).classList.add('on');
   btn.classList.add('on');
   if (id === 'journal') { renderStats(); checkDailyAlerts(); checkMajorEvents(); }
+  if (id === 'eco') { loadEcoCalendar(0, document.getElementById('eco-today-btn')); }
   if (id === 'sim') runSim();
 }
 function showTab(id, btn) {
@@ -581,7 +611,7 @@ function showTab(id, btn) {
   if (id === 'list') renderList();
   if (id === 'calendar') renderCalendar();
 }
- 
+
 // ── WEATHER ───────────────────────────────────────────────────────
 function loadWeather() {
   if (!navigator.geolocation) return;
@@ -595,7 +625,7 @@ function loadWeather() {
     } catch(e) {}
   }, ()=>{});
 }
- 
+
 // ── EARNINGS ─────────────────────────────────────────────────────
 async function loadEarnings() {
   const el = document.getElementById('earnings-card');
@@ -652,13 +682,13 @@ async function loadEarnings() {
     el.innerHTML='<div class="empty" style="padding:14px">Erreur · <a href="https://www.earningswhispers.com" target="_blank" style="color:var(--acc2)">Earnings Whispers ↗</a></div>';
   }
 }
- 
+
 // ── NEWS ──────────────────────────────────────────────────────────
 async function loadNews() {
   const el = document.getElementById('news-feed');
   el.innerHTML = '<div class="empty"><div class="spn"></div></div>';
   const articles = [];
- 
+
   // Finnhub
   try {
     const r = await fetch(`${API}/news?category=general&token=${FH}`, {signal: AbortSignal.timeout(6000)});
@@ -668,7 +698,7 @@ async function loadNews() {
       time: a.datetime ? new Date(a.datetime*1000) : new Date(), summary: a.summary||''
     }));
   } catch(e) {}
- 
+
   // RSS
   for (const [url, src] of [
     ['https://feeds.reuters.com/reuters/businessNews','Reuters'],
@@ -690,14 +720,14 @@ async function loadNews() {
       });
     } catch(e) {}
   }
- 
+
   if (!articles.length) {
     el.innerHTML = `<div style="padding:16px">
       ${[['Reuters','https://reuters.com/markets/'],['CNBC','https://cnbc.com/markets/'],['Bloomberg','https://bloomberg.com/markets'],['Yahoo Finance','https://finance.yahoo.com/']].map(([n,u])=>`<a href="${u}" target="_blank" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr2);text-decoration:none;color:var(--text)">${n}<span style="color:var(--acc2)">↗</span></a>`).join('')}
     </div>`;
     return;
   }
- 
+
   articles.sort((a,b) => b.time - a.time);
   el.innerHTML = articles.slice(0,7).map(a => {
     const t = a.time.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) + ' · ' + a.time.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
@@ -708,7 +738,7 @@ async function loadNews() {
     </a>`;
   }).join('');
 }
- 
+
 // ── TRADE FORM ────────────────────────────────────────────────────
 function calcRR() {
   const e=parseFloat(document.getElementById('f-entry').value), sl=parseFloat(document.getElementById('f-sl').value), tp=parseFloat(document.getElementById('f-tp').value), dir=document.getElementById('f-dir').value;
@@ -721,7 +751,7 @@ function calcRR() {
   else{document.getElementById('rr-val').textContent='—';document.getElementById('exit-val').textContent='—';}
   calcMaxHold();
 }
- 
+
 function calcMaxHold() {
   const entry=parseFloat(document.getElementById('f-entry').value), tp=parseFloat(document.getElementById('f-tp').value), maxP=parseFloat(document.getElementById('f-maxprice').value), pnl=parseFloat(document.getElementById('f-pnl').value), dir=document.getElementById('f-dir').value;
   const res=document.getElementById('mh-result');
@@ -736,7 +766,7 @@ function calcMaxHold() {
   const left=maxPnl!==null&&pnl?maxPnl-pnl:null;
   document.getElementById('mh-left').textContent=left!==null&&left>0?`+$${left.toFixed(0)} laissé sur la table`:left!==null&&left<0?'Déjà au-delà du TP':'';
 }
- 
+
 function openTrade(){
   document.getElementById('f-date').value=tod();
   document.getElementById('rr-wrap').style.display='none';
@@ -764,7 +794,7 @@ function openTrade(){
   }
   openOv('ov-trade');
 }
- 
+
 function saveTrade(){
   const entry=document.getElementById('f-entry').value;
   if(!entry){alert("Entre un prix d'entry.");return;}
@@ -780,9 +810,9 @@ function saveTrade(){
   document.getElementById('rr-wrap').style.display='none';document.getElementById('mh-result').style.display='none';
   renderStats();renderList();showTab('stats',document.querySelector('.sgb'));
 }
- 
+
 function deleteTrade(id){if(!confirm('Supprimer ?'))return;S.trades=S.trades.filter(t=>t.id!==id);save();renderStats();renderList();}
- 
+
 function openDetail(id){
   const t=S.trades.find(x=>x.id===id);if(!t)return;
   const pnl=parseFloat(t.pnl)||0,mh=parseFloat(t.maxhold)||0,left=mh&&pnl?mh-pnl:null;
@@ -811,7 +841,7 @@ function openDetail(id){
     </div>`;
   openOv('ov-detail');
 }
- 
+
 // ── STATS ─────────────────────────────────────────────────────────
 function renderStats(){
   const tr=S.trades,noEl=document.getElementById('no-trades'),wrap=document.getElementById('stats-wrap');
@@ -880,7 +910,7 @@ function renderStats(){
   const discSection = document.getElementById('disc-breakdown');
   if (discSection) discSection.innerHTML = discHtml;
 }
- 
+
 // ── TRADE LIST ────────────────────────────────────────────────────
 function renderList(){
   const sorted=[...S.trades].sort((a,b)=>b.ts-a.ts);
@@ -901,7 +931,7 @@ function renderList(){
     </div>`;
   }).join('');
 }
- 
+
 // ── CALENDAR ──────────────────────────────────────────────────────
 let calY=new Date().getFullYear(),calM=new Date().getMonth();
 function renderCalendar(){
@@ -988,7 +1018,7 @@ function showDayTrades(date){
     </div>`;}).join('')}`;
   openOv('ov-detail');
 }
- 
+
 // ── CSV IMPORT ────────────────────────────────────────────────────
 function importCSV(e){
   const file=e.target.files[0];if(!file)return;
@@ -996,7 +1026,7 @@ function importCSV(e){
     lines.slice(1).forEach(line=>{const vals=line.split(','),o={};hdrs.forEach((h,i)=>o[h]=(vals[i]||'').trim());S.trades.push({id:uid(),ts:Date.now(),date:o.date||tod(),session:o.session||'London',direction:o.direction||'Long',status:o.status||o.result||'Win',entry:o.entry||'',sl:o.sl||'',tp:o.tp||'',pnl:o.pnl||'0',maxhold:'',size:o.size||'1',rr:o.rr||'',strategy:o.strategy||'Autre',note:o.note||''});n++;});
     save();renderStats();renderList();alert(`✅ ${n} trade(s) importé(s)`);};r.readAsText(file);e.target.value='';
 }
- 
+
 // ── NOTES ─────────────────────────────────────────────────────────
 let curNote=null;
 function openNote(id){
@@ -1018,7 +1048,7 @@ function openNote(id){
 function saveNote(){const title=document.getElementById('n-title').value.trim()||'Note',body=document.getElementById('n-body').value.trim();if(!body){alert('Écris quelque chose.');return;}if(curNote)S.notes=S.notes.map(n=>n.id===curNote?{...n,title,body}:n);else S.notes.unshift({id:uid(),title,body,date:tod(),ts:Date.now()});save();renderNotes();closeOv('ov-note');}
 function deleteNote(){if(!curNote||!confirm('Supprimer ?'))return;S.notes=S.notes.filter(n=>n.id!==curNote);save();renderNotes();closeOv('ov-note');}
 function renderNotes(){const list=document.getElementById('notes-list'),empty=document.getElementById('notes-empty');if(!S.notes.length){list.innerHTML='';empty.style.display='block';return;}empty.style.display='none';const sorted=[...S.notes].sort((a,b)=>new Date(b.date||b.ts||0)-new Date(a.date||a.ts||0));list.innerHTML=sorted.map(n=>`<div class="nc" onclick="openNote('${n.id}')"><div style="font-size:15px;font-weight:600">${n.title}</div><div style="font-size:13px;color:var(--text2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.body}</div><div style="font-size:11px;color:var(--text3);margin-top:6px">${n.date}</div></div>`).join('');}
- 
+
 // ── SIMULATOR ─────────────────────────────────────────────────────
 let simAcc=1;
 function setAcc(n,btn){simAcc=n;document.querySelectorAll('#acc-btns button').forEach(b=>b.className=b.dataset.v==n?'chip cb':'chip cx');runSim();}
@@ -1054,43 +1084,43 @@ function runSim(){
   mot.style.display='block';
   motT.innerHTML=p60Mo>0?`Avec <strong style="color:var(--acc2)">60% de win rate</strong>, tu génères <strong style="color:var(--green2)">+$${Math.abs(p60Mo).toFixed(0)}/mois</strong>${acc>1?` sur ${acc} comptes`:''} avec ce setup.<br><br>🎯 L'edge existe. La discipline fait la différence.`:`⚠️ Ce R:R avec 60% WR donne une espérance négative.<br>Améliore ton ratio ou ton win rate.`;
 }
- 
- 
- 
+
+
+
 // ── SESSION TIMER & CLOCKS ────────────────────────────────────────
 // London: 08:00–17:00 UK time | NY: 13:30–20:00 UK time (9:30–16:00 ET)
 // We work in UTC offsets dynamically (BST/GMT, ET/EDT)
- 
+
 function updateSessions() {
   const now = new Date();
- 
+
   // Get London time (Europe/London)
   const ldnStr = now.toLocaleString('en-GB', {timeZone:'Europe/London', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
   const nyStr  = now.toLocaleString('en-US', {timeZone:'America/New_York', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false});
- 
+
   // Parse hours/minutes
   const [lH, lM, lS] = ldnStr.split(':').map(Number);
   const [nH, nM, nS] = nyStr.split(':').map(Number);
   const lTot = lH*60 + lM; // London minutes since midnight
   const nTot = nH*60 + nM; // NY minutes since midnight
- 
+
   // Session windows (minutes)
   const LDN_OPEN = 8*60, LDN_CLOSE = 17*60;        // 08:00 - 17:00 London
   const NY_OPEN  = 9*60+30, NY_CLOSE = 16*60;       // 09:30 - 16:00 NY
- 
+
   const ldnOpen = lTot >= LDN_OPEN && lTot < LDN_CLOSE;
   const nyOpen  = nTot >= NY_OPEN  && nTot < NY_CLOSE;
- 
+
   // Update clocks
   document.getElementById('sess-ldn-time').textContent = ldnStr.slice(0,5);
   document.getElementById('sess-ny-time').textContent  = nyStr.slice(0,5);
- 
+
   // Update dots & status
   const ldnDot = document.getElementById('sess-ldn-dot');
   const nyDot  = document.getElementById('sess-ny-dot');
   const ldnSt  = document.getElementById('sess-ldn-status');
   const nySt   = document.getElementById('sess-ny-status');
- 
+
   if (ldnOpen) {
     ldnDot.style.background = 'var(--green)';
     ldnDot.style.boxShadow  = '0 0 8px var(--green)';
@@ -1105,7 +1135,7 @@ function updateSessions() {
     ldnSt.textContent = h > 0 ? `dans ${h}h${m>0?m+'m':''}` : `dans ${m}m`;
     ldnSt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;margin-left:2px;background:var(--ink4);color:var(--text3)';
   }
- 
+
   if (nyOpen) {
     nyDot.style.background = 'var(--green)';
     nyDot.style.boxShadow  = '0 0 8px var(--green)';
@@ -1119,11 +1149,11 @@ function updateSessions() {
     nySt.textContent = h > 0 ? `dans ${h}h${m>0?m+'m':''}` : `dans ${m}m`;
     nySt.style.cssText = 'font-size:10px;padding:2px 7px;border-radius:99px;font-weight:600;margin-right:2px;background:var(--ink4);color:var(--text3)';
   }
- 
+
   // Center timer: show active session countdown or next open
   const timerLabel = document.getElementById('sess-timer-label');
   const timerVal   = document.getElementById('sess-timer-val');
- 
+
   if (ldnOpen && nyOpen) {
     // Overlap — show NY close (more relevant for NQ)
     const remNY = (NY_CLOSE - nTot) * 60 - nS;
@@ -1156,7 +1186,7 @@ function updateSessions() {
     timerVal.style.color   = 'var(--text2)';
   }
 }
- 
+
 function fmtCountdown(totalSecs) {
   if (totalSecs <= 0) return '00:00:00';
   const h = Math.floor(totalSecs / 3600);
@@ -1164,12 +1194,12 @@ function fmtCountdown(totalSecs) {
   const s = totalSecs % 60;
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
- 
+
 // Start session timer
 updateSessions();
 setInterval(updateSessions, 1000);
- 
- 
+
+
 // ── DISCIPLINE TRACKING ───────────────────────────────────────────
 const DISC_KEYS = ['plan','sl','size','setup','emotion','revenge'];
 const DISC_LABELS = {
@@ -1181,7 +1211,7 @@ const DISC_LABELS = {
   revenge: 'Pas revenge',
 };
 let discState = {plan:false, sl:false, size:false, setup:false, emotion:false, revenge:false};
- 
+
 function toggleDisc(key) {
   discState[key] = !discState[key];
   const btn = document.getElementById('disc-' + key);
@@ -1198,7 +1228,7 @@ function toggleDisc(key) {
   }
   updateDiscPreview();
 }
- 
+
 function updateDiscPreview() {
   const total = DISC_KEYS.length;
   const ok    = DISC_KEYS.filter(k => discState[k]).length;
@@ -1209,7 +1239,7 @@ function updateDiscPreview() {
   const label = score === 100 ? '🏆 Trade parfait!' : score >= 80 ? '✅ Bonne discipline' : score >= 50 ? '⚡ Discipline partielle' : '⚠️ Manque de discipline';
   el.innerHTML = `<span style="color:${color};font-weight:700">${label}</span> <span style="color:var(--text3)">(${ok}/${total} règles)</span>`;
 }
- 
+
 function resetDisc() {
   DISC_KEYS.forEach(k => { discState[k] = false; });
   DISC_KEYS.forEach(k => {
@@ -1224,12 +1254,12 @@ function resetDisc() {
   const el = document.getElementById('disc-score-preview');
   if (el) el.innerHTML = '';
 }
- 
+
 function getDiscScore() {
   const ok = DISC_KEYS.filter(k => discState[k]).length;
   return { score: Math.round(ok / DISC_KEYS.length * 100), ok, total: DISC_KEYS.length, details: {...discState} };
 }
- 
+
 // ── AUTO-SIGN P&L ─────────────────────────────────────────────────
 function autoSignPnl() {
   const status = document.getElementById('f-status').value;
@@ -1240,10 +1270,10 @@ function autoSignPnl() {
   if (status === 'Win'  && val < 0)  { pnlEl.value = -val; }
   calcMaxHold();
 }
- 
- 
- 
- 
+
+
+
+
 // ── STREAK & BEST HOUR & STRAT WR ────────────────────────────────
 function calcStreak(trades){
   const b={};trades.forEach(t=>{if(!b[t.date])b[t.date]=[];b[t.date].push(t);});
@@ -1326,7 +1356,7 @@ function exportPDF(){
 // ── DAILY ALERTS ──────────────────────────────────────────────────
 const MAX_TRADES_DAY = 2;
 const MAX_LOSS_DAY   = 1000; // $
- 
+
 function checkDailyAlerts() {
   const todayStr    = tod();
   const todayTrades = S.trades.filter(t => t.date === todayStr);
@@ -1335,7 +1365,7 @@ function checkDailyAlerts() {
   const el = document.getElementById('daily-alerts');
   if (!el) return;
   const alerts = [];
- 
+
   // 🚨 OVERTRADING
   if (count > MAX_TRADES_DAY) {
     alerts.push({icon:'🚨',
@@ -1343,7 +1373,7 @@ function checkDailyAlerts() {
       msg:'Tu as dépassé ta limite de '+MAX_TRADES_DAY+' trades par jour. Stop trading maintenant.',
       bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
   }
- 
+
   // 🚨 MAX LOSS
   if (todayPnl <= -MAX_LOSS_DAY) {
     alerts.push({icon:'🚨',
@@ -1351,7 +1381,7 @@ function checkDailyAlerts() {
       msg:'Limite journalière de $'+MAX_LOSS_DAY+' atteinte. Ferme le terminal, reprends demain.',
       bg:'rgba(239,68,68,.1)',border:'rgba(239,68,68,.35)',color:'var(--red2)'});
   }
- 
+
   // After 1 trade
   if (count === 1 && count < MAX_TRADES_DAY) {
     if (todayPnl < -0.5) {
@@ -1381,7 +1411,7 @@ function checkDailyAlerts() {
         bg:'rgba(34,197,94,.12)',border:'rgba(34,197,94,.45)',color:'var(--green2)'});
     }
   }
- 
+
   // After MAX trades reached
   if (count === MAX_TRADES_DAY) {
     if (Math.abs(todayPnl) < 1) {
@@ -1411,7 +1441,7 @@ function checkDailyAlerts() {
         bg:'rgba(239,68,68,.07)',border:'rgba(239,68,68,.2)',color:'var(--red2)'});
     }
   }
- 
+
   // Discipline 100% + loss (special case — good trade, bad outcome)
   const discTrades = todayTrades.filter(t => t.disc != null);
   const lastTrade  = todayTrades[todayTrades.length - 1];
@@ -1421,7 +1451,7 @@ function checkDailyAlerts() {
       msg:'Tu as respecté toutes tes règles et perdu quand même. C’est normal. L’edge se matérialise sur la durée.',
       bg:'rgba(34,197,94,.05)',border:'rgba(34,197,94,.2)',color:'var(--green2)'});
   }
- 
+
   // 3 consecutive losses
   if (count >= 3) {
     const last3 = [...todayTrades].slice(-3);
@@ -1432,14 +1462,14 @@ function checkDailyAlerts() {
         bg:'rgba(245,158,11,.08)',border:'rgba(245,158,11,.35)',color:'var(--amber)'});
     }
   }
- 
+
   if (alerts.length === 0) {
     el.innerHTML = '<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:var(--r2);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px"><span style="font-size:16px">\u2600\ufe0f</span><span style="font-size:12px;color:var(--green2);font-weight:600">Ciel d\u00e9gag\u00e9 \u2014 aucune alerte. Tu peux trader sereinement aujourd\u2019hui.</span></div>';
     return;
   }
   el.innerHTML = alerts.map(a => `<div style="background:${a.bg};border:1px solid ${a.border};border-radius:var(--r2);padding:12px 14px;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:18px">${a.icon}</span><span style="font-size:13px;font-weight:700;color:${a.color}">${a.title}</span></div><div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:26px">${a.msg}</div></div>`).join('');
 }
- 
+
 // ── DISCIPLINE TOAST ──────────────────────────────────────────────
 function showDiscToast(discScore, discDetails) {
   const toast     = document.getElementById('disc-toast');
@@ -1447,9 +1477,9 @@ function showDiscToast(discScore, discDetails) {
   const titleEl   = document.getElementById('disc-toast-title');
   const msgEl     = document.getElementById('disc-toast-msg');
   if (!toast) return;
- 
+
   let icon, title, msg, borderColor;
- 
+
   if (discScore === 100) {
     icon = '🏆'; title = 'Trade parfait !';
     msg  = 'Toutes les règles respectées. C’est exactement comme ça qu’on construit une carrière de trader.';
@@ -1478,12 +1508,12 @@ function showDiscToast(discScore, discDetails) {
     borderColor = 'rgba(239,68,68,.4)';
     toast.style.background = 'rgba(239,68,68,.08)';
   }
- 
+
   toast.style.border = `1px solid ${borderColor}`;
   iconEl.textContent  = icon;
   titleEl.textContent = title;
   msgEl.textContent   = msg;
- 
+
   // Show
   toast.style.transform = 'translateX(-50%) translateY(0)';
   clearTimeout(window._toastTimer);
@@ -1491,7 +1521,7 @@ function showDiscToast(discScore, discDetails) {
     toast.style.transform = 'translateX(-50%) translateY(-80px)';
   }, 4000);
 }
- 
+
 // ── DAILY CONTEXT MESSAGES ────────────────
 function showDailyContextMsg() {
   const todayStr    = tod();
@@ -1537,13 +1567,13 @@ function showDailyContextMsg() {
   clearTimeout(window._toastTimer);
   window._toastTimer=setTimeout(()=>{toast.style.transform='translateX(-50%) translateY(-80px)';},10000);
 }
- 
+
 // ── OVERLAY ───────────────────────────────────────────────────────
 // ── EDIT TRADE ────────────────────────────────────────────────────
 let editDiscState={plan:false,sl:false,size:false,setup:false,emotion:false,revenge:false};
 const EDL={plan:'Plan respecté',sl:'SL respecté',size:'Size correcte',setup:'Setup valide',emotion:'Pas d\u2019émotion',revenge:'Pas revenge'};
 const EDK=['plan','sl','size','setup','emotion','revenge'];
- 
+
 function setEditDiscBtn(k,v){
   const b=document.getElementById('ed-'+k); if(!b)return;
   if(v){b.textContent='\u2705 '+EDL[k];b.style.borderColor='var(--green)';b.style.background='rgba(34,197,94,.1)';b.style.color='var(--green2)';}
@@ -1584,7 +1614,7 @@ function saveEdit(){
   };
   save();closeOv('ov-edit');renderStats();renderList();checkDailyAlerts();
 }
- 
+
 // ── R METRICS ─────────────────────────────────────────────────────
 function renderRMetrics(){
   var el=document.getElementById('r-metrics-card');
@@ -1626,7 +1656,7 @@ function renderRMetrics(){
       '<div style="font-size:16px;font-weight:700;color:var(--green2);font-family:var(--mono)">1:'+bestRR.toFixed(2)+'</div></div>'+
     '</div>';
 }
- 
+
 // ── WIN % PAR JOUR ─────────────────────────────────────────────────
 function renderWinByDay(){
   var el=document.getElementById('winday-card');
@@ -1654,7 +1684,7 @@ function renderWinByDay(){
         '</div>';
     }).join('')+'</div>';
 }
- 
+
 // ── LONG VS SHORT ─────────────────────────────────────────────────
 function renderLongShort(){
   var el=document.getElementById('longshort-card');
@@ -1714,7 +1744,7 @@ function renderLongShort(){
         '</div>';
     }).join('')+'</div>';
 }
- 
+
 // ── RECAP HEBDO / MENSUEL ──────────────────────────────────────────
 function renderRecap(){
   var el=document.getElementById('recap-card');
@@ -1797,7 +1827,7 @@ function renderRecap(){
       comments.map(function(c){return '<div style="font-size:12px;padding:8px 10px;background:var(--ink3);border-radius:var(--r);border:1px solid var(--bdr2);color:var(--text2);line-height:1.5">'+c+'</div>';}).join('')+
     '</div>':'');
 }
- 
+
 // ── NQ FLAG ────────────────────────────────────────────────────────
 async function updateNQFlag(){
   var flagEl=document.getElementById('nq-flag');
@@ -1811,48 +1841,235 @@ async function updateNQFlag(){
   try {
     var r=await fetch('https://finnhub.io/api/v1/quote?symbol=NQ1%21&token=d7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300');
     var d=await r.json();
-    var pct=d.dp||0; // daily percent change
+    var pct=d.dp||0;
     var icon,label,bg,col;
-    if(pct>=0.5){icon='\ud83d\udc02';label='Bulls winning +'+pct.toFixed(1)+'%';bg='rgba(34,197,94,.15)';col='var(--green2)';}
-    else if(pct>0){icon='\ud83d\udc23';label='Tout mignon +'+pct.toFixed(1)+'%';bg='rgba(34,197,94,.08)';col='var(--green2)';}
-    else if(pct>=-0.5){icon='\ud83d\udc3b';label='March\u00e9s tendus '+pct.toFixed(1)+'%';bg='rgba(245,158,11,.1)';col='var(--amber)';}
-    else{icon='\ud83d\udc3b';label='Bear alert! '+pct.toFixed(1)+'%';bg='rgba(239,68,68,.15)';col='var(--red2)';}
+    if(pct>=0.5){icon='\ud83d\udc02';label='NQ +'+pct.toFixed(1)+'% \u2014 Bulls winning!';bg='rgba(34,197,94,.15)';col='var(--green2)';}
+    else if(pct>0){icon='\ud83d\udc23';label='NQ +'+pct.toFixed(1)+'% \u2014 Tout mignon';bg='rgba(34,197,94,.08)';col='var(--green2)';}
+    else if(pct>=-0.5){icon='\ud83d\udc3b';label='NQ '+pct.toFixed(1)+'% \u2014 March\u00e9s tendus';bg='rgba(245,158,11,.1)';col='var(--amber)';}
+    else{icon='\u26a0\ufe0f';label='NQ '+pct.toFixed(1)+'% \u2014 Bear alert!';bg='rgba(239,68,68,.15)';col='var(--red2)';}
+    // Use the banner
+    var banner=document.getElementById('nq-event-banner');
+    if(banner&&banner.style.display==='none'){
+      // Only show NQ flag if no major event alert
+      banner.style.display='block';
+      banner.style.background=bg;
+      banner.style.borderBottom='1px solid '+col.replace('var(--','').replace(')','');
+      banner.style.color=col;
+      banner.textContent=icon+' '+label;
+    } else if(banner&&banner.style.display!=='none'){
+      // Major event already showing - add NQ flag at end
+      banner.textContent=banner.textContent+' \u00b7 '+icon+' NQ '+pct.toFixed(1)+'%';
+    }
+    // Also update header flag element
     flagEl.style.background=bg;
     flagEl.style.color=col;
-    flagEl.innerHTML=icon+' '+label;
+    flagEl.innerHTML=icon+' NQ '+pct.toFixed(1)+'%';
   } catch(e) {
-    // Fallback: try to read from TradingView widget iframe content
     flagEl.style.display='none';
   }
 }
- 
+
 // ── ALERTE EVENTS MAJEURS ──────────────────────────────────────────
 var MAJOR_EVENTS=['CPI','NFP','FOMC','PPI','PCE','GDP','Fed','Federal Reserve'];
 function checkMajorEvents(){
-  // Check in earnings/brief section for today's events
-  var today=tod();
-  var alertEl=document.getElementById('major-event-alert');
-  if(!alertEl){
-    alertEl=document.createElement('div');
-    alertEl.id='major-event-alert';
-    alertEl.style.cssText='display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:var(--r2);padding:10px 14px;margin-bottom:10px;font-size:12px;font-weight:700;color:var(--red2)';
-    var da=document.getElementById('daily-alerts');
-    if(da) da.parentNode.insertBefore(alertEl,da);
-  }
-  // Scan earnings list for major events keywords
-  var earningsEl=document.getElementById('earnings-list');
-  var briefText=(earningsEl?earningsEl.textContent:'')+' '+(document.getElementById('brief-events')?document.getElementById('brief-events').textContent:'');
-  var found=MAJOR_EVENTS.filter(function(e){return briefText.toUpperCase().includes(e.toUpperCase());});
+  var banner=document.getElementById('nq-event-banner');
+  if(!banner)return;
+  // Scan page for major event keywords
+  var bodyText=document.body.innerText||'';
+  var found=MAJOR_EVENTS.filter(function(e){return bodyText.toUpperCase().includes(e.toUpperCase());});
   if(found.length){
-    alertEl.style.display='block';
-    alertEl.innerHTML='\ud83d\udea8 EVENT MAJEUR AUJOURD\u2019HUI : '+found.join(', ')+' \u2014 Gestion de risque stricte obligatoire !';
+    banner.style.display='block';
+    banner.style.background='rgba(239,68,68,.15)';
+    banner.style.borderBottom='2px solid rgba(239,68,68,.4)';
+    banner.style.color='var(--red2)';
+    banner.textContent='\ud83d\udea8 EVENT MAJEUR AUJOURD\u2019HUI : '+found.join(', ')+' \u2014 Gestion de risque stricte obligatoire !';
+  } else {
+    banner.style.display='none';
   }
 }
- 
+
+// ── ECO CALENDAR (FMP) ────────────────────────────────────────────
+const FMP_KEY = 'uMKGphh9OGwDwI8mdzwic6Dj2BUzGbke';
+let _ecoOffset = 0;
+let _ecoCache = {};
+
+const ECO_HIGH_IMPACT = ['CPI','NFP','FOMC','PPI','PCE','GDP','Federal Reserve','Fed','Nonfarm','Unemployment','Interest Rate','Inflation'];
+
+function getDateOffset(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().slice(0,10);
+}
+
+function formatEcoTime(dateStr) {
+  if (!dateStr) return '--:--';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'Europe/London'});
+  } catch(e) { return '--:--'; }
+}
+
+function ecoImpactColor(impact) {
+  if (!impact) return 'var(--text3)';
+  const imp = impact.toLowerCase();
+  if (imp === 'high') return 'var(--red2)';
+  if (imp === 'medium') return 'var(--amber)';
+  return 'var(--text3)';
+}
+
+function ecoImpactDot(impact) {
+  if (!impact) return '\u25cb';
+  const imp = impact.toLowerCase();
+  if (imp === 'high') return '\ud83d\udd34';
+  if (imp === 'medium') return '\ud83d\udfe1';
+  return '\ud83d\udfe2';
+}
+
+async function loadEcoCalendar(offset, btn) {
+  _ecoOffset = offset;
+  // Update button states
+  document.querySelectorAll('#pg-eco .chip').forEach(function(b) { b.className = 'chip cx'; b.style.cssText='cursor:pointer;font-size:11px;padding:5px 10px'; });
+  if (btn) { btn.className = 'chip cb'; btn.style.cssText='cursor:pointer;font-size:11px;padding:5px 10px'; }
+
+  const dateStr = getDateOffset(offset);
+  const listEl = document.getElementById('eco-list');
+  const loadEl = document.getElementById('eco-loading');
+  const labelEl = document.getElementById('eco-date-label');
+
+  const dayNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const d = new Date(dateStr + 'T12:00:00');
+  const months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Août','Sep','Oct','Nov','Déc'];
+  labelEl.textContent = dayNames[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+
+  if (_ecoCache[dateStr]) {
+    renderEcoList(_ecoCache[dateStr], listEl);
+    return;
+  }
+
+  loadEl.style.display = 'block';
+  listEl.innerHTML = '';
+
+  try {
+    const url = 'https://financialmodelingprep.com/api/v3/economic_calendar?from=' + dateStr + '&to=' + dateStr + '&apikey=' + FMP_KEY;
+    const r = await fetch(url);
+    const data = await r.json();
+    _ecoCache[dateStr] = data;
+    loadEl.style.display = 'none';
+    renderEcoList(data, listEl);
+    // Update banner with today's high impact events
+    if (offset === 0) updateEcoBanner(data);
+  } catch(e) {
+    loadEl.style.display = 'none';
+    listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">Impossible de charger les events.<br>Vérifie ta connexion.</div>';
+  }
+}
+
+function renderEcoList(data, listEl) {
+  if (!data || !data.length) {
+    listEl.innerHTML = '<div style="text-align:center;padding:40px"><div style="font-size:32px;margin-bottom:12px">📅</div><div style="font-size:14px;color:var(--text3)">Aucun event économique ce jour</div><div style="font-size:12px;color:var(--text3);margin-top:6px">Marché calme — bonne opportunité de focus</div></div>';
+    return;
+  }
+
+  // Sort by impact then time
+  const sorted = [...data].sort(function(a,b) {
+    const impOrder = {High:0, Medium:1, Low:2};
+    const ia = impOrder[a.impact] !== undefined ? impOrder[a.impact] : 3;
+    const ib = impOrder[b.impact] !== undefined ? impOrder[b.impact] : 3;
+    if (ia !== ib) return ia - ib;
+    return (a.date||'').localeCompare(b.date||'');
+  });
+
+  // Group by impact
+  const high = sorted.filter(function(e){return e.impact==='High';});
+  const medium = sorted.filter(function(e){return e.impact==='Medium';});
+  const low = sorted.filter(function(e){return e.impact==='Low'||!e.impact;});
+
+  function renderGroup(items, title, col, bg) {
+    if (!items.length) return '';
+    return '<div style="margin-bottom:16px">' +
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:'+col+';padding:0 2px;margin-bottom:8px;display:flex;align-items:center;gap:6px">' +
+        '<div style="height:2px;flex:1;background:'+col+';opacity:.3"></div>' +
+        title + ' (' + items.length + ')' +
+        '<div style="height:2px;flex:1;background:'+col+';opacity:.3"></div>' +
+      '</div>' +
+      items.map(function(ev) {
+        const time = formatEcoTime(ev.date);
+        const hasAct = ev.actual !== null && ev.actual !== undefined && ev.actual !== '';
+        const hasCons = ev.estimate !== null && ev.estimate !== undefined && ev.estimate !== '';
+        const hasPrev = ev.previous !== null && ev.previous !== undefined && ev.previous !== '';
+        // Beat/miss logic
+        let beatMiss = '';
+        if (hasAct && hasCons) {
+          const act = parseFloat(ev.actual), cons = parseFloat(ev.estimate);
+          if (!isNaN(act) && !isNaN(cons)) {
+            if (act > cons) beatMiss = '<span style="background:rgba(34,197,94,.15);color:var(--green2);padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700;margin-left:6px">BEAT</span>';
+            else if (act < cons) beatMiss = '<span style="background:rgba(239,68,68,.15);color:var(--red2);padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700;margin-left:6px">MISS</span>';
+          }
+        }
+        return '<div style="background:'+bg+';border:1px solid var(--bdr2);border-radius:var(--r2);padding:12px 14px;margin-bottom:8px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+            '<div style="flex:1">' +
+              '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">' +
+                '<span style="font-size:16px;font-weight:800;font-family:var(--mono);color:var(--text3)">'+time+'</span>' +
+                '<span style="font-size:10px;background:var(--ink4);border-radius:4px;padding:1px 5px;color:var(--text3)">'+(ev.country||'US')+'</span>' +
+              '</div>' +
+              '<div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.3">'+(ev.event||ev.name||'Event')+''+beatMiss+'</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px">' +
+            '<div style="text-align:center;background:var(--ink3);border-radius:6px;padding:6px">' +
+              '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Actuel</div>' +
+              '<div style="font-size:13px;font-weight:700;color:'+(hasAct?'var(--text)':'var(--text3)')+'">'+( hasAct ? ev.actual : '—')+'</div>' +
+            '</div>' +
+            '<div style="text-align:center;background:var(--ink3);border-radius:6px;padding:6px">' +
+              '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Consensus</div>' +
+              '<div style="font-size:13px;font-weight:700;color:'+(hasCons?'var(--acc2)':'var(--text3)')+'">'+( hasCons ? ev.estimate : '—')+'</div>' +
+            '</div>' +
+            '<div style="text-align:center;background:var(--ink3);border-radius:6px;padding:6px">' +
+              '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Précédent</div>' +
+              '<div style="font-size:13px;font-weight:700;color:var(--text2)">'+( hasPrev ? ev.previous : '—')+'</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+  }
+
+  listEl.innerHTML =
+    renderGroup(high, 'IMPACT ÉLEVÉ', 'var(--red2)', 'rgba(239,68,68,.04)') +
+    renderGroup(medium, 'IMPACT MOYEN', 'var(--amber)', 'rgba(245,158,11,.03)') +
+    renderGroup(low, 'IMPACT FAIBLE', 'var(--text3)', 'var(--ink3)');
+}
+
+function updateEcoBanner(data) {
+  const banner = document.getElementById('nq-event-banner');
+  if (!banner) return;
+  const highImpact = (data||[]).filter(function(e) { return e.impact === 'High'; });
+  if (highImpact.length) {
+    const names = highImpact.map(function(e) {
+      return formatEcoTime(e.date) + ' ' + (e.event||e.name||'');
+    }).join(' · ');
+    banner.style.display = 'block';
+    banner.style.background = 'rgba(239,68,68,.15)';
+    banner.style.borderBottom = '2px solid rgba(239,68,68,.4)';
+    banner.style.color = 'var(--red2)';
+    banner.textContent = '\ud83d\udea8 EVENTS HAUTE IMPORTANCE : ' + names;
+  }
+}
+
+// Override checkMajorEvents to use FMP data
+function checkMajorEvents() {
+  // Will be populated by loadEcoCalendar when called
+  // Show clear sky if banner is empty
+  const banner = document.getElementById('nq-event-banner');
+  if (banner && banner.style.display === 'none') {
+    // Will be updated by NQ flag and eco calendar
+  }
+}
+
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
 function closeOv(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
 </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="supabase.js"></script>
 </body>
 </html>
