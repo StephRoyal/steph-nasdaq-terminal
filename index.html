@@ -2454,13 +2454,15 @@ function calcCurrentStreak() {
 }
 
 function renderHome() {
-  if(!window.S) { setTimeout(renderHome, 300); return; }
-  // Load trades from S or fallback to localStorage
-  var trades = (S.trades && S.trades.length > 0) ? S.trades : (function(){
-    try { var d=JSON.parse(localStorage.getItem('nqt-v8')||'{}'); return d.trades||[]; } catch(e){ return []; }
-  })();
-  // Sync back to S if S was empty
-  if(S.trades && S.trades.length === 0 && trades.length > 0) { S.trades = trades; }
+  // Always get fresh trades - from S if loaded, otherwise from localStorage
+  var trades = [];
+  if(window.S && S.trades && S.trades.length > 0) {
+    trades = S.trades;
+  } else {
+    try { var d=JSON.parse(localStorage.getItem('nqt-v8')||'{}'); trades=d.trades||[]; } catch(e){}
+    // If localStorage has trades and S is empty, populate S
+    if(window.S && trades.length > 0 && S.trades.length === 0) S.trades = trades;
+  }
   var payouts = JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
   var accounts = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
 
@@ -2628,6 +2630,11 @@ function saveAccount(){
   localStorage.setItem('nqt-accounts',JSON.stringify(accounts));
   closeOv('add-account-ov');
   renderHome();
+  // Show toast
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1a1b1e;border:1px solid #22c55e;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;color:#22c55e;z-index:9999;white-space:nowrap';
+  t.textContent='✅ Compte ajouté !';
+  document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
 }
 function deleteAccount(i){
   var accounts=JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
@@ -2647,6 +2654,10 @@ function savePayout(){
   localStorage.setItem('nqt-payouts',JSON.stringify(payouts));
   closeOv('add-payout-ov');
   renderHome();
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1a1b1e;border:1px solid #22c55e;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;color:#22c55e;z-index:9999;white-space:nowrap';
+  t.textContent='✅ Payout enregistré !';
+  document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
 }
 function deletePayout(i){
   var payouts=JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
