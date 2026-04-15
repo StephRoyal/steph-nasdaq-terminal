@@ -1765,9 +1765,16 @@ function renderWinByDay(){
 // ── NQ FLAG (7 niveaux) ──────────────────────────────────────────
 async function updateNQFlag(){
   try {
-    var r=await fetch('https://finnhub.io/api/v1/quote?symbol=NQ1%21&token=d7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300');
-    var d=await r.json();
-    var pct=d.dp||0;
+    // Yahoo Finance NQ=F via proxy (Finnhub doesn't support CME futures on free plan)
+    var yurl='https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1d&range=1d';
+    var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(yurl);
+    var r=await fetch(proxy);
+    var raw=await r.json();
+    var parsed=JSON.parse(raw.contents);
+    var meta=parsed.chart.result[0].meta;
+    var prev=meta.previousClose||meta.chartPreviousClose||meta.regularMarketPreviousClose;
+    var curr=meta.regularMarketPrice||meta.price;
+    var pct=prev&&curr?((curr-prev)/prev*100):0;
     var icon,label,bg,col;
     if(pct>1.5){
       icon='\ud83d\ude80';label='NQ +'+pct.toFixed(1)+'% \u2014 Momentum haussier fort';
