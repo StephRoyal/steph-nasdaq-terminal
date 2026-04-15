@@ -1806,9 +1806,24 @@ async function loadEcoCalendar(offset,btn){
   if(_ecoCache[dateStr]){renderEcoList(_ecoCache[dateStr],listEl);return;}
   loadEl.style.display='block';listEl.innerHTML='';
   try {
-    var url='https://financialmodelingprep.com/api/v3/economic_calendar?from='+dateStr+'&to='+dateStr+'&apikey='+FMP_KEY;
+    // Try Finnhub first
+    var url='https://finnhub.io/api/v1/calendar/economic?from='+dateStr+'&to='+dateStr+'&token=d7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300';
     var res=await fetch(url);
-    var data=await res.json();
+    var raw=await res.json();
+    // Finnhub returns {economicCalendar: [...]}
+    var data=(raw.economicCalendar||raw||[]);
+    // Normalize Finnhub format to match our renderer
+    data=data.map(function(e){
+      return {
+        event: e.event||e.name||'',
+        date: e.time||e.date||'',
+        impact: e.impact||'',
+        actual: e.actual!=null?String(e.actual):'',
+        estimate: e.estimate!=null?String(e.estimate):'',
+        previous: e.prev!=null?String(e.prev):'',
+        country: e.country||'US'
+      };
+    });
     _ecoCache[dateStr]=data;
     loadEl.style.display='none';
     renderEcoList(data,listEl);
