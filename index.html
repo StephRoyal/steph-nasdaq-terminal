@@ -26,6 +26,12 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 .hdr-weather{font-size:14px}
 .hdr-date{font-size:11px;color:var(--text3)}
 
+/* MARQUEE */
+@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+.marquee-wrap{overflow:hidden;white-space:nowrap;width:100%}
+.marquee-inner{display:inline-block;animation:marquee 20s linear infinite}
+.marquee-inner:hover{animation-play-state:paused}
+
 /* NAV */
 .nav{position:fixed;bottom:0;left:0;right:0;z-index:999;background:rgba(17,19,24,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);-webkit-tap-highlight-color:transparent;padding:4px 0}
@@ -589,7 +595,7 @@ load();
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 document.getElementById('quote-text').textContent = QUOTES[new Date().getDate() % QUOTES.length];
 renderStats(); renderList(); renderNotes(); setTimeout(checkDailyAlerts, 200);
-loadWeather(); loadEarnings(); loadNews(); setTimeout(updateNQFlag, 3000); setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
+loadWeather(); loadEarnings(); loadNews(); setTimeout(function(){ updateNQFlag(); setInterval(updateNQFlag, 300000); }, 3000); // refresh every 5min setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
 
 // ── NAV ───────────────────────────────────────────────────────────
 function goPage(id, btn) {
@@ -1756,17 +1762,36 @@ function renderWinByDay(){
     }).join('')+'</div>';
 }
 
-// ── NQ FLAG ─────────────────────────────────────────────────────────
+// ── NQ FLAG (7 niveaux) ──────────────────────────────────────────
 async function updateNQFlag(){
   try {
     var r=await fetch('https://finnhub.io/api/v1/quote?symbol=NQ1%21&token=d7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300');
     var d=await r.json();
     var pct=d.dp||0;
     var icon,label,bg,col;
-    if(pct>=0.5){icon='\ud83d\udc02';label='NQ +'+pct.toFixed(1)+'% \u2014 Bulls winning!';bg='rgba(34,197,94,.12)';col='var(--green2)';}
-    else if(pct>0){icon='\ud83d\udc23';label='NQ +'+pct.toFixed(1)+'% \u2014 Tout mignon';bg='rgba(34,197,94,.07)';col='var(--green2)';}
-    else if(pct>=-0.5){icon='\ud83d\udc3b';label='NQ '+pct.toFixed(1)+'% \u2014 March\u00e9 neutre';bg='rgba(245,158,11,.08)';col='var(--amber)';}
-    else{icon='\u26a0\ufe0f';label='NQ '+pct.toFixed(1)+'% \u2014 Bear alert!';bg='rgba(239,68,68,.12)';col='var(--red2)';}
+    if(pct>1.5){
+      icon='\ud83d\ude80';label='NQ +'+pct.toFixed(1)+'% \u2014 Momentum haussier fort';
+      bg='rgba(34,197,94,.18)';col='var(--green2)';
+    } else if(pct>0.5){
+      icon='\ud83d\udc02';label='NQ +'+pct.toFixed(1)+'% \u2014 Bulls winning';
+      bg='rgba(34,197,94,.12)';col='var(--green2)';
+    } else if(pct>0.1){
+      icon='\ud83d\udfe2';label='NQ +'+pct.toFixed(1)+'% \u2014 L\u00e9g\u00e8rement positif';
+      bg='rgba(34,197,94,.07)';col='var(--green2)';
+    } else if(pct>=-0.1){
+      icon='\u26aa';label='NQ '+pct.toFixed(1)+'% \u2014 March\u00e9 neutre';
+      bg='rgba(120,120,140,.12)';col='var(--text3)';
+    } else if(pct>-0.5){
+      icon='\ud83d\udfe1';label='NQ '+pct.toFixed(1)+'% \u2014 March\u00e9s tendus';
+      bg='rgba(245,158,11,.08)';col='var(--amber)';
+    } else if(pct>-1.5){
+      icon='\ud83d\udc3b';label='NQ '+pct.toFixed(1)+'% \u2014 Bears in control';
+      bg='rgba(239,68,68,.10)';col:'var(--red2)';
+      col='var(--red2)';
+    } else {
+      icon='\u26a0\ufe0f';label='NQ '+pct.toFixed(1)+'% \u2014 Bear alert! Sell-off';
+      bg='rgba(239,68,68,.18)';col='var(--red2)';
+    }
     window._nqBanner={icon:icon,label:label,bg:bg,col:col};
     updateNQBanner();
   } catch(e){ console.log('NQ flag error:',e.message); }
@@ -1775,11 +1800,23 @@ function updateNQBanner(){
   var b=document.getElementById('nq-event-banner');
   if(!b)return;
   if(window._ecoBanner){
-    b.style.display='block';b.style.background='rgba(239,68,68,.12)';b.style.color='var(--red2)';
-    b.textContent=window._ecoBanner+(window._nqBanner?' \u00b7 '+window._nqBanner.icon+' '+window._nqBanner.label:'');
+    // High impact event today — marquee scrolling banner
+    b.style.display='block';
+    b.style.background='rgba(239,68,68,.12)';
+    b.style.color='var(--red2)';
+    b.style.padding='0';
+    b.style.overflow='hidden';
+    var txt=window._ecoBanner+(window._nqBanner?' \u00b7 '+window._nqBanner.icon+' NQ '+window._nqBanner.label:'');
+    // Repeat text for seamless loop
+    var repeated=txt+'\u2003\u2003\u2003\u2003'+txt+'\u2003\u2003\u2003\u2003'+txt;
+    b.innerHTML='<div class="marquee-wrap" style="padding:6px 0"><div class="marquee-inner" style="font-size:12px;font-weight:700;padding:0 16px">'+repeated+'</div></div>';
   } else if(window._nqBanner){
-    b.style.display='block';b.style.background=window._nqBanner.bg;b.style.color=window._nqBanner.col;
-    b.textContent=window._nqBanner.icon+' '+window._nqBanner.label;
+    b.style.display='block';
+    b.style.background=window._nqBanner.bg;
+    b.style.color=window._nqBanner.col;
+    b.style.padding='6px 16px';
+    b.style.overflow='';
+    b.innerHTML=window._nqBanner.icon+' '+window._nqBanner.label;
   } else {
     b.style.display='none';
   }
@@ -1790,9 +1827,13 @@ const FMP_KEY = 'uMKGphh9OGwDwI8mdzwic6Dj2BUzGbke';
 var _ecoCache={};
 
 function getDateOffset(offset){var d=new Date();d.setDate(d.getDate()+offset);return d.toISOString().slice(0,10);}
-function formatEcoTime(ds){if(!ds)return '--:--';try{var d=new Date(ds);return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/London'});}catch(e){return '--:--';}}
+function formatEcoTime(ds){if(!ds)return '--:--';try{
+  // Hardcoded dates already in London time — just extract HH:MM from string
+  if(ds.includes(' ')){return ds.slice(11,16);}
+  var d=new Date(ds);return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/London'});
+}catch(e){return '--:--';}}
 
-async function loadEcoCalendar(offset,btn){
+function loadEcoCalendar(offset,btn){
   document.querySelectorAll('#pg-eco .chip').forEach(function(b){b.className='chip cx';});
   if(btn)btn.className='chip cb';
   var dateStr=getDateOffset(offset);
@@ -1805,33 +1846,11 @@ async function loadEcoCalendar(offset,btn){
   labelEl.textContent=dayNames[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
   if(_ecoCache[dateStr]){renderEcoList(_ecoCache[dateStr],listEl);return;}
   loadEl.style.display='block';listEl.innerHTML='';
-  try {
-    // Try Finnhub first
-    var url='https://finnhub.io/api/v1/calendar/economic?from='+dateStr+'&to='+dateStr+'&token=d7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300';
-    var res=await fetch(url);
-    var raw=await res.json();
-    // Finnhub returns {economicCalendar: [...]}
-    var data=(raw.economicCalendar||raw||[]);
-    // Normalize Finnhub format to match our renderer
-    data=data.map(function(e){
-      return {
-        event: e.event||e.name||'',
-        date: e.time||e.date||'',
-        impact: e.impact||'',
-        actual: e.actual!=null?String(e.actual):'',
-        estimate: e.estimate!=null?String(e.estimate):'',
-        previous: e.prev!=null?String(e.prev):'',
-        country: e.country||'US'
-      };
-    });
-    _ecoCache[dateStr]=data;
-    loadEl.style.display='none';
-    renderEcoList(data,listEl);
-    if(offset===0)updateEcoBanner(data);
-  } catch(e){
-    loadEl.style.display='none';
-    listEl.innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">Impossible de charger les events.<br>V\u00e9rifie ta connexion.</div>';
-  }
+  var data = getHardcodedEco(dateStr);
+  _ecoCache[dateStr]=data;
+  loadEl.style.display='none';
+  renderEcoList(data,listEl);
+  if(offset===0)updateEcoBanner(data);
 }
 
 function renderEcoList(data,listEl){
@@ -1880,12 +1899,111 @@ function renderEcoList(data,listEl){
 function updateEcoBanner(data){
   var high=(data||[]).filter(function(e){return e.impact==='High';});
   if(high.length){
-    var names=high.map(function(e){return formatEcoTime(e.date)+' '+(e.event||e.name||'');}).join(' \u00b7 ');
-    window._ecoBanner='\ud83d\udea8 EVENTS HAUTE IMPORTANCE : '+names;
+    var parts=high.map(function(e){
+      var t=formatEcoTime(e.date);
+      var ev=(e.event||e.name||'');
+      var cons=e.estimate?(' \u2014 Consensus: '+e.estimate):'';
+      var prev=e.previous?(' \u2014 Pr\u00e9c: '+e.previous):'';
+      return '\ud83d\udea8 '+t+' '+ev+cons+prev;
+    });
+    window._ecoBanner=parts.join('\u2003\u00b7\u2003');
   } else {
     window._ecoBanner=null;
   }
   updateNQBanner();
+}
+
+// ── HARDCODED ECO CALENDAR 2026 ────────────────────────────────────
+function getHardcodedEco(dateStr) {
+  // All times in London time (UTC+1 BST / UTC GMT)
+  // Format: {event, date:'YYYY-MM-DD HH:MM', impact:'High'|'Medium', country:'US'}
+  var ALL_EVENTS = [
+    // ── JANVIER 2026 ──
+    {event:'NFP (Dec)',        date:'2026-01-09 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Dec)',        date:'2026-01-15 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Dec)',        date:'2026-01-16 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-01-16 13:30', impact:'Medium', country:'US'},
+    {event:'PCE (Nov)',        date:'2026-01-30 13:30', impact:'High',   country:'US'},
+    {event:'FOMC Décision',   date:'2026-01-29 20:00', impact:'High',   country:'US'},
+    // ── FÉVRIER 2026 ──
+    {event:'NFP (Jan)',        date:'2026-02-06 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Jan)',        date:'2026-02-12 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Jan)',        date:'2026-02-13 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-02-17 13:30', impact:'Medium', country:'US'},
+    {event:'PCE (Dec)',        date:'2026-02-27 13:30', impact:'High',   country:'US'},
+    // ── MARS 2026 ──
+    {event:'NFP (Feb)',        date:'2026-03-06 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Feb)',        date:'2026-03-12 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Feb)',        date:'2026-03-13 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-03-17 12:30', impact:'Medium', country:'US'},
+    {event:'FOMC Décision',   date:'2026-03-18 19:00', impact:'High',   country:'US'},
+    {event:'PCE (Jan)',        date:'2026-03-27 12:30', impact:'High',   country:'US'},
+    // ── AVRIL 2026 ──
+    {event:'NFP (Mar)',        date:'2026-04-03 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Mar)',        date:'2026-04-10 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Mar)',        date:'2026-04-11 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-04-15 13:30', impact:'Medium', country:'US'},
+    {event:'Initial Jobless Claims', date:'2026-04-16 13:30', impact:'High', country:'US'},
+    {event:'PCE (Feb)',        date:'2026-04-30 13:30', impact:'High',   country:'US'},
+    {event:'FOMC Décision',   date:'2026-04-29 19:00', impact:'High',   country:'US'},
+    // ── MAI 2026 ──
+    {event:'NFP (Apr)',        date:'2026-05-08 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Apr)',        date:'2026-05-13 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Apr)',        date:'2026-05-14 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-05-15 13:30', impact:'Medium', country:'US'},
+    {event:'PCE (Mar)',        date:'2026-05-29 13:30', impact:'High',   country:'US'},
+    // ── JUIN 2026 ──
+    {event:'NFP (May)',        date:'2026-06-05 13:30', impact:'High',   country:'US'},
+    {event:'CPI (May)',        date:'2026-06-11 13:30', impact:'High',   country:'US'},
+    {event:'PPI (May)',        date:'2026-06-12 13:30', impact:'High',   country:'US'},
+    {event:'FOMC Décision',   date:'2026-06-17 19:00', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-06-16 13:30', impact:'Medium', country:'US'},
+    {event:'PCE (Apr)',        date:'2026-06-26 13:30', impact:'High',   country:'US'},
+    // ── JUILLET 2026 ──
+    {event:'NFP (Jun)',        date:'2026-07-10 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Jun)',        date:'2026-07-14 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Jun)',        date:'2026-07-15 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-07-16 13:30', impact:'Medium', country:'US'},
+    {event:'FOMC Décision',   date:'2026-07-29 19:00', impact:'High',   country:'US'},
+    {event:'PCE (May)',        date:'2026-07-31 13:30', impact:'High',   country:'US'},
+    // ── AOÛT 2026 ──
+    {event:'NFP (Jul)',        date:'2026-08-07 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Jul)',        date:'2026-08-13 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Jul)',        date:'2026-08-14 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-08-14 13:30', impact:'Medium', country:'US'},
+    {event:'PCE (Jun)',        date:'2026-08-28 13:30', impact:'High',   country:'US'},
+    // ── SEPTEMBRE 2026 ──
+    {event:'NFP (Aug)',        date:'2026-09-04 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Aug)',        date:'2026-09-10 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Aug)',        date:'2026-09-11 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-09-15 13:30', impact:'Medium', country:'US'},
+    {event:'FOMC Décision',   date:'2026-09-16 19:00', impact:'High',   country:'US'},
+    {event:'PCE (Jul)',        date:'2026-09-25 13:30', impact:'High',   country:'US'},
+    // ── OCTOBRE 2026 ──
+    {event:'NFP (Sep)',        date:'2026-10-02 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Sep)',        date:'2026-10-14 13:30', impact:'High',   country:'US'},
+    {event:'PPI (Sep)',        date:'2026-10-15 13:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-10-15 13:30', impact:'Medium', country:'US'},
+    {event:'PCE (Aug)',        date:'2026-10-30 13:30', impact:'High',   country:'US'},
+    {event:'FOMC Décision',   date:'2026-10-28 19:00', impact:'High',   country:'US'},
+    // ── NOVEMBRE 2026 ──
+    {event:'NFP (Oct)',        date:'2026-11-06 13:30', impact:'High',   country:'US'},
+    {event:'CPI (Oct)',        date:'2026-11-12 14:30', impact:'High',   country:'US'},
+    {event:'PPI (Oct)',        date:'2026-11-13 14:30', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-11-17 14:30', impact:'Medium', country:'US'},
+    {event:'PCE (Sep)',        date:'2026-11-25 14:30', impact:'High',   country:'US'},
+    // ── DÉCEMBRE 2026 ──
+    {event:'NFP (Nov)',        date:'2026-12-04 14:30', impact:'High',   country:'US'},
+    {event:'CPI (Nov)',        date:'2026-12-10 14:30', impact:'High',   country:'US'},
+    {event:'PPI (Nov)',        date:'2026-12-11 14:30', impact:'High',   country:'US'},
+    {event:'FOMC Décision',   date:'2026-12-16 20:00', impact:'High',   country:'US'},
+    {event:'Retail Sales',    date:'2026-12-16 14:30', impact:'Medium', country:'US'},
+    {event:'PCE (Oct)',        date:'2026-12-23 14:30', impact:'High',   country:'US'},
+  ];
+
+  return ALL_EVENTS.filter(function(e) {
+    return e.date.slice(0,10) === dateStr;
+  });
 }
 
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
