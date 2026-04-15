@@ -1771,33 +1771,17 @@ function renderWinByDay(){
 var _nqRetries=0;
 async function updateNQFlag(){
   // Try multiple proxies in sequence
-  var yurl='https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1d&range=1d';
-  var proxies=[
-    'https://api.allorigins.win/get?url='+encodeURIComponent(yurl),
-    'https://corsproxy.io/?'+encodeURIComponent(yurl),
-    'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(yurl)
-  ];
-  var pct=null;
-  for(var i=0;i<proxies.length;i++){
-    try {
-      var r=await fetch(proxies[i]);
-      var raw=await r.json();
-      var parsed=typeof raw.contents==='string'?JSON.parse(raw.contents):raw;
-      var meta=parsed.chart&&parsed.chart.result&&parsed.chart.result[0]&&parsed.chart.result[0].meta;
-      if(meta){
-        var prev=meta.previousClose||meta.chartPreviousClose||meta.regularMarketPreviousClose;
-        var curr=meta.regularMarketPrice||meta.price;
-        if(prev&&curr){pct=(curr-prev)/prev*100;break;}
-      }
-    } catch(e2){ continue; }
-  }
-  if(pct===null){
-    // Schedule retry in 30s
+  var pct=0;
+  try {
+    var r=await fetch('/api/nq');
+    var d=await r.json();
+    pct=d.pct||0;
+    _nqRetries=0;
+  } catch(e2){
     _nqRetries++;
-    if(_nqRetries<5) setTimeout(updateNQFlag,30000);
+    if(_nqRetries<10) setTimeout(updateNQFlag,30000);
     return;
   }
-  _nqRetries=0;
   try {
     var icon,label,bg,col;
     if(pct>1.5){
