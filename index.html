@@ -201,8 +201,13 @@ canvas{display:block;width:100%}
 <div id="pg-journal" class="page on">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div style="font-size:18px;font-weight:700">Trade Journal</div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <button class="btn bg bs" onclick="exportPDF()" style="font-size:11px">📄 PDF</button>
+      <button class="btn bg bs" onclick="exportJSON()" style="font-size:11px;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--green2)">⬇ Export</button>
+      <label style="cursor:pointer;display:inline-flex">
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(this)">
+        <span class="btn bg bs" style="font-size:11px;background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:var(--acc2);cursor:pointer">⬆ Import</span>
+      </label>
       <button class="btn ba bs" onclick="openTrade()">+ Trade</button>
     </div>
   </div>
@@ -595,7 +600,7 @@ load();
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 document.getElementById('quote-text').textContent = QUOTES[new Date().getDate() % QUOTES.length];
 renderStats(); renderList(); renderNotes(); setTimeout(checkDailyAlerts, 200);
-loadWeather(); loadEarnings(); loadNews(); setTimeout(function(){ updateNQFlag(); setInterval(updateNQFlag, 300000); }, 3000); // refresh every 5min setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
+loadWeather(); loadEarnings(); loadNews(); setTimeout(function(){ updateNQFlag(); setInterval(updateNQFlag, 300000); }, 2000); // refresh every 5min setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
 
 // ── NAV ───────────────────────────────────────────────────────────
 function goPage(id, btn) {
@@ -1763,18 +1768,37 @@ function renderWinByDay(){
 }
 
 // ── NQ FLAG (7 niveaux) ──────────────────────────────────────────
+var _nqRetries=0;
 async function updateNQFlag(){
+  // Try multiple proxies in sequence
+  var yurl='https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1d&range=1d';
+  var proxies=[
+    'https://api.allorigins.win/get?url='+encodeURIComponent(yurl),
+    'https://corsproxy.io/?'+encodeURIComponent(yurl),
+    'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(yurl)
+  ];
+  var pct=null;
+  for(var i=0;i<proxies.length;i++){
+    try {
+      var r=await fetch(proxies[i]);
+      var raw=await r.json();
+      var parsed=typeof raw.contents==='string'?JSON.parse(raw.contents):raw;
+      var meta=parsed.chart&&parsed.chart.result&&parsed.chart.result[0]&&parsed.chart.result[0].meta;
+      if(meta){
+        var prev=meta.previousClose||meta.chartPreviousClose||meta.regularMarketPreviousClose;
+        var curr=meta.regularMarketPrice||meta.price;
+        if(prev&&curr){pct=(curr-prev)/prev*100;break;}
+      }
+    } catch(e2){ continue; }
+  }
+  if(pct===null){
+    // Schedule retry in 30s
+    _nqRetries++;
+    if(_nqRetries<5) setTimeout(updateNQFlag,30000);
+    return;
+  }
+  _nqRetries=0;
   try {
-    // Yahoo Finance NQ=F via proxy (Finnhub doesn't support CME futures on free plan)
-    var yurl='https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?interval=1d&range=1d';
-    var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(yurl);
-    var r=await fetch(proxy);
-    var raw=await r.json();
-    var parsed=JSON.parse(raw.contents);
-    var meta=parsed.chart.result[0].meta;
-    var prev=meta.previousClose||meta.chartPreviousClose||meta.regularMarketPreviousClose;
-    var curr=meta.regularMarketPrice||meta.price;
-    var pct=prev&&curr?((curr-prev)/prev*100):0;
     var icon,label,bg,col;
     if(pct>1.5){
       icon='\ud83d\ude80';label='NQ +'+pct.toFixed(1)+'% \u2014 Momentum haussier fort';
@@ -2094,6 +2118,65 @@ function getHardcodedEco(dateStr) {
   return ALL_EVENTS.filter(function(e) {
     return e.date.slice(0,10) === dateStr;
   });
+}
+
+// ── EXPORT / IMPORT JSON ───────────────────────────────────────────
+function exportJSON(){
+  var data={
+    version:'nqt-v8',
+    exportedAt:new Date().toISOString(),
+    trades:S.trades,
+    notes:S.notes
+  };
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='NQ_Terminal_Backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('\u2705 Export r\u00e9ussi \u2014 '+S.trades.length+' trades sauvegard\u00e9s');
+}
+
+function importJSON(input){
+  var file=input.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try {
+      var data=JSON.parse(e.target.result);
+      // Support both raw array and wrapped format
+      var trades=data.trades||data;
+      var notes=data.notes||[];
+      if(!Array.isArray(trades)||!trades.length){
+        showToast('\u26a0\ufe0f Fichier invalide \u2014 aucun trade trouv\u00e9');
+        return;
+      }
+      // Merge: add trades that don't exist yet (by id)
+      var existingIds=new Set(S.trades.map(function(t){return t.id;}));
+      var newTrades=trades.filter(function(t){return !existingIds.has(t.id);});
+      var existingNoteIds=new Set(S.notes.map(function(n){return n.id;}));
+      var newNotes=notes.filter(function(n){return !existingNoteIds.has(n.id);});
+      S.trades=S.trades.concat(newTrades).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+      S.notes=S.notes.concat(newNotes).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+      persist();
+      renderStats();renderList();renderNotes();
+      setTimeout(checkDailyAlerts,200);
+      showToast('\u2705 Import r\u00e9ussi \u2014 '+newTrades.length+' nouveaux trades ajout\u00e9s');
+    } catch(err){
+      showToast('\u26a0\ufe0f Erreur de lecture \u2014 fichier JSON invalide');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+function showToast(msg){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--ink2);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;color:var(--text);z-index:9999;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4)';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.remove();},3000);
 }
 
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
