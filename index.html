@@ -717,6 +717,7 @@ const QUOTES = [
 const SK = 'nqt-v8';
 let S = {trades:[], notes:[]};
 function save() { try { localStorage.setItem(SK, JSON.stringify(S)); } catch(e){} }
+function persist() { save(); }
 function load() {
   try {
     const r = localStorage.getItem(SK);
