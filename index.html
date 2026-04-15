@@ -2509,13 +2509,6 @@ function renderHome() {
   var wpEl=document.getElementById('home-pnl-week');
   if(wpEl){wpEl.textContent=(wkPnl>=0?'+':'')+Math.round(wkPnl)+'$';wpEl.style.color=wkPnl>=0?'var(--green2)':'var(--red2)';}
 
-  // If no trades yet, retry in 1 second (supabase might still be loading)
-  if(trades.length === 0) {
-    var retryEl = document.getElementById('home-streak');
-    if(retryEl) retryEl.textContent = '...';
-    setTimeout(renderHome, 1000);
-  }
-
   // Heatmap 30 days
   renderHeatmap(trades);
   // Perf grid
