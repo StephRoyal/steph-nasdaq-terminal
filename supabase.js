@@ -23,6 +23,7 @@
       window.renderStats && window.renderStats();
       window.renderList && window.renderList();
       window.renderNotes && window.renderNotes();
+      window.renderHome && setTimeout(window.renderHome, 100);
       window.checkDailyAlerts && setTimeout(window.checkDailyAlerts, 200);
     }
   }
