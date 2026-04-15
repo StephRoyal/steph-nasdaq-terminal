@@ -737,7 +737,10 @@ load();
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'});
 document.getElementById('quote-text').textContent = QUOTES[new Date().getDate() % QUOTES.length];
 renderStats(); renderList(); renderNotes(); setTimeout(checkDailyAlerts, 200);
-loadWeather(); loadEarnings(); loadNews(); setTimeout(renderHome, 1000); setTimeout(function(){ updateNQFlag(); setInterval(updateNQFlag, 300000); }, 2000); // refresh every 5min setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2000);
+loadWeather(); loadEarnings(); loadNews();
+setTimeout(renderHome, 1000);
+setTimeout(function(){ updateNQFlag(); setInterval(updateNQFlag, 300000); }, 2000);
+setTimeout(function(){ loadEcoCalendar(0, document.getElementById('eco-today-btn')); }, 2500);
 
 // ── NAV ───────────────────────────────────────────────────────────
 function goPage(id, btn) {
