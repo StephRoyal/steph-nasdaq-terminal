@@ -240,17 +240,34 @@ canvas{display:block;width:100%}
     <div id="home-payout-list"></div>
   </div>
 
+  <!-- HEATMAP 30 JOURS -->
+  <div style="margin-bottom:16px">
+    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.07em;margin-bottom:8px">📅 Activité — 30 derniers jours</div>
+    <div id="home-heatmap" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+    <div style="display:flex;gap:12px;margin-top:6px">
+      <div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:rgba(34,197,94,.7)"></div><div style="font-size:9px;color:var(--text3)">Profitable</div></div>
+      <div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,.6)"></div><div style="font-size:9px;color:var(--text3)">Perte</div></div>
+      <div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:var(--ink3);border:1px solid var(--border)"></div><div style="font-size:9px;color:var(--text3)">Sans trade</div></div>
+    </div>
+  </div>
+
+  <!-- PERFORMANCES CLÉS -->
+  <div style="margin-bottom:16px">
+    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.07em;margin-bottom:8px">⚡ Performances clés</div>
+    <div id="home-perf-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+  </div>
+
   <!-- BADGES -->
   <div style="margin-bottom:80px">
     <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.07em;margin-bottom:10px">🏆 Badges</div>
-    <div id="home-badges-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+    <div id="home-badges-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%"></div>
   </div>
 
 </div>
 
 <!-- ADD ACCOUNT OVERLAY -->
-<div id="add-account-ov" class="ov">
-  <div class="ov-box" style="max-width:400px">
+<div id="add-account-ov" class="ov" style="align-items:center;padding:20px">
+  <div class="ov-box" style="max-width:400px;width:100%;max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <div style="font-size:16px;font-weight:800">Ajouter un compte</div>
       <button onclick="closeOv('add-account-ov')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3)">✕</button>
@@ -271,8 +288,8 @@ canvas{display:block;width:100%}
 </div>
 
 <!-- ADD PAYOUT OVERLAY -->
-<div id="add-payout-ov" class="ov">
-  <div class="ov-box" style="max-width:400px">
+<div id="add-payout-ov" class="ov" style="align-items:center;padding:20px">
+  <div class="ov-box" style="max-width:400px;width:100%;max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <div style="font-size:16px;font-weight:800">Ajouter un payout</div>
       <button onclick="closeOv('add-payout-ov')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3)">✕</button>
@@ -2437,6 +2454,7 @@ function calcCurrentStreak() {
 }
 
 function renderHome() {
+  if(!window.S) { setTimeout(renderHome, 300); return; }
   var trades = S.trades || [];
   var payouts = JSON.parse(localStorage.getItem('nqt-payouts')||'[]');
   var accounts = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
@@ -2476,6 +2494,11 @@ function renderHome() {
   var wkPnl=wkTrades.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
   var wpEl=document.getElementById('home-pnl-week');
   if(wpEl){wpEl.textContent=(wkPnl>=0?'+':'')+Math.round(wkPnl)+'$';wpEl.style.color=wkPnl>=0?'var(--green2)':'var(--red2)';}
+
+  // Heatmap 30 days
+  renderHeatmap(trades);
+  // Perf grid
+  renderPerfGrid(trades);
 
   // Funded accounts
   renderHomeAccounts(accounts);
@@ -2581,10 +2604,10 @@ function renderHomeBadges(trades, payouts, accounts) {
   var unlocked = calcBadges(trades, payouts, accounts).map(function(b){return b.id;});
   el.innerHTML = ALL_BADGES.map(function(b){
     var done = unlocked.indexOf(b.id)>-1;
-    return '<div style="background:'+(done?'var(--ink2)':'var(--ink3)')+';border:1px solid '+(done?'var(--border)':'var(--bdr2)')+';border-radius:12px;padding:10px 6px;text-align:center;opacity:'+(done?'1':'0.4')+';transition:all .3s" title="'+b.desc+' (+'+b.xp+' XP)">'+
-      '<div style="font-size:22px;margin-bottom:4px">'+b.icon+'</div>'+
-      '<div style="font-size:9px;font-weight:700;color:'+(done?'var(--text)':'var(--text3)');'>'+b.name+'</div>'+
-      (done?'<div style="font-size:8px;color:var(--acc2);margin-top:1px">+'+b.xp+' XP</div>':'')+
+    return '<div style="background:'+(done?'var(--ink2)':'var(--ink3)')+';border:1px solid '+(done?'var(--border)':'var(--bdr2)')+';border-radius:12px;padding:10px 4px;text-align:center;opacity:'+(done?'1':'0.35')+';min-width:0;overflow:hidden" title="'+b.desc+'">'+
+      '<div style="font-size:20px;margin-bottom:3px;line-height:1">'+b.icon+'</div>'+
+      '<div style="font-size:8px;font-weight:700;color:'+(done?'var(--text)':'var(--text3)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px">'+b.name+'</div>'+
+      (done?'<div style="font-size:8px;color:var(--acc2);margin-top:1px">+'+b.xp+'</div>':'')+
     '</div>';
   }).join('');
 }
@@ -2625,6 +2648,55 @@ function deletePayout(i){
   payouts.splice(i,1);
   localStorage.setItem('nqt-payouts',JSON.stringify(payouts));
   renderHome();
+}
+
+function renderHeatmap(trades) {
+  var el = document.getElementById('home-heatmap');
+  if(!el) return;
+  var byDate = {};
+  trades.forEach(function(t){ if(!byDate[t.date])byDate[t.date]=0; byDate[t.date]+=(parseFloat(t.pnl)||0); });
+  var days = [];
+  for(var i=29;i>=0;i--){
+    var d = new Date(); d.setDate(d.getDate()-i);
+    var ds = d.toISOString().slice(0,10);
+    days.push({date:ds, pnl:byDate[ds]!==undefined?byDate[ds]:null});
+  }
+  el.innerHTML = days.map(function(d){
+    var hasTrade = d.pnl !== null;
+    var bg = !hasTrade ? 'var(--ink3)' : d.pnl > 0 ? 'rgba(34,197,94,'+(Math.min(0.9,0.3+Math.abs(d.pnl)/1000))+')' : 'rgba(239,68,68,'+(Math.min(0.85,0.25+Math.abs(d.pnl)/1000))+')';
+    var border = !hasTrade ? '1px solid var(--border)' : 'none';
+    var label = d.date.slice(8)+'/'+d.date.slice(5,7);
+    var tip = hasTrade ? (d.pnl>=0?'+':'')+Math.round(d.pnl)+'$' : 'Pas de trade';
+    return '<div title="'+label+' — '+tip+'" style="width:calc((100% - 87px)/30);min-width:8px;aspect-ratio:1;border-radius:3px;background:'+bg+';border:'+border+'"></div>';
+  }).join('');
+}
+
+function renderPerfGrid(trades) {
+  var el = document.getElementById('home-perf-grid');
+  if(!el) return;
+  var wins = trades.filter(function(t){return t.status==='Win';});
+  var losses = trades.filter(function(t){return t.status==='Loss';});
+  var avgWin = wins.length ? wins.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0)/wins.length : 0;
+  var avgLoss = losses.length ? Math.abs(losses.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0)/losses.length) : 0;
+  var bestTrade = trades.length ? Math.max.apply(null,trades.map(function(t){return parseFloat(t.pnl)||0;})) : 0;
+  var worstTrade = trades.length ? Math.min.apply(null,trades.map(function(t){return parseFloat(t.pnl)||0;})) : 0;
+  // Best day
+  var byDate={};
+  trades.forEach(function(t){if(!byDate[t.date])byDate[t.date]=0;byDate[t.date]+=(parseFloat(t.pnl)||0);});
+  var bestDay = Object.values(byDate).length ? Math.max.apply(null,Object.values(byDate)) : 0;
+  var totalPnl = trades.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+  
+  function card(icon,label,value,color){
+    return '<div style="background:var(--ink2);border:1px solid var(--border);border-radius:12px;padding:12px">'+
+      '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">'+icon+' '+label+'</div>'+
+      '<div style="font-size:20px;font-weight:800;font-family:var(--mono);color:'+color+'">'+value+'</div>'+
+    '</div>';
+  }
+  el.innerHTML =
+    card('📈','P&L Total', (totalPnl>=0?'+':'')+Math.round(totalPnl)+'$', totalPnl>=0?'var(--green2)':'var(--red2)') +
+    card('🎯','Meilleur trade', '+'+Math.round(bestTrade)+'$', 'var(--green2)') +
+    card('📊','Avg Win', '+'+Math.round(avgWin)+'$', 'var(--green2)') +
+    card('🏆','Meilleur jour', '+'+Math.round(bestDay)+'$', 'var(--amber)');
 }
 
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
