@@ -22,7 +22,7 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 @keyframes breathe{0%,100%{opacity:1}50%{opacity:.3}}
 .hdr-name{font-size:15px;font-weight:700;background:linear-gradient(135deg,#F0F2F5 40%,#5C6470);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hdr-sub{font-size:11px;color:var(--text3)}
-.hdr-right{text-align:right;flex-shrink:0}
+.hdr-right{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
 .hdr-weather{font-size:14px}
 .hdr-date{font-size:11px;color:var(--text3)}
  
@@ -1433,7 +1433,10 @@ function checkDailyAlerts() {
     }
   }
  
-  if (alerts.length === 0) { el.innerHTML = ''; return; }
+  if (alerts.length === 0) {
+    el.innerHTML = '<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:var(--r2);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:8px"><span style="font-size:16px">\u2600\ufe0f</span><span style="font-size:12px;color:var(--green2);font-weight:600">Ciel d\u00e9gag\u00e9 \u2014 aucune alerte. Tu peux trader sereinement aujourd\u2019hui.</span></div>';
+    return;
+  }
   el.innerHTML = alerts.map(a => `<div style="background:${a.bg};border:1px solid ${a.border};border-radius:var(--r2);padding:12px 14px;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:18px">${a.icon}</span><span style="font-size:13px;font-weight:700;color:${a.color}">${a.title}</span></div><div style="font-size:12px;color:var(--text2);line-height:1.5;padding-left:26px">${a.msg}</div></div>`).join('');
 }
  
@@ -1630,7 +1633,7 @@ function renderWinByDay(){
   if(!el)return;
   var trades=S.trades;
   if(!trades.length){el.innerHTML='<div class="empty" style="padding:14px;font-size:12px">Aucun trade</div>';return;}
-  var days=[{n:'Lun',d:1},{n:'Mar',d:2},{n:'Mer',d:3},{n:'Jeu',d:4},{n:'Ven',d:5}];
+  var days=[{n:'Lundi',d:1},{n:'Mardi',d:2},{n:'Mercredi',d:3},{n:'Jeudi',d:4},{n:'Vendredi',d:5}];
   var stats=days.map(function(day){
     var dt=trades.filter(function(t){if(!t.date)return false;return new Date(t.date+'T12:00:00').getDay()===day.d;});
     var w=dt.filter(function(t){return t.status==='Win';}).length;
@@ -1668,7 +1671,7 @@ function renderLongShort(){
   }
   var ls=stats(longs),ss=stats(shorts);
   // Direction by day
-  var days=[{n:'Lun',d:1},{n:'Mar',d:2},{n:'Mer',d:3},{n:'Jeu',d:4},{n:'Ven',d:5}];
+  var days=[{n:'Lundi',d:1},{n:'Mardi',d:2},{n:'Mercredi',d:3},{n:'Jeudi',d:4},{n:'Vendredi',d:5}];
   var dayDir=days.map(function(day){
     var dt=trades.filter(function(t){return t.date&&new Date(t.date+'T12:00:00').getDay()===day.d;});
     var l=dt.filter(function(t){return t.direction==='Long';}).length;
@@ -1753,7 +1756,7 @@ function renderRecap(){
   });
   // Contextual comment
   var worstDay='';
-  var dayNames=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var dayNames=['Dim','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   var dayStats=[1,2,3,4,5].map(function(d){
     var dt=trades.filter(function(t){return t.date&&new Date(t.date+'T12:00:00').getDay()===d;});
     var p=dt.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
@@ -1765,14 +1768,14 @@ function renderRecap(){
   if(dayStats.length){
     var worst=dayStats.slice().sort(function(a,b){return a.wr-b.wr;})[0];
     var best=dayStats.slice().sort(function(a,b){return b.wr-a.wr;})[0];
-    if(worst.wr<0.45) comments.push('\u26a0\ufe0f Le '+worst.n+' est ton pire jour ('+Math.round(worst.wr*100)+'% WR) \u2014 sois extra prudent.');
-    if(best.wr>=0.65) comments.push('\u2705 Le '+best.n+' est ton meilleur jour ('+Math.round(best.wr*100)+'% WR) \u2014 reste focus !');
+    if(worst.wr<0.45) comments.push('\u26a0\ufe0f Le '+worst.n+' affiche un win rate de '+Math.round(worst.wr*100)+'% sur ton historique. Renforce ta s\u00e9lection de setups ce jour-l\u00e0.');
+    if(best.wr>=0.65) comments.push('\u2705 Le '+best.n+' est ton jour le plus performant avec '+Math.round(best.wr*100)+'% de r\u00e9ussite. Capitalise dessus.');
   }
   var todayDay=now.getDay();
   var todayStat=dayStats.find(function(d){return d.d===todayDay;});
   if(todayStat&&todayStat.total>=2){
-    if(todayStat.wr<0.45) comments.push('\ud83d\udcc5 Aujourd\u2019hui ('+todayStat.n+') ne semble pas ton meilleur jour historiquement. Fais attention.');
-    else if(todayStat.wr>=0.65) comments.push('\ud83d\ude80 Aujourd\u2019hui ('+todayStat.n+') tu performes bien historiquement. Focus !');
+    if(todayStat.wr<0.45) comments.push('\ud83d\udcc5 Historiquement, le '+todayStat.n+' est plus difficile pour toi ('+Math.round(todayStat.wr*100)+'% WR). S\u00e9lectionne tes setups avec rigueur.');
+    else if(todayStat.wr>=0.65) comments.push('\ud83d\ude80 Le '+todayStat.n+' est historically favorable pour toi ('+Math.round(todayStat.wr*100)+'% WR). Conditions optimales pour performer.');
   }
   el.innerHTML=
     '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600;margin-bottom:10px;letter-spacing:.07em">Ce mois \u2014 '+ym+'</div>'+
@@ -1795,41 +1798,32 @@ function renderRecap(){
     '</div>':'');
 }
  
-// ── NQ FLAG + THEME ────────────────────────────────────────────────
-function updateNQFlag(){
-  var nqEl=document.querySelector('.ticker-item .tv');
-  // Get NQ price change from ticker
-  var tickers=document.querySelectorAll('.ti-val');
-  var nqChange=null;
-  tickers.forEach(function(el){
-    var parent=el.closest('.ticker-item');
-    if(parent&&parent.textContent.includes('NQ')){
-      var chEl=parent.querySelector('.ti-chg');
-      if(chEl) nqChange=parseFloat(chEl.textContent);
-    }
-  });
-  // Get from tickerData if available
-  if(window.tickerData){
-    var nq=window.tickerData.find(function(t){return t.s==='NQ';});
-    if(nq) nqChange=nq.dp||nq.chp;
-  }
+// ── NQ FLAG ────────────────────────────────────────────────────────
+async function updateNQFlag(){
   var flagEl=document.getElementById('nq-flag');
   if(!flagEl){
     flagEl=document.createElement('div');
     flagEl.id='nq-flag';
-    flagEl.style.cssText='display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;margin-left:8px';
-    var hdr=document.getElementById('hdr-right')||document.querySelector('.hdr');
-    if(hdr) hdr.appendChild(flagEl);
+    flagEl.style.cssText='display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;margin-top:2px';
+    var hdrRight=document.getElementById('hdr-right');
+    if(hdrRight) hdrRight.appendChild(flagEl);
   }
-  if(nqChange===null) return;
-  var icon,label,bg,col;
-  if(nqChange>=0.5){icon='\ud83d\udc02';label='Bulls winning!';bg='rgba(34,197,94,.15)';col='var(--green2)';}
-  else if(nqChange>0){icon='\ud83d\udc23';label='Tout mignon';bg='rgba(34,197,94,.08)';col='var(--green2)';}
-  else if(nqChange>=-0.5){icon='\ud83d\udc3b';label='March\u00e9s tendus';bg='rgba(245,158,11,.1)';col='var(--amber)';}
-  else{icon='\ud83d\udc3b\u200d\u2744\ufe0f';label='Bear alert!';bg='rgba(239,68,68,.15)';col='var(--red2)';}
-  flagEl.style.background=bg;
-  flagEl.style.color=col;
-  flagEl.textContent=icon+' '+label;
+  try {
+    var r=await fetch('https://finnhub.io/api/v1/quote?symbol=NQ1%21&token=d7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300');
+    var d=await r.json();
+    var pct=d.dp||0; // daily percent change
+    var icon,label,bg,col;
+    if(pct>=0.5){icon='\ud83d\udc02';label='Bulls winning +'+pct.toFixed(1)+'%';bg='rgba(34,197,94,.15)';col='var(--green2)';}
+    else if(pct>0){icon='\ud83d\udc23';label='Tout mignon +'+pct.toFixed(1)+'%';bg='rgba(34,197,94,.08)';col='var(--green2)';}
+    else if(pct>=-0.5){icon='\ud83d\udc3b';label='March\u00e9s tendus '+pct.toFixed(1)+'%';bg='rgba(245,158,11,.1)';col='var(--amber)';}
+    else{icon='\ud83d\udc3b';label='Bear alert! '+pct.toFixed(1)+'%';bg='rgba(239,68,68,.15)';col='var(--red2)';}
+    flagEl.style.background=bg;
+    flagEl.style.color=col;
+    flagEl.innerHTML=icon+' '+label;
+  } catch(e) {
+    // Fallback: try to read from TradingView widget iframe content
+    flagEl.style.display='none';
+  }
 }
  
 // ── ALERTE EVENTS MAJEURS ──────────────────────────────────────────
