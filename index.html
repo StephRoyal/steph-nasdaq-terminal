@@ -187,9 +187,15 @@ canvas{display:block;width:100%}
       <div style="font-size:22px;font-weight:800">Bonjour, Steph 👋</div>
       <div id="home-date-sub" style="font-size:12px;color:var(--text3);margin-top:2px"></div>
     </div>
-    <div id="home-level-badge" style="text-align:center;padding:8px 14px;background:var(--ink2);border:1px solid var(--border);border-radius:12px;cursor:pointer" onclick="goPage('home',document.getElementById('nb-home'))">
-      <div id="home-level-name" style="font-size:11px;font-weight:800;color:var(--acc2);text-transform:uppercase;letter-spacing:.05em"></div>
-      <div id="home-xp-label" style="font-size:10px;color:var(--text3);margin-top:1px"></div>
+    <div style="display:flex;gap:6px">
+      <div id="home-level-badge" style="text-align:center;padding:6px 10px;background:var(--ink2);border:1px solid var(--border);border-radius:10px;min-width:70px">
+        <div id="home-level-name" style="font-size:10px;font-weight:800;color:var(--acc2);text-transform:uppercase;letter-spacing:.05em"></div>
+        <div id="home-xp-label" style="font-size:9px;color:var(--text3);margin-top:1px"></div>
+      </div>
+      <div id="home-rank-badge" style="text-align:center;padding:6px 10px;background:var(--ink2);border:1px solid var(--border);border-radius:10px;min-width:70px">
+        <div id="home-rank-name" style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em"></div>
+        <div id="home-rank-sub" style="font-size:9px;color:var(--text3);margin-top:1px"></div>
+      </div>
     </div>
   </div>
 
@@ -202,14 +208,14 @@ canvas{display:block;width:100%}
     <div style="height:6px;background:var(--ink3);border-radius:99px;overflow:hidden;margin-bottom:8px">
       <div id="home-xp-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s cubic-bezier(.4,0,.2,1);width:0%"></div>
     </div>
-    <div id="home-levels-grid" style="display:grid;grid-template-columns:repeat(7,1fr) 1.3fr;gap:3px"></div>
+    <div id="home-levels-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px"></div>
   </div>
 
   <!-- STREAK + QUICK STATS -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-    <div style="background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center">
-      <div id="home-streak" style="font-size:26px;font-weight:900;color:var(--amber)">—</div>
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Streak 🔥</div>
+    <div id="home-streak-card" style="background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;transition:all .3s">
+      <div id="home-streak" style="font-size:26px;font-weight:900;color:var(--amber);line-height:1">—</div>
+      <div id="home-streak-label" style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Streak 🔥</div>
     </div>
     <div style="background:var(--ink2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center">
       <div id="home-wr" style="font-size:22px;font-weight:900;color:var(--green2)">—</div>
@@ -742,7 +748,7 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5
 const tod = () => new Date().toISOString().slice(0,10);
 const fp  = n => (n >= 0 ? '+' : '') + '$' + Math.abs(n).toFixed(0);
 const fpc = n => n > 0 ? 'var(--green2)' : n < 0 ? 'var(--red2)' : 'var(--amber)';
-const fNum = n => Math.round(n).toLocaleString('fr-FR').replace(/,/g,' ').replace(/\u202f/g,' ').replace(/\u00a0/g,' ');
+const fNum = n => Math.round(n).toLocaleString('fr-FR').replace(/\s/g,'\u00a0');
 
 // ── INIT ──────────────────────────────────────────────────────────
 load();
@@ -957,7 +963,16 @@ function saveTrade(){
   if(maxP&&tp){const ptsTP=dir==='Long'?tp-e:e-tp,ptsMax=dir==='Long'?maxP-e:e-maxP;if(ptsTP>0&&pnl)maxhold=(pnl*ptsMax/ptsTP).toFixed(0);}
   else if(maxP){const ct=document.querySelector('input[name="ct"]:checked')?.value||'mnq',ptsMax=dir==='Long'?maxP-e:e-maxP;maxhold=(ptsMax*(ct==='mnq'?2:20)*sz).toFixed(0);}
   const disc = getDiscScore(); const acct = document.getElementById('f-account') ? document.getElementById('f-account').value : ''; S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details,account:acct});
-  save();closeOv('ov-trade'); showDiscToast(disc.score, disc.details); checkDailyAlerts();
+  save();
+  // Kill streak popup
+  try {
+    var _ws = calcWinStreak();
+    var _kt = getKillTier(_ws);
+    if(_kt && document.getElementById('f-status').value === 'Win'){
+      setTimeout(function(){ showKillPopup(_kt, _ws); }, 400);
+    }
+  } catch(e){}
+  closeOv('ov-trade'); showDiscToast(disc.score, disc.details); checkDailyAlerts();
   ['f-entry','f-sl','f-tp','f-pnl','f-note','f-maxprice'].forEach(id=>document.getElementById(id).value=''); resetDisc();
   document.getElementById('rr-wrap').style.display='none';document.getElementById('mh-result').style.display='none';
   renderStats();renderList();showTab('stats',document.querySelector('.sgb'));
@@ -2364,6 +2379,97 @@ var LEVELS = [
   {name:'Legend',     min:30000, max:99999, color:'#ef4444'}
 ];
 
+// ═══════════════════════════════════════════════════════════
+// RANK LOL SYSTEM - based on last 30 days performance
+// ═══════════════════════════════════════════════════════════
+const RANKS = [
+  { name:'Bronze',     tier:'III', min:0,   color:'#8C5523', bgCol:'rgba(140,85,35,.15)',  emoji:'\u26f6' },
+  { name:'Bronze',     tier:'II',  min:10,  color:'#A0673A', bgCol:'rgba(160,103,58,.15)', emoji:'\u26f6' },
+  { name:'Bronze',     tier:'I',   min:20,  color:'#B87A52', bgCol:'rgba(184,122,82,.15)', emoji:'\u26f6' },
+  { name:'Silver',     tier:'III', min:30,  color:'#9DA7A8', bgCol:'rgba(157,167,168,.15)',emoji:'\u2694' },
+  { name:'Silver',     tier:'II',  min:35,  color:'#B4BEC0', bgCol:'rgba(180,190,192,.15)',emoji:'\u2694' },
+  { name:'Silver',     tier:'I',   min:40,  color:'#C9D3D5', bgCol:'rgba(201,211,213,.15)',emoji:'\u2694' },
+  { name:'Gold',       tier:'III', min:45,  color:'#D4A84B', bgCol:'rgba(212,168,75,.15)', emoji:'\u2605' },
+  { name:'Gold',       tier:'II',  min:50,  color:'#E5BA5B', bgCol:'rgba(229,186,91,.15)', emoji:'\u2605' },
+  { name:'Gold',       tier:'I',   min:55,  color:'#F5CC6D', bgCol:'rgba(245,204,109,.18)',emoji:'\u2605' },
+  { name:'Platine',    tier:'III', min:60,  color:'#5AB5A3', bgCol:'rgba(90,181,163,.15)', emoji:'\u25c6' },
+  { name:'Platine',    tier:'II',  min:65,  color:'#6BC6B4', bgCol:'rgba(107,198,180,.15)',emoji:'\u25c6' },
+  { name:'Platine',    tier:'I',   min:70,  color:'#7CD7C5', bgCol:'rgba(124,215,197,.18)',emoji:'\u25c6' },
+  { name:'Emeraude',   tier:'III', min:75,  color:'#22c55e', bgCol:'rgba(34,197,94,.15)',  emoji:'\u2726' },
+  { name:'Emeraude',   tier:'II',  min:80,  color:'#33d66f', bgCol:'rgba(51,214,111,.15)', emoji:'\u2726' },
+  { name:'Emeraude',   tier:'I',   min:85,  color:'#44e780', bgCol:'rgba(68,231,128,.18)', emoji:'\u2726' },
+  { name:'Diamant',    tier:'III', min:90,  color:'#5b8def', bgCol:'rgba(91,141,239,.15)', emoji:'\u2b50' },
+  { name:'Diamant',    tier:'II',  min:95,  color:'#6c9eff', bgCol:'rgba(108,158,255,.18)',emoji:'\u2b50' },
+  { name:'Diamant',    tier:'I',   min:100, color:'#7dafff', bgCol:'rgba(125,175,255,.2)', emoji:'\u2b50' },
+  { name:'Master',     tier:'',    min:110, color:'#c026d3', bgCol:'rgba(192,38,211,.2)',  emoji:'\u269c' },
+  { name:'Grandmaster',tier:'',    min:130, color:'#ef4444', bgCol:'rgba(239,68,68,.2)',   emoji:'\u2766' },
+  { name:'Challenger', tier:'',    min:150, color:'#f59e0b', bgCol:'rgba(245,158,11,.25)', emoji:'\u2600' }
+];
+
+function calcRankScore() {
+  // Score based on 30-day performance : win rate + discipline + profit + consistency
+  var now = Date.now();
+  var cutoff = now - 30*86400000;
+  var recent = (S.trades||[]).filter(function(t){
+    var ts = t.ts || new Date(t.date).getTime();
+    return ts >= cutoff;
+  });
+  if(recent.length < 3) return { score: 0, recent: recent.length, reasons: ['Pas assez de trades (min 3)'] };
+  
+  var wins = recent.filter(function(t){return t.status==='Win';}).length;
+  var losses = recent.filter(function(t){return t.status==='Loss';}).length;
+  var wr = wins+losses > 0 ? wins/(wins+losses) : 0;
+  var totalPnl = recent.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+  var avgDisc = recent.filter(function(t){return t.disc!=null;}).reduce(function(s,t,_,a){return s+t.disc/a.length;},0);
+  
+  // Score breakdown (max ~150)
+  // Win rate: 0-60 points (wr * 60, 100% wr = 60 pts)
+  var wrPts = Math.round(wr * 60);
+  // Profitable: 0-40 points (based on total pnl, capped)
+  var profitPts = Math.min(40, Math.max(0, Math.round(totalPnl / 100)));
+  // Discipline: 0-30 points (avgDisc/100 * 30)
+  var discPts = Math.round((avgDisc/100) * 30);
+  // Volume bonus: +0-20 pts if >=10 trades
+  var volPts = Math.min(20, Math.floor(recent.length/2));
+  
+  var score = wrPts + profitPts + discPts + volPts;
+  return { 
+    score: score,
+    recent: recent.length,
+    wr: Math.round(wr*100),
+    totalPnl: totalPnl,
+    avgDisc: Math.round(avgDisc),
+    breakdown: { wr: wrPts, profit: profitPts, disc: discPts, vol: volPts }
+  };
+}
+
+function getCurrentRank() {
+  var s = calcRankScore();
+  if(s.score === 0 && s.recent < 3) {
+    return { 
+      rank: { name:'Unranked', tier:'', color:'var(--text3)', bgCol:'var(--ink3)', emoji:'-' },
+      score: 0, recent: s.recent,
+      progress: 0, nextRank: RANKS[0]
+    };
+  }
+  var current = RANKS[0];
+  var next = null;
+  for(var i=0; i<RANKS.length; i++){
+    if(s.score >= RANKS[i].min) current = RANKS[i];
+    else { next = RANKS[i]; break; }
+  }
+  var progress = 0;
+  if(next) {
+    progress = Math.round((s.score - current.min) / (next.min - current.min) * 100);
+    progress = Math.max(0, Math.min(100, progress));
+  } else {
+    progress = 100;
+  }
+  return { rank: current, score: s.score, recent: s.recent, wr: s.wr, totalPnl: s.totalPnl, progress: progress, nextRank: next };
+}
+
+
+
 // Payout milestones
 var MILESTONES = [
   {val:5000,   label:'5k',   msg:'Premier palier atteint - 5 000$ sortis !'},
@@ -2390,7 +2496,16 @@ var ALL_BADGES = [
   {id:'no_revenge',   icon:'\ud83e\uddd0', name:'Ice Cold',       desc:'5 jours sans overtrading',      xp:250},
   {id:'comeback',     icon:'\ud83d\udd04', name:'Comeback',       desc:'Jour profitable après 2 pertes',xp:200},
   {id:'funded',       icon:'\ud83d\udcbc', name:'Funded',         desc:'Premier compte Funded ajouté',  xp:400},
-  {id:'perfect_week', icon:'\u2b50',       name:'Perfect Week',   desc:'5 jours sur 5 profitables',     xp:600}
+  {id:'perfect_week', icon:'\u2b50',       name:'Perfect Week',   desc:'5 jours sur 5 profitables',     xp:600},
+  {id:'unstoppable',  icon:'\u26a1',       name:'Unstoppable',    desc:'3 wins dans la même journée',   xp:300},
+  {id:'flawless',     icon:'\u2728',       name:'Flawless Victory',desc:'Win London + Win NY',           xp:400},
+  {id:'double_kill',  icon:'\u25c9',       name:'Double Kill',    desc:'2 wins consécutifs',            xp:100},
+  {id:'triple_kill',  icon:'\u2726',       name:'Triple Kill',    desc:'3 wins consécutifs',            xp:250},
+  {id:'quadra_kill',  icon:'\u2605',       name:'Quadra Kill',    desc:'4 wins consécutifs',            xp:500},
+  {id:'penta_kill',   icon:'\u2620',       name:'PENTAKILL',      desc:'5 wins consécutifs',            xp:1000},
+  {id:'legendary',    icon:'\u26a1',       name:'Legendary',      desc:'6+ wins consécutifs',           xp:1500},
+  {id:'godlike',      icon:'\u2b51',       name:'Godlike',        desc:'10+ wins consécutifs',          xp:3000},
+  {id:'mvp_week',     icon:'\ud83c\udfc6', name:'MVP of the Week',desc:'Meilleur jour de la semaine',   xp:350}
 ];
 
 function calcXP() {
@@ -2487,6 +2602,41 @@ function calcBadges(trades, payouts, accounts) {
       unlocked.push('perfect_week');
     }
   });
+  
+  // NEW : unstoppable — 3 wins same day
+  Object.values(byDate).forEach(function(dt){
+    var wins = dt.filter(function(t){return t.status==='Win';}).length;
+    if(wins >= 3) unlocked.push('unstoppable');
+  });
+  
+  // NEW : flawless — Win London + Win NY same day
+  Object.values(byDate).forEach(function(dt){
+    var winLdn = dt.find(function(t){return t.session==='London' && t.status==='Win';});
+    var winNy  = dt.find(function(t){return t.session==='New York' && t.status==='Win';});
+    if(winLdn && winNy) unlocked.push('flawless');
+  });
+  
+  // NEW : consecutive wins (double/triple/quadra/penta/legendary/godlike)
+  var tradesSorted = trades.slice().sort(function(a,b){ return (a.ts||0) - (b.ts||0); });
+  var maxWinStreak = 0, curWinStreak = 0;
+  tradesSorted.forEach(function(t){
+    if(t.status==='Win'){ curWinStreak++; maxWinStreak = Math.max(maxWinStreak, curWinStreak); }
+    else if(t.status==='Loss'){ curWinStreak = 0; }
+  });
+  if(maxWinStreak >= 2)  unlocked.push('double_kill');
+  if(maxWinStreak >= 3)  unlocked.push('triple_kill');
+  if(maxWinStreak >= 4)  unlocked.push('quadra_kill');
+  if(maxWinStreak >= 5)  unlocked.push('penta_kill');
+  if(maxWinStreak >= 6)  unlocked.push('legendary');
+  if(maxWinStreak >= 10) unlocked.push('godlike');
+  
+  // NEW : mvp_week — any day that is the best of its week
+  // Simplified : if any day >= $500 profit, unlock
+  var anyMvp = Object.values(byDate).some(function(dt){
+    return dt.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0) >= 500;
+  });
+  if(anyMvp) unlocked.push('mvp_week');
+  
   return ALL_BADGES.filter(function(b){return unlocked.indexOf(b.id)>-1;});
 }
 
@@ -2502,6 +2652,66 @@ function calcCurrentStreak() {
   }
   return streak;
 }
+
+
+// ═══════════════════════════════════════════════════════════
+// KILL STREAK - consecutive WINNING TRADES (not days)
+// ═══════════════════════════════════════════════════════════
+function calcWinStreak() {
+  var tr = (S.trades||[]).slice().sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+  var streak = 0;
+  for(var i=0; i<tr.length; i++){
+    if(tr[i].status === 'Win') streak++;
+    else if(tr[i].status === 'Loss') break;
+    // Break Even: ignored (doesn't break or add)
+  }
+  return streak;
+}
+
+// Kill tiers : labels, colors, emoji (pentakill style)
+const KILL_TIERS = [
+  { min:2, name:'DOUBLE KILL',    color:'#60a5fa', bgCol:'rgba(96,165,250,.15)',  icon:'\u25c9' },
+  { min:3, name:'TRIPLE KILL',    color:'#a78bfa', bgCol:'rgba(167,139,250,.18)', icon:'\u2726' },
+  { min:4, name:'QUADRA KILL',    color:'#f59e0b', bgCol:'rgba(245,158,11,.2)',   icon:'\u2605' },
+  { min:5, name:'PENTA KILL',     color:'#ef4444', bgCol:'rgba(239,68,68,.25)',   icon:'\u2620' },
+  { min:6, name:'LEGENDARY',      color:'#f97316', bgCol:'rgba(249,115,22,.25)',  icon:'\u26a1' },
+  { min:10,name:'GODLIKE',        color:'#ec4899', bgCol:'rgba(236,72,153,.3)',   icon:'\u2b51' }
+];
+
+function getKillTier(n) {
+  var tier = null;
+  for(var i=KILL_TIERS.length-1; i>=0; i--){
+    if(n >= KILL_TIERS[i].min){ tier = KILL_TIERS[i]; break; }
+  }
+  return tier;
+}
+
+// Popup animation when trade triggers a kill streak
+function showKillPopup(tier, streakN) {
+  var existing = document.getElementById('kill-popup');
+  if(existing) existing.remove();
+  
+  var popup = document.createElement('div');
+  popup.id = 'kill-popup';
+  popup.style.cssText = 'position:fixed;top:30%;left:50%;transform:translate(-50%,-50%) scale(0.3);z-index:9999;background:'+tier.bgCol+';border:2px solid '+tier.color+';border-radius:16px;padding:24px 32px;text-align:center;opacity:0;transition:all .4s cubic-bezier(.2,1.4,.4,1);box-shadow:0 10px 40px '+tier.bgCol+',0 0 60px '+tier.bgCol+';pointer-events:none;min-width:260px';
+  popup.innerHTML = '<div style="font-size:42px;line-height:1;margin-bottom:8px;color:'+tier.color+'">'+tier.icon+'</div>' +
+    '<div style="font-size:26px;font-weight:900;color:'+tier.color+';letter-spacing:.08em;text-shadow:0 0 20px '+tier.color+'">'+tier.name+'</div>' +
+    '<div style="font-size:12px;color:var(--text2);margin-top:6px;font-weight:600">'+streakN+' wins de suite</div>';
+  document.body.appendChild(popup);
+  
+  setTimeout(function(){ 
+    popup.style.opacity='1'; 
+    popup.style.transform='translate(-50%,-50%) scale(1)'; 
+  }, 10);
+  setTimeout(function(){ 
+    popup.style.opacity='0'; 
+    popup.style.transform='translate(-50%,-50%) scale(0.8)'; 
+  }, 2500);
+  setTimeout(function(){ 
+    if(popup && popup.parentNode) popup.remove(); 
+  }, 3000);
+}
+
 
 function renderHome() {
   // Read trades directly from localStorage - most reliable source
@@ -2556,11 +2766,45 @@ function renderHome() {
         + '</div>';
     }).join('');
   }
+  
+  // ── RANK LOL BADGE ─────────────────────────────────────
+  var rankData = getCurrentRank();
+  var rnEl = document.getElementById('home-rank-name');
+  var rsEl = document.getElementById('home-rank-sub');
+  var rbEl = document.getElementById('home-rank-badge');
+  if(rnEl && rsEl && rbEl){
+    if(rankData.score === 0 && rankData.recent < 3){
+      rnEl.textContent = 'Unranked';
+      rnEl.style.color = 'var(--text3)';
+      rsEl.textContent = rankData.recent+'/3 trades';
+      rbEl.style.borderColor = 'var(--border)';
+    } else {
+      rnEl.textContent = rankData.rank.name + (rankData.rank.tier ? ' ' + rankData.rank.tier : '');
+      rnEl.style.color = rankData.rank.color;
+      rsEl.textContent = rankData.score + ' LP';
+      rbEl.style.borderColor = rankData.rank.color;
+      rbEl.style.background = rankData.rank.bgCol;
+    }
+  }
 
   // Quick stats
   var streak = calcCurrentStreak();
+  var winStreak = calcWinStreak();
+  var killTier = getKillTier(winStreak);
   var stEl=document.getElementById('home-streak');
-  if(stEl) stEl.textContent = streak>0?'🔥'+streak:'0';
+  var slEl=document.getElementById('home-streak-label');
+  var scEl=document.getElementById('home-streak-card');
+  if(killTier && stEl){
+    // KILL STREAK MODE - show tier
+    stEl.innerHTML = '<div style="font-size:11px;font-weight:800;color:'+killTier.color+';letter-spacing:.08em;line-height:1.1">'+killTier.name+'</div><div style="font-size:22px;font-weight:900;color:'+killTier.color+';margin-top:4px;line-height:1">'+winStreak+'</div>';
+    if(slEl){ slEl.textContent = 'wins de suite'; slEl.style.color = killTier.color; }
+    if(scEl){ scEl.style.background = killTier.bgCol; scEl.style.borderColor = killTier.color; }
+  } else if(stEl){
+    stEl.textContent = streak>0?'\ud83d\udd25'+streak:'0';
+    stEl.style.color = 'var(--amber)';
+    if(slEl){ slEl.textContent = 'Streak \ud83d\udd25'; slEl.style.color = 'var(--text3)'; }
+    if(scEl){ scEl.style.background = 'var(--ink2)'; scEl.style.borderColor = 'var(--border)'; }
+  }
   var wins=trades.filter(function(t){return t.status==='Win';}).length;
   var wr=trades.length?Math.round(wins/trades.length*100):0;
   var wrEl=document.getElementById('home-wr');
