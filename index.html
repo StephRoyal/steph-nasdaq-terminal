@@ -202,7 +202,7 @@ canvas{display:block;width:100%}
     <div style="height:6px;background:var(--ink3);border-radius:99px;overflow:hidden;margin-bottom:8px">
       <div id="home-xp-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s cubic-bezier(.4,0,.2,1);width:0%"></div>
     </div>
-    <div id="home-levels-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px"></div>
+    <div id="home-levels-grid" style="display:grid;grid-template-columns:repeat(7,1fr) 1.3fr;gap:3px"></div>
   </div>
 
   <!-- STREAK + QUICK STATS -->
@@ -742,6 +742,7 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5
 const tod = () => new Date().toISOString().slice(0,10);
 const fp  = n => (n >= 0 ? '+' : '') + '$' + Math.abs(n).toFixed(0);
 const fpc = n => n > 0 ? 'var(--green2)' : n < 0 ? 'var(--red2)' : 'var(--amber)';
+const fNum = n => Math.round(n).toLocaleString('fr-FR').replace(/,/g,' ').replace(/\u202f/g,' ').replace(/\u00a0/g,' ');
 
 // ── INIT ──────────────────────────────────────────────────────────
 load();
@@ -1130,8 +1131,8 @@ function renderCalendar(){
         <button onclick="calNext()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px">›</button>
       </div>
       <div style="padding:10px">
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">${['L','M','M','J','V','S','D'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:2px">${d}</div>`).join('')}</div>
-        <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px"></div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr) 1.3fr;gap:2px;margin-bottom:4px">${['L','M','M','J','V','S','D','Sem'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--text3);font-weight:600;padding:2px">${d}</div>`).join('')}</div>
+        <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr) 1.3fr;gap:3px"></div>
       </div>
     </div>`;
   renderCalGrid(byDate,todayStr);
@@ -1140,17 +1141,51 @@ function renderCalGrid(byDate,todayStr){
   const first=new Date(calY,calM,1);let sd=first.getDay();sd=sd===0?6:sd-1;
   const days=new Date(calY,calM+1,0).getDate();
   document.getElementById('cal-label').textContent=new Date(calY,calM,1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
-  // Monthly P&L
   let monthPnl=0;
   for(let d=1;d<=days;d++){const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;if(byDate[ds])monthPnl+=byDate[ds].pnl;}
   const mpEl=document.getElementById('cal-month-pnl');
   if(mpEl){mpEl.textContent=monthPnl!==0?fp(monthPnl):'';mpEl.style.color=monthPnl>0?'var(--green2)':monthPnl<0?'var(--red2)':'var(--text3)';}
-  let h='';for(let i=0;i<sd;i++)h+='<div></div>';
-  for(let d=1;d<=days;d++){const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,dd=byDate[ds],isTod=ds===todayStr,cls=dd?(dd.pnl>=0?'pos':'neg'):'';
+  const tradesByDate={};
+  (S.trades||[]).forEach(t=>{if(!tradesByDate[t.date])tradesByDate[t.date]=[];tradesByDate[t.date].push(t);});
+  let h='';
+  let weekPnl=0, weekWins=0, weekLosses=0, weekTrades=0;
+  let cellsInRow = 0;
+  for(let i=0;i<sd;i++){ h+='<div></div>'; cellsInRow++; }
+  for(let d=1;d<=days;d++){
+    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dd=byDate[ds];
+    const isTod=ds===todayStr;
+    const cls=dd?(dd.pnl>=0?'pos':'neg'):'';
     h+=`<div class="cal-day ${cls} ${isTod?'today':''}" onclick="${dd?`showDayTrades('${ds}')`:''}" style="${dd?'cursor:pointer':''}">
       <div style="font-size:10px;font-weight:${isTod?700:500};color:${isTod?'var(--acc2)':'var(--text3)'}">${d}</div>
       ${dd?`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:${fpc(dd.pnl)};margin-top:1px">${fp(dd.pnl)}</div><div style="font-size:9px;color:var(--text3)">${dd.n}t</div>`:''}
-    </div>`;}
+    </div>`;
+    cellsInRow++;
+    if(dd) weekPnl += dd.pnl;
+    const dayTrades = tradesByDate[ds]||[];
+    dayTrades.forEach(t=>{
+      weekTrades++;
+      if(t.status==='Win') weekWins++;
+      else if(t.status==='Loss') weekLosses++;
+    });
+    if(cellsInRow === 7 || d === days){
+      if(d === days && cellsInRow < 7){
+        for(let p=cellsInRow;p<7;p++) h+='<div></div>';
+      }
+      if(weekTrades > 0){
+        const wr = weekWins+weekLosses > 0 ? Math.round(weekWins/(weekWins+weekLosses)*100) : null;
+        const wrCol = wr===null ? 'var(--text3)' : wr>=60 ? 'var(--green2)' : wr>=40 ? 'var(--amber)' : 'var(--red2)';
+        h+=`<div style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:6px;padding:4px 3px;text-align:center;display:flex;flex-direction:column;justify-content:center;min-height:52px">
+          <div style="font-size:10px;font-weight:800;font-family:var(--mono);color:${fpc(weekPnl)};line-height:1.1">${fp(weekPnl)}</div>
+          ${wr!==null?`<div style="font-size:10px;font-weight:700;color:${wrCol};margin-top:2px">${wr}%</div>`:''}
+          <div style="font-size:8px;color:var(--text3);margin-top:1px">${weekTrades}t</div>
+        </div>`;
+      } else {
+        h+=`<div style="background:var(--ink4);border-radius:6px;padding:4px;display:flex;align-items:center;justify-content:center;min-height:52px"><div style="font-size:10px;color:var(--text3)">\u2014</div></div>`;
+      }
+      weekPnl=0; weekWins=0; weekLosses=0; weekTrades=0; cellsInRow=0;
+    }
+  }
   document.getElementById('cal-grid').innerHTML=h;
 }
 function calPrev(){calM--;if(calM<0){calM=11;calY--;}const b={};S.trades.forEach(t=>{if(!b[t.date])b[t.date]={pnl:0,n:0};b[t.date].pnl+=parseFloat(t.pnl)||0;b[t.date].n++;});renderCalGrid(b,tod());}
@@ -1220,7 +1255,7 @@ function runSim(){
   let h=`<div style="display:grid;grid-template-columns:64px repeat(5,1fr);border-bottom:2px solid var(--border)"><div style="padding:9px 8px;font-size:11px;color:var(--text3)"></div>${WRL.map(l=>`<div style="padding:9px 3px;font-size:11px;color:var(--text3);text-align:center;font-weight:700">${l}</div>`).join('')}</div>`;
   rows.forEach((m,i)=>{
     h+=`<div style="display:grid;grid-template-columns:64px repeat(5,1fr);background:${i%2?'var(--ink3)':''}"><div style="padding:9px 8px;font-size:11px;font-weight:600;color:var(--text3);display:flex;align-items:center">${m.label}</div>`;
-    WRS.forEach(wr=>{const pnl=(m.tr*wr*reward-m.tr*(1-wr)*risk)*acc,col=pnl>=0?'var(--green2)':'var(--red2)';h+=`<div style="padding:9px 3px;text-align:center;font-size:11px;font-weight:700;font-family:var(--mono);color:${col}">${pnl>=0?'+':''}$${Math.abs(Math.round(pnl))}</div>`;});
+    WRS.forEach(wr=>{const pnl=(m.tr*wr*reward-m.tr*(1-wr)*risk)*acc,col=pnl>=0?'var(--green2)':'var(--red2)';h+=`<div style="padding:9px 3px;text-align:center;font-size:11px;font-weight:700;font-family:var(--mono);color:${col}">${pnl>=0?'+':''}$${fNum(Math.abs(pnl))}</div>`;});
     h+='</div>';});
   tbl.innerHTML=h;
   document.getElementById('sim-weekly').innerHTML=WRS.map((wr,i)=>{
@@ -1228,12 +1263,12 @@ function runSim(){
     return `<div class="row"><div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:700;color:var(--acc2)">${WRL[i]}</span><span style="font-size:12px;color:var(--text3)">win rate</span></div>
       <div style="font-size:11px;color:var(--text3);margin-top:2px">${Math.round(wins)}W · ${Math.round(losses)}L / sem${acc>1?` · ${acc} comptes`:''}</div>
       <div style="font-size:11px;color:var(--text3)">Min ${Math.ceil(risk*trWk/(reward+risk))} wins pour break-even</div></div>
-      <div style="text-align:right"><div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${c}">${pnlWk>=0?'+':''}$${Math.abs(pnlWk).toFixed(0)}<span style="font-size:10px;color:var(--text3)">/sem</span></div>
-      <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:${c};margin-top:2px">${pnlMo>=0?'+':''}$${Math.abs(pnlMo).toFixed(0)}<span style="font-size:10px;color:var(--text3)">/mois</span></div></div>
+      <div style="text-align:right"><div style="font-size:18px;font-weight:700;font-family:var(--mono);color:${c}">${pnlWk>=0?'+':''}$${fNum(Math.abs(pnlWk))}<span style="font-size:10px;color:var(--text3)">/sem</span></div>
+      <div style="font-size:13px;font-weight:600;font-family:var(--mono);color:${c};margin-top:2px">${pnlMo>=0?'+':''}$${fNum(Math.abs(pnlMo))}<span style="font-size:10px;color:var(--text3)">/mois</span></div></div>
     </div>`;}).join('');
   const p60Mo=(trWk*0.6*reward-trWk*0.4*risk)*acc*(days/5),mot=document.getElementById('sim-motive'),motT=document.getElementById('sim-motive-text');
   mot.style.display='block';
-  motT.innerHTML=p60Mo>0?`Avec <strong style="color:var(--acc2)">60% de win rate</strong>, tu génères <strong style="color:var(--green2)">+$${Math.abs(p60Mo).toFixed(0)}/mois</strong>${acc>1?` sur ${acc} comptes`:''} avec ce setup.<br><br>🎯 L'edge existe. La discipline fait la différence.`:`⚠️ Ce R:R avec 60% WR donne une espérance négative.<br>Améliore ton ratio ou ton win rate.`;
+  motT.innerHTML=p60Mo>0?`Avec <strong style="color:var(--acc2)">60% de win rate</strong>, tu génères <strong style="color:var(--green2)">+$${fNum(Math.abs(p60Mo))}/mois</strong>${acc>1?` sur ${acc} comptes`:''} avec ce setup.<br><br>🎯 L'edge existe. La discipline fait la différence.`:`⚠️ Ce R:R avec 60% WR donne une espérance négative.<br>Améliore ton ratio ou ton win rate.`;
 }
 
 
@@ -1964,23 +1999,26 @@ function updateNQBanner(){
   var b=document.getElementById('nq-event-banner');
   if(!b)return;
   if(window._ecoBanner){
-    // High impact event today — marquee scrolling banner
+    // High impact event today — red marquee
     b.style.display='block';
     b.style.background='rgba(239,68,68,.12)';
     b.style.color='var(--red2)';
     b.style.padding='0';
     b.style.overflow='hidden';
     var txt=window._ecoBanner+(window._nqBanner?' \u00b7 '+window._nqBanner.icon+' '+window._nqBanner.label:'');
-    // Repeat text for seamless loop
     var repeated=txt+'\u2003\u2003\u2003\u2003'+txt+'\u2003\u2003\u2003\u2003'+txt;
     b.innerHTML='<div class="marquee-wrap" style="padding:6px 0"><div class="marquee-inner" style="font-size:12px;font-weight:700;padding:0 16px">'+repeated+'</div></div>';
   } else if(window._nqBanner){
+    // No red folder — still show NQ state as marquee with 'Ciel dégagé'
     b.style.display='block';
     b.style.background=window._nqBanner.bg;
     b.style.color=window._nqBanner.col;
-    b.style.padding='6px 16px';
-    b.style.overflow='';
-    b.innerHTML=window._nqBanner.icon+' '+window._nqBanner.label;
+    b.style.padding='0';
+    b.style.overflow='hidden';
+    var cielTxt='\u2600\ufe0f Ciel d\u00e9gag\u00e9 \u2014 aucune alerte';
+    var fullTxt=cielTxt+'\u2003\u2003\u00b7\u2003\u2003'+window._nqBanner.icon+' '+window._nqBanner.label;
+    var repeated=fullTxt+'\u2003\u2003\u2003\u2003'+fullTxt+'\u2003\u2003\u2003\u2003'+fullTxt;
+    b.innerHTML='<div class="marquee-wrap" style="padding:6px 0"><div class="marquee-inner" style="font-size:12px;font-weight:700;padding:0 16px">'+repeated+'</div></div>';
   } else {
     b.style.display='none';
   }
@@ -2562,120 +2600,145 @@ function renderRPotential() {
     el.innerHTML = '<div class="empty" style="padding:14px;font-size:12px">Aucun trade</div>';
     return;
   }
-  // On analyse les trades qui ont : entry, et maxhold (P&L si hold)
-  // maxhold = pnl théorique si on avait tenu jusqu'au max
-  // On estime le R potentiel : maxhold / risque initial
-  // risque initial = abs(pnl) quand c'est une loss, ou maxhold/R_target quand c'est un win
   
+  // Analyse UNIQUEMENT les trades gagnants qui ont un maxhold renseigne
+  // maxhold est deja stocke en $ (calcule dans saveTrade)
+  // On considere que pnl est 1R (user fait du 1:1)
   var analyzed = [];
+  var totalWins = 0;
   tr.forEach(function(t){
+    if(t.status !== 'Win') return;
+    totalWins++;
     var pnl = parseFloat(t.pnl) || 0;
     var mh = parseFloat(t.maxhold) || 0;
-    var rrStr = t.rr || '';
-    var rrVal = rrStr ? parseFloat(rrStr.replace('1:','')) : null;
-    if(!mh || mh <= 0) return; // pas de donnée max hold
-    
-    // Calculer le R risque
-    // Si on a rr (ex 1:1) et pnl > 0 : risque = pnl / rrVal
-    // Si pnl < 0 (loss) : risque = abs(pnl) (car 1R de risque)
-    // Sinon : skip
-    var riskDollars = null;
-    if(pnl < 0) {
-      riskDollars = Math.abs(pnl);
-    } else if(pnl > 0 && rrVal && rrVal > 0) {
-      riskDollars = pnl / rrVal;
-    } else if(pnl > 0 && t.status === 'Win') {
-      // Estimate : pnl = 1R (trader fait 1:1)
-      riskDollars = pnl;
-    }
-    if(!riskDollars || riskDollars <= 0) return;
-    
-    var realizedR = pnl / riskDollars;
-    var potentialR = mh / riskDollars;
-    analyzed.push({ t: t, realizedR: realizedR, potentialR: potentialR, riskDollars: riskDollars });
+    if(pnl <= 0 || mh <= 0) return;
+    // pnl represente 1R (SL atteint = -pnl). On calcule le R potentiel
+    var potentialR = mh / pnl;  // ratio : si mh=800 et pnl=500, potentialR = 1.6
+    analyzed.push({ t: t, realizedR: 1, potentialR: potentialR, riskDollars: pnl, maxholdDollars: mh });
   });
   
   if(analyzed.length === 0){
-    el.innerHTML = '<div class="empty" style="padding:14px;font-size:12px">Remplis le champ "Prix Max Hold" sur tes trades<br><span style="font-size:11px;color:var(--text3);margin-top:4px;display:inline-block">Pour voir combien tu aurais pu faire en tenant plus longtemps</span></div>';
+    el.innerHTML = '<div class="empty" style="padding:14px;font-size:12px;line-height:1.6">Aucun trade gagnant avec Max Hold renseign\u00e9<br><span style="font-size:11px;color:var(--text3)">Remplis le champ "Prix Max Hold" sur tes wins pour voir combien tu aurais pu faire en tenant plus longtemps</span></div>';
     return;
   }
   
-  // Compute stats
   var total = analyzed.length;
-  var avgRealized = analyzed.reduce(function(s,a){return s+a.realizedR;},0) / total;
   var avgPotential = analyzed.reduce(function(s,a){return s+a.potentialR;},0) / total;
   
+  // Hits par palier
   var thresholds = [1.5, 2, 2.5, 3];
   var hits = thresholds.map(function(r){
-    var count = analyzed.filter(function(a){return a.potentialR >= r;}).length;
+    var filtered = analyzed.filter(function(a){return a.potentialR >= r;});
+    var count = filtered.length;
     var pct = Math.round(count / total * 100);
-    return { r: r, count: count, pct: pct };
+    // Gain supplementaire si tu avais hold jusqu'a ce niveau sur ces trades
+    var gainExtra = filtered.reduce(function(s,a){
+      return s + (r * a.riskDollars - a.riskDollars); // (rR - 1R) * risk
+    }, 0);
+    return { r: r, count: count, pct: pct, gainExtra: gainExtra };
   });
   
-  // Total laissé
-  var totalLeft = analyzed.reduce(function(s,a){ return s + Math.max(0, (a.potentialR - a.realizedR) * a.riskDollars); }, 0);
+  // Total laisse sur la table : simple diff maxhold - pnl pour CHAQUE trade gagnant
+  var totalLeft = analyzed.reduce(function(s,a){ return s + Math.max(0, a.maxholdDollars - a.riskDollars); }, 0);
+  var avgLeft = totalLeft / total;
+  
+  // Gain moyen potentiel par palier (moyen par trade qui atteint ce palier)
+  function avgGainAt(r){
+    var filtered = analyzed.filter(function(a){return a.potentialR >= r;});
+    if(!filtered.length) return 0;
+    return filtered.reduce(function(s,a){return s + (r*a.riskDollars - a.riskDollars);},0) / filtered.length;
+  }
+  
+  var fmt = function(n){ return (n>=0?'+':'-') + '$' + Math.abs(Math.round(n)).toLocaleString('fr-FR').replace(/,/g,' '); };
+  var fmtAbs = function(n){ return '$' + Math.abs(Math.round(n)).toLocaleString('fr-FR').replace(/,/g,' '); };
   
   var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">' +
     '<div style="padding:12px;background:var(--ink3);border-radius:10px;border:1px solid var(--bdr2);text-align:center">' +
-      '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">R moyen réalisé</div>' +
-      '<div style="font-size:22px;font-weight:800;font-family:var(--mono);color:var(--text)">1:'+avgRealized.toFixed(2)+'</div>' +
+      '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">R moyen r\u00e9alis\u00e9</div>' +
+      '<div style="font-size:22px;font-weight:800;font-family:var(--mono);color:var(--text)">1:1.00</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:3px">TP fixe \u00e0 1R</div>' +
     '</div>' +
     '<div style="padding:12px;background:rgba(245,158,11,.08);border-radius:10px;border:1px solid rgba(245,158,11,.25);text-align:center">' +
       '<div style="font-size:10px;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">R moyen possible</div>' +
       '<div style="font-size:22px;font-weight:800;font-family:var(--mono);color:var(--amber)">1:'+avgPotential.toFixed(2)+'</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:3px">si hold max</div>' +
     '</div>' +
   '</div>';
   
   html += '<div style="margin-bottom:14px">' +
-    '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:8px">Ton potentiel</div>';
+    '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;margin-bottom:8px">Potentiel sur tes ' + total + ' trades gagnants</div>';
   hits.forEach(function(h){
     var col = h.pct >= 70 ? 'var(--green2)' : h.pct >= 40 ? 'var(--amber)' : 'var(--text3)';
-    html += '<div style="padding:8px 0;border-bottom:1px solid var(--bdr2);display:flex;align-items:center;justify-content:space-between">' +
-      '<div style="font-size:13px;color:var(--text2)">Trades qui auraient atteint <strong style="color:var(--text)">'+h.r+'R</strong></div>' +
-      '<div style="text-align:right">' +
-        '<div style="font-size:16px;font-weight:800;font-family:var(--mono);color:'+col+'">'+h.pct+'%</div>' +
-        '<div style="font-size:10px;color:var(--text3)">'+h.count+'/'+total+'</div>' +
+    html += '<div style="padding:10px 0;border-bottom:1px solid var(--bdr2)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<div style="font-size:13px;color:var(--text2)">Trades qui auraient atteint <strong style="color:var(--text)">'+h.r+'R</strong></div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:16px;font-weight:800;font-family:var(--mono);color:'+col+'">'+h.pct+'%</div>' +
+          '<div style="font-size:10px;color:var(--text3)">'+h.count+'/'+total+'</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text3);padding-left:2px">' +
+        'Gain suppl\u00e9mentaire si TP \u00e0 '+h.r+'R : <strong style="color:var(--amber);font-family:var(--mono)">'+fmt(h.gainExtra)+'</strong>' +
       '</div>' +
     '</div>';
   });
   html += '</div>';
   
-  // Analytical insight - focus on data and projected P&L impact
+  // Insight : message clair et explicatif avec MULTIPLE ANGLES
   var bestThreshold = null;
   for(var i=hits.length-1; i>=0; i--){
     if(hits[i].pct >= 70){ bestThreshold = hits[i]; break; }
   }
-  // Calculate simulated P&L at each target R
-  function simPnl(targetR) {
-    return analyzed.reduce(function(s, a) {
-      var reached = a.potentialR >= targetR;
-      var simR = reached ? targetR : a.realizedR;
-      return s + simR * a.riskDollars;
-    }, 0);
-  }
-  var currentPnl = analyzed.reduce(function(s,a){return s + a.realizedR*a.riskDollars;},0);
-  var coachMsg = '';
+  var insightBlocks = [];
+  
+  // Insight principal
   if(bestThreshold){
-    var simP = simPnl(bestThreshold.r);
-    var delta = Math.round(simP - currentPnl);
-    coachMsg = 'Sur ' + total + ' trades analys\u00e9s, ' + bestThreshold.pct + '% auraient atteint <strong>1:' + bestThreshold.r + 'R</strong>. Simulation : TP \u00e0 ' + bestThreshold.r + 'R aurait g\u00e9n\u00e9r\u00e9 ' + (delta>=0?'+':'') + '$' + Math.abs(delta).toLocaleString() + ' suppl\u00e9mentaires sur la p\u00e9riode.';
+    insightBlocks.push(
+      '<strong style="color:var(--text)">Sur tes '+total+' trades gagnants</strong>, '+
+      bestThreshold.pct+'% auraient facilement atteint <strong>1:'+bestThreshold.r+'R</strong>. ' +
+      'Tu peux augmenter ton TP en confiance sur cette majorit\u00e9 de setups.'
+    );
   } else if(hits[0].pct >= 40){
-    var simP15 = simPnl(1.5);
-    var delta15 = Math.round(simP15 - currentPnl);
-    coachMsg = 'Sur ' + total + ' trades, ' + hits[0].pct + '% auraient atteint <strong>1:1.5R</strong>. Tester TP \u00e0 1.5R donnerait ' + (delta15>=0?'+':'') + '$' + Math.abs(delta15).toLocaleString() + ' sur l\u2019\u00e9chantillon actuel.';
+    insightBlocks.push(
+      '<strong style="color:var(--text)">Sur tes '+total+' trades gagnants</strong>, '+
+      hits[0].pct+'% auraient atteint <strong>1:1.5R</strong>. ' +
+      'Tester un TP \u00e0 1.5R sur tes setups les plus confluents vaut le coup.'
+    );
   } else {
-    coachMsg = 'Sur ' + total + ' trades, seulement ' + hits[0].pct + '% atteignent 1:1.5R. Ton TP actuel capture bien le potentiel disponible \u2014 continue comme \u00e7a.';
+    insightBlocks.push(
+      '<strong style="color:var(--text)">Sur tes '+total+' trades gagnants</strong>, '+
+      'seulement '+hits[0].pct+'% auraient atteint 1:1.5R. ' +
+      'Ton 1:1 capture bien le potentiel disponible sur ces setups.'
+    );
   }
   
-  html += '<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px;margin-bottom:10px">' +
-    '<div style="font-size:11px;color:var(--acc2);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Insight</div>' +
-    '<div style="font-size:13px;color:var(--text2);line-height:1.5">'+coachMsg+'</div>' +
-  '</div>';
+  // Insight gains
+  var best2R = hits.find(function(h){return h.r===2;});
+  if(best2R && best2R.pct >= 50){
+    insightBlocks.push(
+      'En passant \u00e0 un TP fixe de 2R, tu aurais gagn\u00e9 <strong style="color:var(--amber);font-family:var(--mono)">'+fmt(best2R.gainExtra)+'</strong> '+
+      'suppl\u00e9mentaires (soit ~<strong style="color:var(--amber);font-family:var(--mono)">'+fmtAbs(avgGainAt(2))+'</strong> en moyenne par trade qui l\u2019atteint).'
+    );
+  }
+  
+  // Insight moyenne
+  insightBlocks.push(
+    'Moyenne laiss\u00e9e sur la table par trade gagnant : <strong style="color:var(--amber);font-family:var(--mono)">'+fmtAbs(avgLeft)+'</strong>. ' +
+    'Multiplie par le nombre de setups que tu prends par mois pour voir l\u2019impact r\u00e9el.'
+  );
+  
+  html += '<div style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:14px;margin-bottom:10px">' +
+    '<div style="font-size:11px;color:var(--acc2);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Insights</div>';
+  insightBlocks.forEach(function(msg, idx){
+    html += '<div style="font-size:13px;color:var(--text2);line-height:1.6'+(idx>0?';margin-top:10px;padding-top:10px;border-top:1px solid rgba(59,130,246,.12)':'')+'">'+msg+'</div>';
+  });
+  html += '</div>';
   
   if(totalLeft > 0){
-    html += '<div style="text-align:center;padding:10px;background:rgba(245,158,11,.06);border-radius:8px">' +
-      '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Total laissé sur la table</div>' +
-      '<div style="font-size:22px;font-weight:800;font-family:var(--mono);color:var(--amber);margin-top:4px">$'+Math.round(totalLeft).toLocaleString()+'</div>' +
+    html += '<div style="text-align:center;padding:12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px">' +
+      '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Total laiss\u00e9 sur la table</div>' +
+      '<div style="font-size:26px;font-weight:800;font-family:var(--mono);color:var(--amber);margin-top:4px">'+fmtAbs(totalLeft)+'</div>' +
+      '<div style="font-size:11px;color:var(--text3);margin-top:4px">sur '+total+' trade'+(total>1?'s':'')+' gagnant'+(total>1?'s':'')+' \u00b7 ~'+fmtAbs(avgLeft)+' par trade en moyenne</div>' +
     '</div>';
   }
   
@@ -2861,27 +2924,32 @@ function renderHomePayout(payouts) {
     if(total>=MILESTONES[i].val) curMs=MILESTONES[i];
     else if(!nextMs) nextMs=MILESTONES[i];
   }
-  var pct = nextMs ? Math.min(100,Math.round(total/nextMs.val*100)) : 100;
+  var maxMs = MILESTONES[MILESTONES.length-1].val; // $100k
+  var pctGlobal = Math.min(100, total/maxMs*100); // Position on global scale
+  var pctNext = nextMs ? Math.min(100,Math.round(total/nextMs.val*100)) : 100;
   card.innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'+
-      '<div style="font-size:28px;font-weight:900;color:var(--green2);font-family:var(--mono)">$'+Math.round(total).toLocaleString()+'</div>'+
-      '<div style="font-size:11px;color:var(--text3)">'+received.length+' payout'+(received.length>1?'s':'')+' reçu'+(received.length>1?'s':'')+'</div>'+
+      '<div style="font-size:28px;font-weight:900;color:var(--green2);font-family:var(--mono)">$'+Math.round(total).toLocaleString('fr-FR').replace(/,/g,' ')+'</div>'+
+      '<div style="font-size:11px;color:var(--text3)">'+received.length+' payout'+(received.length>1?'s':'')+' re\u00e7u'+(received.length>1?'s':'')+'</div>'+
     '</div>'+
     (nextMs?
-      '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Prochain palier : <span style="color:var(--acc2);font-weight:700">$'+nextMs.val.toLocaleString()+'</span></div>':
+      '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Prochain palier : <span style="color:var(--acc2);font-weight:700">$'+nextMs.val.toLocaleString('fr-FR').replace(/,/g,' ')+'</span> <span style="color:var(--text3)">('+pctNext+'%)</span></div>':
       '<div style="font-size:12px;color:var(--amber);font-weight:700;margin-bottom:6px">\u2b50 Objectif maximum atteint !</div>')+
-    '<div style="position:relative;height:10px;background:var(--ink3);border-radius:99px;overflow:hidden;margin-bottom:8px">'+
-      '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:99px;transition:width .6s"></div>'+
-    '</div>'+
-    '<div style="display:flex;justify-content:space-between;position:relative;padding:0 2px">'+
+    '<div style="position:relative;height:10px;background:var(--ink3);border-radius:99px;margin-bottom:24px">'+
+      '<div style="height:100%;width:'+pctGlobal.toFixed(2)+'%;background:linear-gradient(90deg,#22c55e,#86efac);border-radius:99px;transition:width .6s"></div>'+
       MILESTONES.map(function(m){
+        var leftPct = m.val/maxMs*100;
         var done=total>=m.val;
         var isNext = nextMs && nextMs.val===m.val;
         var col = done?'var(--green2)':isNext?'var(--acc2)':'var(--text3)';
         var icon = done?'\u25cf':isNext?'\u25cb':'\u00b7';
-        return '<div style="text-align:center;flex:1"><div style="font-size:12px;color:'+col+';line-height:1">'+icon+'</div><div style="font-size:10px;font-weight:'+(isNext?'700':'500')+';color:'+col+';margin-top:3px">$'+m.label+'</div></div>';
+        return '<div style="position:absolute;left:'+leftPct.toFixed(2)+'%;top:100%;transform:translate(-50%,4px);display:flex;flex-direction:column;align-items:center">'+
+          '<div style="font-size:10px;color:'+col+';line-height:1">'+icon+'</div>'+
+          '<div style="font-size:9px;font-weight:'+(isNext?'700':'500')+';color:'+col+';margin-top:2px;white-space:nowrap">$'+m.label+'</div>'+
+        '</div>';
       }).join('')+
     '</div>'+
+        '</div>'+
     (curMs?'<div style="margin-top:10px;font-size:12px;padding:8px 10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;color:var(--green2)">'+String(curMs.msg).replace(/'/g,"&#39;")+'</div>':'');
 
   if(!list) return;
