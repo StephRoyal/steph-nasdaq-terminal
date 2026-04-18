@@ -136,7 +136,7 @@ canvas{display:block;width:100%}
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI Oil"},{"proName":"BITSTAMP:BTCUSD","title":"Bitcoin"},{"proName":"BITSTAMP:ETHUSD","title":"Ethereum"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
+    {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"TVC:DXY","title":"DXY"},{"proName":"TVC:VIX","title":"VIX"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI"},{"proName":"BITSTAMP:BTCUSD","title":"BTC"},{"proName":"BITSTAMP:ETHUSD","title":"ETH"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
     </script>
   </div>
 </div>
@@ -225,6 +225,12 @@ canvas{display:block;width:100%}
       <div id="home-pnl-week" style="font-size:18px;font-weight:900;color:var(--green2)">—</div>
       <div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Cette sem.</div>
     </div>
+  </div>
+
+  <!-- CONTEXTE MARCHÉ : DXY + VIX interpretation -->
+  <div style="margin-bottom:16px">
+    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.07em;margin-bottom:8px">Contexte Marché</div>
+    <div id="home-market-ctx" style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px"></div>
   </div>
 
   <!-- SCENARIO DU JOUR -->
@@ -362,6 +368,10 @@ canvas{display:block;width:100%}
   <div class="seg hs">
     <button class="sgb on" onclick="showTab('stats',this)">Stats</button>
     <button class="sgb" onclick="showTab('calendar',this)">📅 Calendrier</button>
+    <button class="sgb" onclick="showTab('revue',this);renderRevue()">📝 Revue</button>
+    <button class="sgb" onclick="showTab('goals',this);renderGoals()">🎯 Objectifs</button>
+    <button class="sgb" onclick="showTab('backtest',this);renderBacktest()">🔬 Backtest</button>
+    <button class="sgb" onclick="showTab('news',this);renderNewsCorr()">📰 News</button>
     <button class="sgb" onclick="showTab('list',this)">Historique</button>
     <button class="sgb" onclick="showTab('csv',this)">CSV</button>
   </div>
@@ -810,7 +820,10 @@ function goPage(id, btn) {
   if (id === 'sim') runSim();
 }
 function showTab(id, btn) {
-  ['stats','calendar','list','csv'].forEach(t => document.getElementById('tab-'+t).style.display = t===id?'block':'none');
+  ['stats','calendar','revue','goals','backtest','news','list','csv'].forEach(t => {
+    var el = document.getElementById('tab-'+t);
+    if(el) el.style.display = t===id?'block':'none';
+  });
   document.querySelectorAll('.sgb').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
   if (id === 'stats') renderStats();
@@ -2751,6 +2764,116 @@ function showKillPopup(tier, streakN) {
 }
 
 
+
+// ═══════════════════════════════════════════════════════════
+// MARKET CONTEXT : DXY + VIX interpretation (no live data, text-based)
+// ═══════════════════════════════════════════════════════════
+var _marketCtxCache = null;
+var _marketCtxTime = 0;
+
+function fetchMarketContext() {
+  // Attempt to fetch DXY and VIX via Yahoo Finance proxy
+  // If fails, fall back to text-only interpretation
+  var now = Date.now();
+  if (_marketCtxCache && (now - _marketCtxTime) < 180000) {
+    // Use cache (3 min)
+    renderMarketContext(_marketCtxCache);
+    return;
+  }
+
+  // Yahoo Finance free endpoint (may have CORS issues on some setups)
+  Promise.all([
+    fetch('https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?interval=1d&range=5d').then(function(r){return r.json();}).catch(function(){return null;}),
+    fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d').then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(results) {
+    var dxy = null, vix = null, dxyChg = 0, vixChg = 0;
+    try {
+      if (results[0] && results[0].chart && results[0].chart.result && results[0].chart.result[0]) {
+        var r = results[0].chart.result[0];
+        var closes = r.indicators.quote[0].close.filter(function(x){return x!=null;});
+        dxy = closes[closes.length-1];
+        if (closes.length >= 2) dxyChg = ((dxy - closes[closes.length-2]) / closes[closes.length-2]) * 100;
+      }
+      if (results[1] && results[1].chart && results[1].chart.result && results[1].chart.result[0]) {
+        var r2 = results[1].chart.result[0];
+        var closes2 = r2.indicators.quote[0].close.filter(function(x){return x!=null;});
+        vix = closes2[closes2.length-1];
+        if (closes2.length >= 2) vixChg = ((vix - closes2[closes2.length-2]) / closes2[closes2.length-2]) * 100;
+      }
+    } catch(e) {}
+
+    var data = {dxy:dxy, vix:vix, dxyChg:dxyChg, vixChg:vixChg};
+    _marketCtxCache = data;
+    _marketCtxTime = now;
+    renderMarketContext(data);
+  });
+}
+
+function renderMarketContext(data) {
+  var el = document.getElementById('home-market-ctx');
+  if (!el) return;
+
+  // If no data (fetch failed), show generic interpretation guide
+  if (!data || (!data.dxy && !data.vix)) {
+    el.innerHTML =
+      '<div style="font-size:11px;color:var(--text3);line-height:1.6;font-style:italic">' +
+        'Données DXY / VIX indisponibles. Consultez directement le ticker en haut.' +
+      '</div>';
+    return;
+  }
+
+  var dxy = data.dxy, vix = data.vix, dxyChg = data.dxyChg||0, vixChg = data.vixChg||0;
+
+  // Interpret for NQ trading
+  var dxyBias = dxyChg > 0.3 ? 'baissier' : dxyChg < -0.3 ? 'haussier' : 'neutre';
+  var vixLevel = vix >= 25 ? 'élevé' : vix >= 18 ? 'modéré' : 'calme';
+  var vixBias = vixChg > 3 ? 'en hausse' : vixChg < -3 ? 'en baisse' : 'stable';
+
+  // Combined interpretation for NQ
+  var interpretation;
+  if (vix >= 25 && dxyChg > 0.3) {
+    interpretation = 'Contexte risk-off marqué : DXY en hausse + VIX élevé. Pression baissière sur le NQ attendue. Prudence sur les longs.';
+  } else if (vix <= 16 && dxyChg < -0.3) {
+    interpretation = 'Contexte risk-on : DXY en baisse + VIX bas. Environnement favorable aux longs NQ. Les pullbacks sont souvent achetés.';
+  } else if (vix >= 25) {
+    interpretation = 'VIX élevé (' + vix.toFixed(1) + '). Volatilité importante, les mouvements seront amples. Ajustez vos stops et ne sur-tradez pas.';
+  } else if (vix <= 16) {
+    interpretation = 'VIX calme (' + vix.toFixed(1) + '). Marché compressé, les mouvements peuvent être lents. Attention aux faux breakouts.';
+  } else if (dxyChg > 0.3) {
+    interpretation = 'DXY en hausse (+' + dxyChg.toFixed(2) + '%). Biais baissier sur le NQ. Les setups shorts ont un vent favorable.';
+  } else if (dxyChg < -0.3) {
+    interpretation = 'DXY en baisse (' + dxyChg.toFixed(2) + '%). Biais haussier sur le NQ. Les longs bénéficient du dollar faible.';
+  } else {
+    interpretation = 'Marché en équilibre. DXY et VIX sans pression directionnelle forte. Le NQ suit ses propres flux techniques aujourd\'hui.';
+  }
+
+  var dxyColor = dxyChg > 0.3 ? 'var(--red2)' : dxyChg < -0.3 ? 'var(--green)' : 'var(--text2)';
+  var vixColor = vix >= 25 ? 'var(--red2)' : vix <= 16 ? 'var(--green)' : 'var(--amber)';
+
+  el.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+      '<div style="background:var(--ink3);border-radius:10px;padding:10px 12px">' +
+        '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase">DXY · Dollar Index</div>' +
+        '<div style="display:flex;align-items:baseline;gap:6px;margin-top:3px">' +
+          '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)">' + dxy.toFixed(2) + '</div>' +
+          '<div style="font-family:var(--mono);font-size:11px;color:' + dxyColor + ';font-weight:600">' + (dxyChg>=0?'+':'') + dxyChg.toFixed(2) + '%</div>' +
+        '</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:2px;font-style:italic">Biais NQ : ' + dxyBias + '</div>' +
+      '</div>' +
+      '<div style="background:var(--ink3);border-radius:10px;padding:10px 12px">' +
+        '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase">VIX · Volatilité</div>' +
+        '<div style="display:flex;align-items:baseline;gap:6px;margin-top:3px">' +
+          '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:' + vixColor + '">' + vix.toFixed(1) + '</div>' +
+          '<div style="font-family:var(--mono);font-size:11px;color:' + (vixChg>0?'var(--red2)':'var(--green)') + ';font-weight:600">' + (vixChg>=0?'+':'') + vixChg.toFixed(1) + '%</div>' +
+        '</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:2px;font-style:italic">Niveau : ' + vixLevel + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.55">' +
+      interpretation +
+    '</div>';
+}
+
 function renderHome() {
   // Read trades directly from localStorage - most reliable source
   var trades = [];
@@ -4075,6 +4198,509 @@ function selStatRespect(val, btn) {
       btn.style.borderColor = 'var(--border)';
     }
   }
+}
+
+
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 6 : REVUE HEBDOMADAIRE AUTOMATIQUE
+// ═══════════════════════════════════════════════════════════
+function renderRevue() {
+  var el = document.getElementById('tab-revue');
+  if (!el) return;
+
+  // Get current week's trades (Mon-Fri)
+  var now = new Date();
+  var dow = now.getDay(); // 0=Sun
+  var mondayDate = new Date(now);
+  mondayDate.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
+  mondayDate.setHours(0,0,0,0);
+  var fridayEnd = new Date(mondayDate);
+  fridayEnd.setDate(mondayDate.getDate() + 4);
+  fridayEnd.setHours(23,59,59);
+
+  var trades = (S.trades || []).filter(function(t) {
+    var ts = t.ts || new Date(t.date + 'T12:00:00').getTime();
+    return ts >= mondayDate.getTime() && ts <= fridayEnd.getTime();
+  });
+
+  // Previous week for comparison
+  var prevMonday = new Date(mondayDate); prevMonday.setDate(mondayDate.getDate() - 7);
+  var prevFriday = new Date(mondayDate); prevFriday.setDate(mondayDate.getDate() - 3);
+  prevFriday.setHours(23,59,59);
+  var prevTrades = (S.trades || []).filter(function(t) {
+    var ts = t.ts || new Date(t.date + 'T12:00:00').getTime();
+    return ts >= prevMonday.getTime() && ts <= prevFriday.getTime();
+  });
+
+  function stats(arr) {
+    var w = arr.filter(function(t){return t.status==='Win';}).length;
+    var l = arr.filter(function(t){return t.status==='Loss';}).length;
+    var be = arr.filter(function(t){return t.status==='Break Even';}).length;
+    var pnl = Math.round(arr.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));
+    var wr = (w+l) > 0 ? Math.round((w/(w+l))*100) : 0;
+    var avgDisc = arr.filter(function(t){return t.disc!=null;}).reduce(function(s,t,_,a){return s+t.disc/a.length;},0);
+    return {count:arr.length, wins:w, losses:l, be:be, pnl:pnl, wr:wr, disc:Math.round(avgDisc)};
+  }
+
+  var cur = stats(trades);
+  var prev = stats(prevTrades);
+
+  // Day-by-day breakdown
+  var byDay = {};
+  var dayNames = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+  trades.forEach(function(t) {
+    var ts = t.ts || new Date(t.date+'T12:00:00').getTime();
+    var d = new Date(ts).getDay();
+    if (d >= 1 && d <= 5) {
+      if (!byDay[d]) byDay[d] = [];
+      byDay[d].push(t);
+    }
+  });
+
+  var bestDay = null, bestPnl = -Infinity, worstDay = null, worstPnl = Infinity;
+  for (var i = 1; i <= 5; i++) {
+    if (byDay[i]) {
+      var p = byDay[i].reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+      if (p > bestPnl) { bestPnl = p; bestDay = i; }
+      if (p < worstPnl) { worstPnl = p; worstDay = i; }
+    }
+  }
+
+  // By session
+  var ldnTrades = trades.filter(function(t){return t.session==='London';});
+  var nyTrades = trades.filter(function(t){return t.session==='New York';});
+  var ldnStats = stats(ldnTrades);
+  var nyStats = stats(nyTrades);
+
+  // Stat respect breakdown
+  var withStat = trades.filter(function(t){return t.statRespect==='with';});
+  var againstStat = trades.filter(function(t){return t.statRespect==='against';});
+
+  // Build insights (3-4 takeaways)
+  var insights = [];
+  if (cur.count === 0) {
+    insights.push('Aucun trade cette semaine. Moment de recharger ou d\'étudier.');
+  } else {
+    if (cur.wr >= 70) insights.push('Excellent WR cette semaine (' + cur.wr + '%). Ton setup fonctionne.');
+    else if (cur.wr < 45 && cur.count >= 5) insights.push('WR faible (' + cur.wr + '%). Revois tes entrées et la qualité des setups.');
+
+    if (cur.pnl > 0 && prev.pnl !== 0) {
+      var diff = cur.pnl - prev.pnl;
+      if (diff > 500) insights.push('Progression notable sur la semaine précédente (+$' + fNum(diff) + ').');
+      else if (diff < -500) insights.push('Recul de $' + fNum(Math.abs(diff)) + ' vs semaine précédente. Revois ce qui a changé.');
+    }
+
+    if (bestDay !== null && worstDay !== null && bestDay !== worstDay) {
+      insights.push('Meilleur jour : <b>' + dayNames[bestDay-1] + '</b> (+$' + fNum(bestPnl) + '). Pire jour : <b>' + dayNames[worstDay-1] + '</b> (' + (worstPnl>=0?'+':'') + '$' + fNum(worstPnl) + ').');
+    }
+
+    if (ldnStats.count > 0 && nyStats.count > 0) {
+      var betterSess = ldnStats.pnl > nyStats.pnl ? 'London' : 'New York';
+      insights.push('Session la plus rentable : <b>' + betterSess + '</b> avec ' + (betterSess==='London' ? '+$'+fNum(ldnStats.pnl) : '+$'+fNum(nyStats.pnl)) + '.');
+    }
+
+    if (withStat.length >= 3 && againstStat.length >= 2) {
+      var wSt = stats(withStat);
+      var aSt = stats(againstStat);
+      var sDiff = wSt.wr - aSt.wr;
+      if (Math.abs(sDiff) >= 20) {
+        insights.push((sDiff > 0 ? 'Respecter' : 'Aller contre') + ' les stats Edgeful rapporte ' + Math.abs(sDiff) + ' pts de WR en plus cette semaine.');
+      }
+    }
+
+    if (cur.disc && cur.disc < 70) insights.push('Discipline moyenne à ' + cur.disc + '%. Un point à retravailler la semaine prochaine.');
+    else if (cur.disc >= 85) insights.push('Discipline excellente (' + cur.disc + '%). Continue sur cette lancée.');
+  }
+
+  // Render
+  var weekLabel = 'Du ' + mondayDate.getDate() + '/' + (mondayDate.getMonth()+1) + ' au ' + fridayEnd.getDate() + '/' + (fridayEnd.getMonth()+1);
+  var pnlColor = cur.pnl >= 0 ? 'var(--green)' : 'var(--red2)';
+
+  var html = '<div class="card" style="margin-bottom:14px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+      '<div style="font-weight:800;font-size:15px">Revue de la semaine</div>' +
+      '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.08em">' + weekLabel + '</div>' +
+    '</div>' +
+    '<div style="font-size:11px;color:var(--text3);margin-bottom:14px">Résumé automatique · Screenshot-able</div>';
+
+  if (cur.count === 0) {
+    html += '<div style="text-align:center;padding:30px 0;color:var(--text3);font-size:12px;font-style:italic">Aucun trade enregistré cette semaine.</div></div>';
+  } else {
+    html +=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+        '<div style="background:var(--ink3);border-radius:10px;padding:12px 14px">' +
+          '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px">P&L Hebdo</div>' +
+          '<div style="font-family:var(--mono);font-size:22px;font-weight:700;color:' + pnlColor + ';white-space:nowrap">' + (cur.pnl>=0?'+':'') + '$' + fNum(Math.abs(cur.pnl)) + '</div>' +
+        '</div>' +
+        '<div style="background:var(--ink3);border-radius:10px;padding:12px 14px">' +
+          '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px">Win Rate</div>' +
+          '<div style="font-family:var(--mono);font-size:22px;font-weight:700;color:' + (cur.wr>=60?'var(--green)':cur.wr>=50?'var(--acc2)':'var(--red2)') + '">' + cur.wr + '%</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">' +
+        '<div style="background:var(--ink3);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:var(--mono);font-size:14px;font-weight:700">' + cur.count + '</div>' +
+          '<div style="font-size:9px;color:var(--text3);text-transform:uppercase">Trades</div>' +
+        '</div>' +
+        '<div style="background:var(--ink3);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green)">' + cur.wins + '</div>' +
+          '<div style="font-size:9px;color:var(--text3);text-transform:uppercase">Wins</div>' +
+        '</div>' +
+        '<div style="background:var(--ink3);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--red2)">' + cur.losses + '</div>' +
+          '<div style="font-size:9px;color:var(--text3);text-transform:uppercase">Losses</div>' +
+        '</div>' +
+        '<div style="background:var(--ink3);border-radius:8px;padding:8px;text-align:center">' +
+          '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--amber)">' + cur.disc + '%</div>' +
+          '<div style="font-size:9px;color:var(--text3);text-transform:uppercase">Discipline</div>' +
+        '</div>' +
+      '</div>';
+
+    // Session breakdown
+    if (ldnStats.count > 0 || nyStats.count > 0) {
+      html += '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">PAR SESSION</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">';
+      if (ldnStats.count > 0) {
+        html += '<div style="background:var(--ink3);border-radius:8px;padding:10px">' +
+          '<div style="font-size:10px;color:var(--acc2);font-weight:700;letter-spacing:.08em">🇬🇧 LONDON</div>' +
+          '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:' + (ldnStats.pnl>=0?'var(--green)':'var(--red2)') + ';margin-top:3px;white-space:nowrap">' + (ldnStats.pnl>=0?'+':'') + '$' + fNum(Math.abs(ldnStats.pnl)) + '</div>' +
+          '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + ldnStats.count + ' trades · ' + ldnStats.wr + '% WR</div>' +
+        '</div>';
+      }
+      if (nyStats.count > 0) {
+        html += '<div style="background:var(--ink3);border-radius:8px;padding:10px">' +
+          '<div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:.08em">🇺🇸 NEW YORK</div>' +
+          '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:' + (nyStats.pnl>=0?'var(--green)':'var(--red2)') + ';margin-top:3px;white-space:nowrap">' + (nyStats.pnl>=0?'+':'') + '$' + fNum(Math.abs(nyStats.pnl)) + '</div>' +
+          '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + nyStats.count + ' trades · ' + nyStats.wr + '% WR</div>' +
+        '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Insights
+    if (insights.length > 0) {
+      html += '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:8px">À RETENIR</div>';
+      insights.forEach(function(ins) {
+        html += '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);padding:10px 12px;border-radius:0 8px 8px 0;font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:6px">' + ins + '</div>';
+      });
+    }
+
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 7 : OBJECTIFS MENSUELS
+// ═══════════════════════════════════════════════════════════
+function renderGoals() {
+  var el = document.getElementById('tab-goals');
+  if (!el) return;
+
+  var now = new Date();
+  var monthKey = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var monthName = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][now.getMonth()];
+
+  // Get or create goals for this month
+  if (!S.goals) S.goals = {};
+  var goals = S.goals[monthKey] || {pnl:0, wr:0, trades:0, disc:0};
+
+  // Get current month's trades
+  var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  var monthEnd = new Date(now.getFullYear(), now.getMonth()+1, 0, 23, 59, 59).getTime();
+  var trades = (S.trades || []).filter(function(t){
+    var ts = t.ts || new Date(t.date+'T12:00:00').getTime();
+    return ts >= monthStart && ts <= monthEnd;
+  });
+
+  var wins = trades.filter(function(t){return t.status==='Win';}).length;
+  var losses = trades.filter(function(t){return t.status==='Loss';}).length;
+  var wr = (wins+losses) > 0 ? Math.round((wins/(wins+losses))*100) : 0;
+  var pnl = Math.round(trades.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));
+  var avgDisc = trades.filter(function(t){return t.disc!=null;}).reduce(function(s,t,_,a){return s+t.disc/a.length;},0);
+  avgDisc = Math.round(avgDisc);
+
+  // Days elapsed vs total
+  var dayOfMonth = now.getDate();
+  var daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  var monthProgress = Math.round((dayOfMonth / daysInMonth) * 100);
+
+  function progress(cur, target) {
+    if (!target) return 0;
+    return Math.round(Math.min(200, (cur/target) * 100));
+  }
+
+  function bar(label, unit, cur, target, isInverted, format) {
+    var pct = progress(cur, target);
+    var expected = monthProgress;
+    var onPace = pct >= expected - 10;
+    var color = pct >= 100 ? 'var(--green)' : pct >= expected ? 'var(--acc2)' : pct >= expected - 15 ? 'var(--amber)' : 'var(--red2)';
+    var curStr = format ? format(cur) : cur;
+    var tgtStr = format ? format(target) : target;
+    return '<div style="margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">' +
+        '<div style="font-size:12px;color:var(--text2);font-weight:600">' + label + '</div>' +
+        '<div style="font-family:var(--mono);font-size:12px;color:var(--text3)">' + curStr + ' <span style="color:var(--text3)">/ ' + tgtStr + unit + '</span></div>' +
+      '</div>' +
+      '<div style="height:8px;background:var(--ink4);border-radius:4px;overflow:hidden;position:relative">' +
+        '<div style="position:absolute;left:' + expected + '%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.15);z-index:2"></div>' +
+        '<div style="height:100%;width:' + Math.min(100,pct) + '%;background:' + color + ';border-radius:4px;transition:width .6s"></div>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:4px;font-style:italic">' + pct + '% atteint · ' + expected + '% du mois écoulé · ' + (pct >= expected ? 'En avance sur le rythme' : pct >= expected-10 ? 'Dans le rythme' : 'En retard') + '</div>' +
+    '</div>';
+  }
+
+  var html = '<div class="card" style="margin-bottom:14px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">' +
+      '<div style="font-weight:800;font-size:15px">Objectifs · ' + monthName + ' ' + now.getFullYear() + '</div>' +
+      '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.08em">JOUR ' + dayOfMonth + '/' + daysInMonth + '</div>' +
+    '</div>' +
+    '<div style="font-size:11px;color:var(--text3);margin-bottom:16px">La ligne verticale indique ta progression théorique</div>';
+
+  if (goals.pnl || goals.wr || goals.trades || goals.disc) {
+    if (goals.pnl) html += bar('P&L Target', '', pnl, goals.pnl, false, function(v){return (v>=0?'+':'') + '$' + fNum(Math.abs(v));});
+    if (goals.wr) html += bar('Win Rate', '%', wr, goals.wr, false);
+    if (goals.trades) html += bar('Nombre de trades', '', trades.length, goals.trades, false);
+    if (goals.disc) html += bar('Discipline moyenne', '%', avgDisc, goals.disc, false);
+  } else {
+    html += '<div style="text-align:center;padding:20px 0;color:var(--text3);font-size:12px;font-style:italic">Aucun objectif défini pour ce mois.</div>';
+  }
+
+  // Edit button
+  html += '<button onclick="editGoals()" style="width:100%;margin-top:14px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--ink3);color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer">' +
+    (goals.pnl || goals.wr || goals.trades || goals.disc ? '✏️ Modifier les objectifs' : '+ Définir mes objectifs') +
+  '</button>';
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function editGoals() {
+  var now = new Date();
+  var monthKey = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  if (!S.goals) S.goals = {};
+  var g = S.goals[monthKey] || {};
+
+  var pnl = prompt('Objectif P&L du mois (en $) :', g.pnl || '3000');
+  if (pnl === null) return;
+  var wr = prompt('Objectif Win Rate (%) :', g.wr || '65');
+  if (wr === null) return;
+  var trades = prompt('Objectif nombre de trades :', g.trades || '40');
+  if (trades === null) return;
+  var disc = prompt('Objectif discipline moyenne (%) :', g.disc || '80');
+  if (disc === null) return;
+
+  S.goals[monthKey] = {
+    pnl: parseFloat(pnl) || 0,
+    wr: parseFloat(wr) || 0,
+    trades: parseInt(trades) || 0,
+    disc: parseFloat(disc) || 0
+  };
+  save();
+  renderGoals();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 8 : BACKTEST RAPIDE DE RÈGLE
+// ═══════════════════════════════════════════════════════════
+var _backtestRule = 'all';
+
+function renderBacktest() {
+  var el = document.getElementById('tab-backtest');
+  if (!el) return;
+
+  var all = S.trades || [];
+
+  // Predefined rules to test
+  var rules = [
+    {id:'all', label:'Tous les trades', fn:function(t){return true;}},
+    {id:'no-friday', label:'Sans les vendredis', fn:function(t){var d = new Date((t.ts||new Date(t.date).getTime())).getDay();return d !== 5;}},
+    {id:'no-monday', label:'Sans les lundis', fn:function(t){var d = new Date((t.ts||new Date(t.date).getTime())).getDay();return d !== 1;}},
+    {id:'london-only', label:'London uniquement', fn:function(t){return t.session==='London';}},
+    {id:'ny-only', label:'New York uniquement', fn:function(t){return t.session==='New York';}},
+    {id:'with-stats', label:'Respectant les stats Edgeful', fn:function(t){return t.statRespect==='with';}},
+    {id:'disc-80', label:'Discipline ≥ 80%', fn:function(t){return t.disc && t.disc>=80;}},
+    {id:'rr-2plus', label:'R:R ≥ 1:2', fn:function(t){if(!t.rr)return false;var m=t.rr.match(/1:([\d.]+)/);return m && parseFloat(m[1])>=2;}}
+  ];
+
+  function calcStats(arr) {
+    var w = arr.filter(function(t){return t.status==='Win';}).length;
+    var l = arr.filter(function(t){return t.status==='Loss';}).length;
+    var wr = (w+l)>0 ? Math.round((w/(w+l))*100) : 0;
+    var pnl = Math.round(arr.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));
+    return {count:arr.length, wins:w, losses:l, wr:wr, pnl:pnl};
+  }
+
+  var baseline = calcStats(all);
+
+  var html = '<div class="card" style="margin-bottom:14px">' +
+    '<div style="font-weight:800;font-size:15px;margin-bottom:4px">Backtest de règles</div>' +
+    '<div style="font-size:11px;color:var(--text3);margin-bottom:16px">Applique un filtre sur ton historique pour voir l\'impact potentiel</div>';
+
+  if (all.length < 10) {
+    html += '<div style="text-align:center;padding:20px 0;color:var(--text3);font-size:12px;font-style:italic">Minimum 10 trades requis pour un backtest pertinent. Actuellement : ' + all.length + '.</div></div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  // Baseline card
+  html += '<div style="background:var(--ink3);border-radius:10px;padding:12px 14px;margin-bottom:14px">' +
+    '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">RÉSULTAT ACTUEL (RÉFÉRENCE)</div>' +
+    '<div style="display:flex;gap:14px;align-items:baseline">' +
+      '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:' + (baseline.pnl>=0?'var(--green)':'var(--red2)') + ';white-space:nowrap">' + (baseline.pnl>=0?'+':'') + '$' + fNum(Math.abs(baseline.pnl)) + '</div>' +
+      '<div style="font-family:var(--mono);font-size:12px;color:var(--text2)">' + baseline.count + ' trades · ' + baseline.wr + '% WR</div>' +
+    '</div>' +
+  '</div>' +
+  '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:10px">SI TU AVAIS APPLIQUÉ LA RÈGLE...</div>';
+
+  // Apply each rule and show diff
+  rules.slice(1).forEach(function(r) {
+    var filtered = all.filter(r.fn);
+    if (filtered.length < 3) return; // skip if too few trades
+    var s = calcStats(filtered);
+    var pnlDiff = s.pnl - baseline.pnl;
+    var wrDiff = s.wr - baseline.wr;
+    var color = pnlDiff > 100 ? 'var(--green)' : pnlDiff < -100 ? 'var(--red2)' : 'var(--text2)';
+
+    html += '<div style="background:var(--ink3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px">' +
+      '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">' + r.label + '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:11px">' +
+        '<div>' +
+          '<div style="color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em">P&L</div>' +
+          '<div style="font-family:var(--mono);color:' + (s.pnl>=0?'var(--green)':'var(--red2)') + ';font-weight:700;white-space:nowrap">' + (s.pnl>=0?'+':'') + '$' + fNum(Math.abs(s.pnl)) + '</div>' +
+          '<div style="font-family:var(--mono);font-size:10px;color:' + color + '">' + (pnlDiff>=0?'+':'') + '$' + fNum(Math.abs(pnlDiff)) + '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em">WR</div>' +
+          '<div style="font-family:var(--mono);font-weight:700">' + s.wr + '%</div>' +
+          '<div style="font-family:var(--mono);font-size:10px;color:' + (wrDiff>=0?'var(--green)':'var(--red2)') + '">' + (wrDiff>=0?'+':'') + wrDiff + ' pts</div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em">Trades</div>' +
+          '<div style="font-family:var(--mono);font-weight:700">' + s.count + '</div>' +
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--text3)">' + (s.count-baseline.count) + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 9 : CORRÉLATION NEWS-PERFORMANCE
+// ═══════════════════════════════════════════════════════════
+function renderNewsCorr() {
+  var el = document.getElementById('tab-news');
+  if (!el) return;
+
+  var all = S.trades || [];
+
+  function calcStats(arr) {
+    var w = arr.filter(function(t){return t.status==='Win';}).length;
+    var l = arr.filter(function(t){return t.status==='Loss';}).length;
+    var wr = (w+l)>0 ? Math.round((w/(w+l))*100) : 0;
+    var pnl = Math.round(arr.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));
+    return {count:arr.length, wr:wr, pnl:pnl};
+  }
+
+  // For each trade, determine if there was a high-impact event that day
+  function hasHighEvent(dateStr) {
+    try {
+      var events = getHardcodedEco(dateStr);
+      return events && events.some(function(e){return e.impact==='High';});
+    } catch(e) { return false; }
+  }
+
+  // Categorize trades
+  var withEvent = [];
+  var noEvent = [];
+  var eventTypes = {}; // event name → trades
+
+  all.forEach(function(t) {
+    var d = t.date;
+    var has = hasHighEvent(d);
+    if (has) {
+      withEvent.push(t);
+      try {
+        var events = getHardcodedEco(d) || [];
+        events.filter(function(e){return e.impact==='High';}).forEach(function(e) {
+          // Normalize event name (strip month suffix)
+          var key = e.event.replace(/\s*\([^)]+\)\s*/g, '').trim();
+          if (!eventTypes[key]) eventTypes[key] = [];
+          eventTypes[key].push(t);
+        });
+      } catch(e){}
+    } else {
+      noEvent.push(t);
+    }
+  });
+
+  var html = '<div class="card" style="margin-bottom:14px">' +
+    '<div style="font-weight:800;font-size:15px;margin-bottom:4px">Performance vs News</div>' +
+    '<div style="font-size:11px;color:var(--text3);margin-bottom:16px">Ton comportement selon les événements macro du jour</div>';
+
+  if (all.length < 10) {
+    html += '<div style="text-align:center;padding:20px 0;color:var(--text3);font-size:12px;font-style:italic">Minimum 10 trades requis pour une analyse pertinente. Actuellement : ' + all.length + '.</div></div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  var withStats = calcStats(withEvent);
+  var noStats = calcStats(noEvent);
+
+  // Main comparison
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">' +
+    '<div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:12px">' +
+      '<div style="font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px">SANS ÉVÉNEMENT</div>' +
+      '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:' + (noStats.pnl>=0?'var(--green)':'var(--red2)') + ';margin-bottom:2px;white-space:nowrap">' + (noStats.pnl>=0?'+':'') + '$' + fNum(Math.abs(noStats.pnl)) + '</div>' +
+      '<div style="font-size:10px;color:var(--text3)">' + noStats.count + ' trades · ' + noStats.wr + '% WR</div>' +
+    '</div>' +
+    '<div style="background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px">' +
+      '<div style="font-family:var(--mono);font-size:9px;color:var(--red2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px">AVEC ÉVÉNEMENT HIGH</div>' +
+      '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:' + (withStats.pnl>=0?'var(--green)':'var(--red2)') + ';margin-bottom:2px;white-space:nowrap">' + (withStats.pnl>=0?'+':'') + '$' + fNum(Math.abs(withStats.pnl)) + '</div>' +
+      '<div style="font-size:10px;color:var(--text3)">' + withStats.count + ' trades · ' + withStats.wr + '% WR</div>' +
+    '</div>' +
+  '</div>';
+
+  // Insight
+  var wrDiff = noStats.wr - withStats.wr;
+  var insight;
+  if (Math.abs(wrDiff) < 8 || withStats.count < 3) {
+    insight = 'Pas d\'écart significatif entre les jours avec et sans événement macro. Ta stratégie est robuste face aux news.';
+  } else if (wrDiff > 0) {
+    insight = 'Tu performes <b>' + wrDiff + ' pts mieux</b> les jours <b>sans</b> événement macro. Envisage de filtrer les jours de CPI/FOMC/NFP ou de réduire ta taille.';
+  } else {
+    insight = 'Tu performes <b>' + Math.abs(wrDiff) + ' pts mieux</b> les jours <b>avec</b> événement macro. La volatilité de ces journées semble correspondre à ton setup.';
+  }
+
+  html += '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);padding:11px 13px;border-radius:0 8px 8px 0;font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:16px">' + insight + '</div>';
+
+  // Per-event breakdown (top events by trade count)
+  var eventsSorted = Object.keys(eventTypes).map(function(k){
+    var s = calcStats(eventTypes[k]);
+    return {name:k, stats:s};
+  }).filter(function(e){return e.stats.count >= 2;}).sort(function(a,b){return b.stats.count-a.stats.count;});
+
+  if (eventsSorted.length > 0) {
+    html += '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:8px">PAR TYPE D\'ÉVÉNEMENT</div>';
+    eventsSorted.slice(0,6).forEach(function(e) {
+      var color = e.stats.pnl >= 0 ? 'var(--green)' : 'var(--red2)';
+      html += '<div style="background:var(--ink3);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">' +
+        '<div>' +
+          '<div style="font-size:11px;font-weight:600;color:var(--text)">' + e.name + '</div>' +
+          '<div style="font-size:10px;color:var(--text3);margin-top:1px">' + e.stats.count + ' trades · ' + e.stats.wr + '% WR</div>' +
+        '</div>' +
+        '<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:' + color + ';white-space:nowrap">' + (e.stats.pnl>=0?'+':'') + '$' + fNum(Math.abs(e.stats.pnl)) + '</div>' +
+      '</div>';
+    });
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
 }
 
 </script>
