@@ -3184,7 +3184,7 @@ function renderHomeAccounts(accounts) {
         '</div>' +
         '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
           '<span style="font-size:11px;font-weight:700;color:'+si.col+';background:var(--ink3);padding:3px 8px;border-radius:6px">'+si.label+'</span>' +
-          '<button onclick="deleteAccount('+i+')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px">X</button>' +
+          '<button onclick="editAccount(\'+i+\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px 4px" title="Modifier">\u270E</button>' + '<button onclick="deleteAccount('+i+')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px">X</button>' +
         '</div>' +
       '</div>' +
       (hasD ?
@@ -3285,20 +3285,51 @@ function renderHomeBadges(trades, payouts, accounts) {
 }
 
 // Account CRUD
-function openAddAccount(){ document.getElementById('acc-firm').value=''; document.getElementById('acc-size').value=''; document.getElementById('acc-status').value='challenge'; document.getElementById('acc-drawdown').value=''; document.getElementById('acc-drawdown-max').value=''; openOv('add-account-ov'); }
+function openAddAccount(){ 
+  document.getElementById('acc-firm').value=''; 
+  document.getElementById('acc-size').value=''; 
+  document.getElementById('acc-status').value='challenge'; 
+  document.getElementById('acc-drawdown').value=''; 
+  document.getElementById('acc-drawdown-max').value=''; 
+  document.getElementById('acc-edit-idx').value=''; 
+  document.getElementById('acc-modal-title').textContent='Ajouter un compte';
+  openOv('add-account-ov'); 
+}
+
+function editAccount(i){
+  var accounts = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
+  var a = accounts[i];
+  if(!a) return;
+  document.getElementById('acc-firm').value = a.firm || '';
+  document.getElementById('acc-size').value = a.size || '';
+  document.getElementById('acc-status').value = a.status || 'challenge';
+  document.getElementById('acc-drawdown').value = a.drawdown != null ? a.drawdown : '';
+  document.getElementById('acc-drawdown-max').value = a.drawdownMax != null ? a.drawdownMax : '';
+  document.getElementById('acc-edit-idx').value = i;
+  document.getElementById('acc-modal-title').textContent = 'Modifier le compte';
+  openOv('add-account-ov');
+}
 function saveAccount(){
   var firm=document.getElementById('acc-firm').value.trim();
   var size=document.getElementById('acc-size').value.trim();
   if(!firm){return;}
   var accounts=JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
-  accounts.push({firm:firm,size:size,status:document.getElementById('acc-status').value,drawdown:parseFloat(document.getElementById('acc-drawdown').value)||null,drawdownMax:parseFloat(document.getElementById('acc-drawdown-max').value)||null});
+  var editIdx = document.getElementById('acc-edit-idx').value;
+  var isEdit = editIdx !== '' && accounts[parseInt(editIdx)];
+  var accData = {firm:firm,size:size,status:document.getElementById('acc-status').value,drawdown:parseFloat(document.getElementById('acc-drawdown').value)||null,drawdownMax:parseFloat(document.getElementById('acc-drawdown-max').value)||null};
+  if(isEdit){
+    accounts[parseInt(editIdx)] = Object.assign({}, accounts[parseInt(editIdx)], accData);
+  } else {
+    accounts.push(accData);
+  }
   localStorage.setItem('nqt-accounts',JSON.stringify(accounts));
+  window._lastAccountWasEdit = isEdit;
   closeOv('add-account-ov');
   renderHome();
   // Show toast
   var t=document.createElement('div');
   t.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#1a1b1e;border:1px solid #22c55e;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;color:#22c55e;z-index:9999;white-space:nowrap';
-  t.textContent='✅ Compte ajouté !';
+  t.textContent = window._lastAccountWasEdit ? '✅ Compte modifié !' : '✅ Compte ajouté !';
   document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
 }
 function deleteAccount(i){
