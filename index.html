@@ -466,6 +466,31 @@ canvas{display:block;width:100%}
 </div>
 
 <!-- PAGE: NOTES -->
+
+<!-- PAGE: EDGE -->
+<div id="pg-edge" class="page">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div>
+      <div style="font-size:18px;font-weight:800">Statistical Edge</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Données Edgeful · MNQ · 3 ans</div>
+    </div>
+    <div id="edge-day-badge" style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--acc2);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:5px 12px;letter-spacing:.06em;text-transform:uppercase"></div>
+  </div>
+
+  <!-- Day selector -->
+  <div style="display:flex;gap:6px;margin-bottom:18px;overflow-x:auto;padding-bottom:2px">
+    <button onclick="setEdgeDay(1,this)" class="edge-day-btn" style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);cursor:pointer;white-space:nowrap">LUN</button>
+    <button onclick="setEdgeDay(2,this)" class="edge-day-btn" style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);cursor:pointer;white-space:nowrap">MAR</button>
+    <button onclick="setEdgeDay(3,this)" class="edge-day-btn" style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);cursor:pointer;white-space:nowrap">MER</button>
+    <button onclick="setEdgeDay(4,this)" class="edge-day-btn" style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);cursor:pointer;white-space:nowrap">JEU</button>
+    <button onclick="setEdgeDay(5,this)" class="edge-day-btn" style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);cursor:pointer;white-space:nowrap">VEN</button>
+  </div>
+
+  <!-- Edge cards container -->
+  <div id="edge-content"></div>
+
+</div>
+
 <div id="pg-notes" class="page">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
     <div style="font-size:18px;font-weight:700">Carnet de Bord</div>
@@ -497,6 +522,10 @@ canvas{display:block;width:100%}
   <button class="nb" onclick="goPage('eco',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
     <span>Eco</span>
+  </button>
+  <button class="nb" onclick="goPage('edge',this)" id="nb-edge">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span>Edge</span>
   </button>
   <button class="nb" onclick="goPage('notes',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
@@ -606,6 +635,15 @@ canvas{display:block;width:100%}
       </div>
       <div id="disc-score-preview" style="text-align:center;font-size:13px;color:var(--text3);padding:6px 0"></div>
     </div>
+    <div class="fg">
+      <label class="fl">Respect des stats Edgeful</label>
+      <div style="display:flex;gap:6px">
+        <button type="button" onclick="selStatRespect('with',this)" id="sr-with" class="sr-btn" style="flex:1;padding:9px 0;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer">AVEC LES STATS</button>
+        <button type="button" onclick="selStatRespect('against',this)" id="sr-against" class="sr-btn" style="flex:1;padding:9px 0;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer">CONTRE</button>
+        <button type="button" onclick="selStatRespect(null,this)" id="sr-none" class="sr-btn" style="flex:1;padding:9px 0;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;cursor:pointer">N/A</button>
+      </div>
+    </div>
+    <input type="hidden" id="f-statrespect" value="">
     <div class="fg"><label class="fl">Notes</label><textarea class="fta" id="f-note" placeholder="Contexte, confluences, erreurs…"></textarea></div>
     <button class="btn ba bw" onclick="saveTrade()">Enregistrer ✓</button>
   </div>
@@ -962,7 +1000,7 @@ function saveTrade(){
   let maxhold='';
   if(maxP&&tp){const ptsTP=dir==='Long'?tp-e:e-tp,ptsMax=dir==='Long'?maxP-e:e-maxP;if(ptsTP>0&&pnl)maxhold=(pnl*ptsMax/ptsTP).toFixed(0);}
   else if(maxP){const ct=document.querySelector('input[name="ct"]:checked')?.value||'mnq',ptsMax=dir==='Long'?maxP-e:e-maxP;maxhold=(ptsMax*(ct==='mnq'?2:20)*sz).toFixed(0);}
-  const disc = getDiscScore(); const acct = document.getElementById('f-account') ? document.getElementById('f-account').value : ''; S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details,account:acct});
+  const disc = getDiscScore(); const acct = document.getElementById('f-account') ? document.getElementById('f-account').value : ''; S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details,account:acct,statRespect:document.getElementById('f-statrespect').value||null});
   save();
   // Kill streak popup
   try {
@@ -973,7 +1011,7 @@ function saveTrade(){
     }
   } catch(e){}
   closeOv('ov-trade'); showDiscToast(disc.score, disc.details); checkDailyAlerts();
-  ['f-entry','f-sl','f-tp','f-pnl','f-note','f-maxprice'].forEach(id=>document.getElementById(id).value=''); resetDisc();
+  ['f-entry','f-sl','f-tp','f-pnl','f-note','f-maxprice','f-statrespect'].forEach(id=>document.getElementById(id).value=''); document.querySelectorAll('.sr-btn').forEach(b=>{b.style.background='var(--ink3)';b.style.color='var(--text3)';b.style.borderColor='var(--border)';}); resetDisc();
   document.getElementById('rr-wrap').style.display='none';document.getElementById('mh-result').style.display='none';
   renderStats();renderList();showTab('stats',document.querySelector('.sgb'));
 }
@@ -3329,6 +3367,706 @@ function renderPerfGrid(trades) {
 
 function openOv(id){document.getElementById(id).classList.add('on');document.body.style.overflow='hidden';}
 function closeOv(id){document.getElementById(id).classList.remove('on');document.body.style.overflow='';}
+
+
+// ═══════════════════════════════════════════════════════════
+// EDGE TAB — Edgeful statistical data (MNQ)
+// ═══════════════════════════════════════════════════════════
+
+const EDGE_DATA = {
+  // R1a: London → NY correlation
+  // ldnGreen = London vert → NY vert %, ldnRedGreen = London rouge → NY vert %
+  // R1b: Asia → London correlation  
+  // asiaGreen = Asia vert → London vert %, asiaRedRed = Asia rouge → London rouge %
+  // R2a: Breakout Asia range during London (% de jours ou London break le range Asia)
+  // R2b: Breakout London range during NY (100% tous les jours)
+  // R3: ICT retracement (constant tous les jours)
+  // R4: High & Low of Day by session
+  1: { // LUNDI
+    r1a: { ldnGreen:70, ldnRedGreen:73 },
+    r1b: { asiaGreen:91, asiaRedRed:87 },
+    r2a: 83,
+    r4:  { highNY:77, highAsia:15, highLdn:8, lowNY:50, lowAsia:30, lowLdn:20 }
+  },
+  2: { // MARDI
+    r1a: { ldnGreen:50, ldnRedGreen:54 },
+    r1b: { asiaGreen:82, asiaRedRed:78 },
+    r2a: 69,
+    r4:  { highNY:73, highAsia:8, highLdn:19, lowNY:62, lowAsia:27, lowLdn:11 }
+  },
+  3: { // MERCREDI
+    r1a: { ldnGreen:77, ldnRedGreen:62 },
+    r1b: { asiaGreen:92, asiaRedRed:86 },
+    r2a: 81,
+    r4:  { highNY:61.5, highAsia:26, highLdn:12.5, lowNY:57, lowAsia:27, lowLdn:16 }
+  },
+  4: { // JEUDI
+    r1a: { ldnGreen:59, ldnRedGreen:43 },
+    r1b: { asiaGreen:90, asiaRedRed:93 },
+    r2a: 59,
+    r4:  { highNY:41, highAsia:45, highLdn:14, lowNY:76, lowAsia:12.5, lowLdn:11.5 }
+  },
+  5: { // VENDREDI
+    r1a: { ldnGreen:74, ldnRedGreen:45 },
+    r1b: { asiaGreen:85, asiaRedRed:94 },
+    r2a: 96,
+    r4:  { highNY:69, highAsia:15, highLdn:16, lowNY:69, lowAsia:15, lowLdn:16 }
+  }
+};
+
+// R3 ICT — constant tous les jours
+const EDGE_ICT = { above: 65, below: 66 };
+
+var _edgeDay = 1;
+var _edgeSess = 'london'; // 'london' or 'ny'
+var _edgeOpen = null;
+
+function getEdgeSession() {
+  var now = new Date();
+  var utc = now.getUTCHours() + now.getUTCMinutes()/60;
+  var london = utc + 1;
+  if (london >= 6 && london < 12.5) return 'london';
+  if (london >= 13.5 || london < 2) return 'ny';
+  return 'london'; // default London
+}
+
+function setEdgeDay(day, btn) {
+  _edgeDay = day;
+  _edgeOpen = null;
+  document.querySelectorAll('.edge-day-btn').forEach(function(b) {
+    b.style.background = 'var(--ink3)';
+    b.style.color = 'var(--text3)';
+    b.style.borderColor = 'var(--border)';
+  });
+  if (btn) {
+    btn.style.background = 'rgba(59,130,246,.15)';
+    btn.style.color = 'var(--acc2)';
+    btn.style.borderColor = 'rgba(59,130,246,.35)';
+  }
+  renderEdge();
+}
+
+function setEdgeSess(sess) {
+  _edgeSess = sess;
+  _edgeOpen = null;
+  renderEdge();
+}
+
+function toggleEdgeReport(id) {
+  _edgeOpen = _edgeOpen === id ? null : id;
+  renderEdge();
+  if (_edgeOpen !== null) {
+    setTimeout(function() {
+      var el = document.getElementById('edge-card-' + id);
+      if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }, 60);
+  }
+}
+
+function edgePct(pct) {
+  return (pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1)) + '%';
+}
+
+function edgeStrength(pct) {
+  if (pct >= 75) return {label:'FORT', color:'var(--green)', bg:'rgba(34,197,94,.12)', border:'rgba(34,197,94,.25)'};
+  if (pct >= 60) return {label:'MODERE', color:'var(--acc2)', bg:'rgba(96,165,250,.12)', border:'rgba(96,165,250,.25)'};
+  return {label:'NEUTRE', color:'var(--text3)', bg:'var(--ink4)', border:'var(--border)'};
+}
+
+function edgeTag(pct) {
+  var s = edgeStrength(pct);
+  return '<span style="font-size:9px;font-family:var(--mono);font-weight:700;letter-spacing:.1em;color:'+s.color+';background:'+s.bg+';border:1px solid '+s.border+';border-radius:5px;padding:2px 7px">'+s.label+'</span>';
+}
+
+function edgeBar(pct, label, sub) {
+  var color = pct >= 75 ? 'var(--green)' : pct >= 60 ? 'var(--acc2)' : pct >= 50 ? 'var(--amber)' : '#3d4452';
+  return '<div style="margin-bottom:16px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">'+
+      '<span style="font-size:12px;color:var(--text2)">'+label+'</span>'+
+      '<span style="font-family:var(--mono);font-size:22px;font-weight:700;color:'+color+'">'+edgePct(pct)+'</span>'+
+    '</div>'+
+    '<div style="height:7px;border-radius:4px;background:var(--ink4);overflow:hidden">'+
+      '<div style="height:100%;width:'+Math.min(100,pct)+'%;background:'+color+';border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)"></div>'+
+    '</div>'+
+    (sub ? '<div style="font-size:10px;color:var(--text3);margin-top:4px;font-style:italic">'+sub+'</div>' : '')+
+  '</div>';
+}
+
+function edgeNote(text) {
+  return '<div style="background:var(--ink3);border-left:3px solid var(--acc);border-radius:0 10px 10px 0;padding:12px 14px;font-size:11px;color:var(--text2);line-height:1.65;margin-top:4px">'+text+'</div>';
+}
+
+function edgeHowTo(text) {
+  return '<div style="background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.12);border-radius:10px;padding:11px 14px;font-size:10px;color:var(--text3);line-height:1.6;margin-bottom:12px">'+
+    '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--acc2);display:block;margin-bottom:5px">COMMENT UTILISER</span>'+
+    text+'</div>';
+}
+
+function edgeAccordion(id, icon, title, source, signalPct, content) {
+  // Always expanded - filter by day + session already
+  return '<div id="edge-card-'+id+'" style="border:1px solid var(--border);border-radius:var(--r2);margin-bottom:14px;overflow:hidden;background:var(--ink2)">'+
+    '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--ink3);border-bottom:1px solid var(--border)">'+
+      '<div style="font-size:17px;line-height:1;flex-shrink:0">'+icon+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">'+title+'</div>'+
+        '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.08em">'+source+'</div>'+
+      '</div>'+
+      '<div style="flex-shrink:0">'+edgeTag(signalPct)+'</div>'+
+    '</div>'+
+    '<div style="padding:18px 16px 14px">'+content+'</div>'+
+  '</div>';
+}
+
+function renderEdge() {
+  var d = EDGE_DATA[_edgeDay];
+  if (!d) return;
+
+  var dayNames = ['','Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+  var badge = document.getElementById('edge-day-badge');
+  if (badge) badge.textContent = dayNames[_edgeDay];
+
+  // ═══ COMPUTE GAME PLAN + DIRECTIONALITY SCORE ═══
+  var gamePlan = computeGamePlan(d, _edgeSess);
+  var dirScore = computeDirectionalityScore(d, _edgeSess);
+  var personalStats = computePersonalEdgeStats(_edgeDay, _edgeSess);
+  var sessionTimer = computeEdgeTimer(_edgeSess);
+
+  // ═══ SESSION TOGGLE ═══
+  var sessHtml =
+    '<div style="display:flex;gap:6px;margin-bottom:14px">'+
+      '<button onclick="setEdgeSess(\'london\')" style="flex:1;padding:9px 0;border-radius:10px;border:1px solid '+(_edgeSess==='london' ? 'rgba(96,165,250,.4)' : 'var(--border)')+';background:'+(_edgeSess==='london' ? 'rgba(59,130,246,.12)' : 'var(--ink3)')+';color:'+(_edgeSess==='london' ? 'var(--acc2)' : 'var(--text3)')+';font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer">'+
+        '<div style="font-size:13px;margin-bottom:2px">🇬🇧</div>LONDON'+
+      '</button>'+
+      '<button onclick="setEdgeSess(\'ny\')" style="flex:1;padding:9px 0;border-radius:10px;border:1px solid '+(_edgeSess==='ny' ? 'rgba(34,197,94,.4)' : 'var(--border)')+';background:'+(_edgeSess==='ny' ? 'rgba(34,197,94,.1)' : 'var(--ink3)')+';color:'+(_edgeSess==='ny' ? 'var(--green)' : 'var(--text3)')+';font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer">'+
+        '<div style="font-size:13px;margin-bottom:2px">🇺🇸</div>NEW YORK'+
+      '</button>'+
+    '</div>';
+
+  // ═══ FEATURE 1 : GAME PLAN DU JOUR ═══
+  var sessName = _edgeSess === 'london' ? 'London' : 'New York';
+  var sessEmoji = _edgeSess === 'london' ? '🇬🇧' : '🇺🇸';
+  var sessColor = _edgeSess === 'london' ? 'var(--acc2)' : 'var(--green)';
+
+  var planHtml =
+    '<div style="background:linear-gradient(135deg,'+(_edgeSess==='london'?'rgba(59,130,246,.08)':'rgba(34,197,94,.08)')+','+(_edgeSess==='london'?'rgba(59,130,246,.02)':'rgba(34,197,94,.02)')+');border:1px solid '+(_edgeSess==='london'?'rgba(59,130,246,.15)':'rgba(34,197,94,.15)')+';border-radius:var(--r2);padding:16px;margin-bottom:14px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.15em;color:'+sessColor+'">● GAME PLAN — '+dayNames[_edgeDay].toUpperCase()+' '+sessName.toUpperCase()+'</div>'+
+        (sessionTimer ? '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.06em">'+sessionTimer+'</div>' : '') +
+      '</div>'+
+      '<div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">'+gamePlan.summary+'</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+        gamePlan.tags.map(function(t){
+          return '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.08em;color:'+t.color+';background:'+t.bg+';border:1px solid '+t.border+';border-radius:6px;padding:3px 8px">'+t.label+'</div>';
+        }).join('')+
+      '</div>'+
+    '</div>';
+
+  // ═══ FEATURE 3 : DIRECTIONALITY SCORE ═══
+  var scoreColor = dirScore.score >= 75 ? 'var(--green)' : dirScore.score >= 55 ? 'var(--acc2)' : dirScore.score >= 40 ? 'var(--amber)' : 'var(--red2)';
+  var scoreHtml =
+    '<div style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text3)">SCORE DE DIRECTIONNALITÉ</div>'+
+        '<div style="font-family:var(--mono);font-size:22px;font-weight:700;color:'+scoreColor+'">'+dirScore.score+'<span style="font-size:12px;color:var(--text3);font-weight:500">/100</span></div>'+
+      '</div>'+
+      '<div style="height:6px;background:var(--ink4);border-radius:3px;overflow:hidden;margin-bottom:10px">'+
+        '<div style="height:100%;width:'+dirScore.score+'%;background:'+scoreColor+';border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)"></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center">'+
+        '<div style="font-size:11px;font-weight:600;color:'+scoreColor+'">'+dirScore.label+'</div>'+
+        '<div style="font-size:10px;color:var(--text3);font-style:italic">'+dirScore.advice+'</div>'+
+      '</div>'+
+    '</div>';
+
+  // ═══ FEATURE 4 : PERSONAL STATS ═══
+  var personalHtml = '';
+  if (personalStats.count > 0) {
+    var wrColor = personalStats.wr >= 70 ? 'var(--green)' : personalStats.wr >= 50 ? 'var(--acc2)' : 'var(--red2)';
+    var pnlColor = personalStats.pnl >= 0 ? 'var(--green)' : 'var(--red2)';
+    personalHtml =
+      '<div style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+          '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--amber)">⭐ TES STATS · '+dayNames[_edgeDay].toUpperCase()+' '+sessName.toUpperCase()+'</div>'+
+          '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.06em">'+personalStats.count+' TRADE'+(personalStats.count>1?'S':'')+'</div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'+
+          '<div style="background:var(--ink3);border-radius:10px;padding:10px 8px;text-align:center">'+
+            '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:'+wrColor+'">'+personalStats.wr+'%</div>'+
+            '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Win Rate</div>'+
+          '</div>'+
+          '<div style="background:var(--ink3);border-radius:10px;padding:10px 8px;text-align:center">'+
+            '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:'+pnlColor+';white-space:nowrap">'+(personalStats.pnl>=0?'+':'')+'$'+fNum(Math.abs(personalStats.pnl))+'</div>'+
+            '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">P&L</div>'+
+          '</div>'+
+          '<div style="background:var(--ink3);border-radius:10px;padding:10px 8px;text-align:center">'+
+            '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)">'+personalStats.wins+'W · '+personalStats.losses+'L</div>'+
+            '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Bilan</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--text2);line-height:1.55;font-style:italic">'+personalStats.insight+'</div>'+
+      '</div>';
+  } else {
+    personalHtml =
+      '<div style="background:var(--ink2);border:1px dashed var(--border);border-radius:var(--r2);padding:12px 16px;margin-bottom:14px;text-align:center">'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text3);margin-bottom:4px">⭐ TES STATS · '+dayNames[_edgeDay].toUpperCase()+' '+sessName.toUpperCase()+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);font-style:italic">Aucun trade enregistré pour ce créneau. Tes stats personnelles apparaîtront ici après quelques trades.</div>'+
+      '</div>';
+  }
+
+  // ═══ FEATURE 6 : STAT RESPECT HISTORY ═══
+  var respectData = getStatRespectHistory();
+  var respectHtml = '';
+  if (respectData.total >= 3) {
+    var respWR = respectData.respectedWR;
+    var againstWR = respectData.againstWR;
+    var respPnl = respectData.respectedPnl;
+    var againstPnl = respectData.againstPnl;
+    var better = respWR > againstWR ? 'respectées' : 'contre-stats';
+    var diff = Math.abs(respWR - againstWR);
+    respectHtml =
+      '<div style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:14px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'+
+          '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text3)">📊 RESPECT DES STATS</div>'+
+          '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.06em">'+respectData.total+' TRADES TAGGÉS</div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'+
+          '<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:10px 12px">'+
+            '<div style="font-size:9px;color:var(--green);font-family:var(--mono);font-weight:700;letter-spacing:.08em;margin-bottom:4px">AVEC LES STATS ('+respectData.respected+')</div>'+
+            '<div style="display:flex;justify-content:space-between;align-items:baseline">'+
+              '<span style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)">'+respWR+'%</span>'+
+              '<span style="font-family:var(--mono);font-size:11px;color:'+(respPnl>=0?'var(--green)':'var(--red2)')+';white-space:nowrap">'+(respPnl>=0?'+':'')+'$'+fNum(Math.abs(respPnl))+'</span>'+
+            '</div>'+
+          '</div>'+
+          '<div style="background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.12);border-radius:10px;padding:10px 12px">'+
+            '<div style="font-size:9px;color:var(--red2);font-family:var(--mono);font-weight:700;letter-spacing:.08em;margin-bottom:4px">CONTRE LES STATS ('+respectData.against+')</div>'+
+            '<div style="display:flex;justify-content:space-between;align-items:baseline">'+
+              '<span style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)">'+againstWR+'%</span>'+
+              '<span style="font-family:var(--mono);font-size:11px;color:'+(againstPnl>=0?'var(--green)':'var(--red2)')+';white-space:nowrap">'+(againstPnl>=0?'+':'')+'$'+fNum(Math.abs(againstPnl))+'</span>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--text2);line-height:1.55">'+
+          (diff >= 15
+            ? 'Écart significatif de '+diff+' points entre les deux approches. Tes résultats sont nettement meilleurs <b style="color:'+(respWR>againstWR?'var(--green)':'var(--red2)')+'">'+better+'</b>. Cette data est assez robuste pour guider ta décision.'
+            : 'Écart faible entre respect et contre-stat ('+diff+' pts). Plus de trades nécessaires pour conclure. Continue à tagger.')+
+        '</div>'+
+      '</div>';
+  }
+
+  var cards = '';
+
+  if (_edgeSess === 'london') {
+    // ── FICHE LONDON ─────────────────────────────────────
+
+    var r1bSignal = Math.max(d.r1b.asiaGreen, d.r1b.asiaRedRed);
+    var r1bContent =
+      edgeBar(d.r1b.asiaGreen, 'Asie ferme vert → London ouvre vert', d.r1b.asiaGreen >= 80 ? 'Corrélation directe très forte' : 'Tendance haussière confirmée') +
+      edgeBar(d.r1b.asiaRedRed, 'Asie ferme rouge → London ouvre rouge', d.r1b.asiaRedRed >= 80 ? 'Corrélation inverse très forte' : 'Tendance baissière confirmée') +
+      edgeHowTo('Avant l\'ouverture London (6h-7h), vérifiez la clôture de l\'Asie. Si l\'Asie est verte, London sera verte '+edgePct(d.r1b.asiaGreen)+' du temps. Utilisez ce biais pour orienter vos setups et éviter de trader contre le flux.') +
+      edgeNote(
+        d.r1b.asiaGreen >= 85 && d.r1b.asiaRedRed >= 85
+          ? 'Signal exceptionnel : l\'Asie dicte la direction de London avec une précision remarquable dans les deux sens. Le biais du jour est établi avant même l\'ouverture. Tradez dans le sens de l\'Asie.'
+          : d.r1b.asiaGreen >= 75
+          ? 'Corrélation forte. Une Asie verte donne un biais haussier clair sur London ('+edgePct(d.r1b.asiaGreen)+'). Privilégiez les longs en début de session London si l\'Asie confirme.'
+          : 'Corrélation modérée. Utilisez d\'autres confluences pour confirmer la direction London.'
+      );
+
+    var r2aContent =
+      '<div style="text-align:center;padding:10px 0 16px">'+
+        '<div style="font-family:var(--mono);font-size:48px;font-weight:700;color:'+(d.r2a >= 80 ? 'var(--green)' : d.r2a >= 65 ? 'var(--acc2)' : 'var(--amber)')+'">'+edgePct(d.r2a)+'</div>'+
+        '<div style="font-size:12px;color:var(--text3);margin-top:4px">des jours où London breake le range de l\'Asie</div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">'+
+        '<div style="background:var(--ink3);border-radius:10px;padding:12px;text-align:center">'+
+          '<div style="font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.08em;margin-bottom:4px">SINGLE BREAK</div>'+
+          '<div style="font-size:12px;color:var(--text2)">High OU Low<br>de l\'Asie brisé</div>'+
+        '</div>'+
+        '<div style="background:var(--ink3);border-radius:10px;padding:12px;text-align:center">'+
+          '<div style="font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.08em;margin-bottom:4px">DOUBLE BREAK</div>'+
+          '<div style="font-size:12px;color:var(--text2)">High ET Low<br>de l\'Asie brisés</div>'+
+        '</div>'+
+      '</div>'+
+      edgeHowTo('Marquez le High et le Low de la session Asie sur votre chart avant l\'ouverture London. Ces niveaux seront testés '+edgePct(d.r2a)+' du temps. En cas de double break, le deuxième mouvement est souvent le vrai sens.') +
+      edgeNote(
+        d.r2a >= 85
+          ? 'Probabilité exceptionnellement haute ('+edgePct(d.r2a)+'). Le range de l\'Asie sera presque certainement testé aujourd\'hui. Ces niveaux sont des zones d\'attention prioritaires.'
+          : d.r2a >= 70
+          ? 'Forte probabilité de breakout ('+edgePct(d.r2a)+'). Le High et Low de l\'Asie constituent des cibles claires pour London.'
+          : 'Probabilité modérée ('+edgePct(d.r2a)+'). Le range de l\'Asie peut tenir. Attendez une confirmation de breakout avant d\'entrer.'
+      );
+
+    var r4LdnContent =
+      '<div style="margin-bottom:20px">'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text3);margin-bottom:12px">HIGH OF DAY</div>'+
+        edgeBar(d.r4.highNY, 'Fait pendant New York', '') +
+        edgeBar(d.r4.highAsia, 'Fait pendant l\'Asie', '') +
+        edgeBar(d.r4.highLdn, 'Fait pendant London', d.r4.highLdn >= 25 ? 'London contribue significativement au High du jour' : '') +
+      '</div>'+
+      '<div style="margin-bottom:16px">'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text3);margin-bottom:12px">LOW OF DAY</div>'+
+        edgeBar(d.r4.lowNY, 'Fait pendant New York', '') +
+        edgeBar(d.r4.lowAsia, 'Fait pendant l\'Asie', '') +
+        edgeBar(d.r4.lowLdn, 'Fait pendant London', d.r4.lowLdn >= 25 ? 'London contribue significativement au Low du jour' : '') +
+      '</div>'+
+      edgeHowTo('London fait le High du jour '+edgePct(d.r4.highLdn)+' du temps et le Low '+edgePct(d.r4.lowLdn)+' du temps. Si London établit un extrême significatif, évaluez si NY va le dépasser ou le respecter.') +
+      edgeNote(
+        d.r4.highLdn >= 25 || d.r4.lowLdn >= 25
+          ? 'London a un rôle important dans la formation des extrêmes aujourd\'hui. Les niveaux London seront des références clés pour la session NY.'
+          : 'London pose rarement les extrêmes définitifs du jour. Attendez NY pour les vrais high et low. Utilisez London pour identifier le biais et les zones de liquidité.'
+      );
+
+    cards += edgeAccordion(2, '🌏', 'Corrélation Asie → London', '3 ANS · MNQ', r1bSignal, r1bContent);
+    cards += edgeAccordion(3, '📐', 'Breakout Range Asie · London', '3 ANS · MNQ', d.r2a, r2aContent);
+    cards += edgeAccordion(6, '📊', 'High & Low du jour', '6 MOIS · MNQ', Math.max(d.r4.highNY, d.r4.lowNY), r4LdnContent);
+
+  } else {
+    // ── FICHE NEW YORK ────────────────────────────────────
+
+    var r1aContent =
+      edgeBar(d.r1a.ldnGreen, 'London ferme vert → NY vert',
+        d.r1a.ldnGreen >= 70 ? 'Tendance haussière confirmée' : d.r1a.ldnGreen >= 55 ? 'Légère tendance haussière' : 'Direction NY incertaine') +
+      edgeBar(100 - d.r1a.ldnRedGreen, 'London ferme rouge → NY rouge',
+        (100-d.r1a.ldnRedGreen) >= 50 ? 'Tendance baissière en cas de London rouge' : 'NY peut reprendre malgré London rouge') +
+      edgeBar(d.r1a.ldnRedGreen, 'London ferme rouge → NY vert quand même',
+        d.r1a.ldnRedGreen >= 60 ? 'Reversal NY probable — opportunité de retournement' : '') +
+      edgeHowTo('À la clôture de London (12h), évaluez la couleur de la session. Si London est verte, NY suivra '+edgePct(d.r1a.ldnGreen)+' du temps. Si London est rouge, NY sera rouge '+edgePct(100-d.r1a.ldnRedGreen)+' du temps mais peut reverser dans '+edgePct(d.r1a.ldnRedGreen)+' des cas.') +
+      edgeNote(
+        d.r1a.ldnGreen >= 70 && (100-d.r1a.ldnRedGreen) >= 50
+          ? 'Journée directionnelle. London donne un biais clair pour NY dans les deux sens. Tradez dans le sens de London. Évitez les contre-tendances.'
+          : d.r1a.ldnRedGreen >= 65
+          ? 'Jour de reversal possible. Même quand London ferme rouge, NY repart vert '+edgePct(d.r1a.ldnRedGreen)+' du temps. Cherchez les setups de retournement à l\'ouverture NY.'
+          : 'Corrélation modérée. London et NY peuvent diverger. Confirmez le biais NY sur les premiers 15 minutes avant d\'entrer.'
+      );
+
+    var r2bContent =
+      '<div style="text-align:center;padding:12px 0 18px">'+
+        '<div style="font-family:var(--mono);font-size:56px;font-weight:700;color:var(--green)">100%</div>'+
+        '<div style="font-size:12px;color:var(--text3);margin-top:6px">NY breake toujours le range de London</div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">'+
+        '<div style="background:var(--ink3);border-radius:10px;padding:14px;text-align:center">'+
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--acc2);letter-spacing:.08em;margin-bottom:6px">SINGLE BREAK</div>'+
+          '<div style="font-size:12px;color:var(--text2);line-height:1.4">NY brise le High<br>OU le Low de London</div>'+
+        '</div>'+
+        '<div style="background:var(--ink3);border-radius:10px;padding:14px;text-align:center">'+
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.08em;margin-bottom:6px">DOUBLE BREAK</div>'+
+          '<div style="font-size:12px;color:var(--text2);line-height:1.4">NY brise le High<br>ET le Low de London</div>'+
+        '</div>'+
+      '</div>'+
+      edgeHowTo('Le High et le Low de London sont des cibles garanties pour NY. Marquez ces deux niveaux avant l\'ouverture NY (13h30 EST). Un single break signifie NY choisit un sens. Un double break signifie que NY manipule les deux extrêmes — le deuxième mouvement est souvent le vrai sens.') +
+      edgeNote('Fact établi sur 3 ans : NY ne reste jamais dans le range London. Ces niveaux sont donc des zones de liquidité prioritaires, pas des résistances définitives. Le premier break peut être une chasse — attendez la confirmation du deuxième mouvement si vous observez un retour rapide dans le range.');
+
+    var r3Content =
+      edgeBar(EDGE_ICT.above, 'Ouverture NY au-dessus du midnight open → retrace', 'Short de retour vers le midnight open') +
+      edgeBar(EDGE_ICT.below, 'Ouverture NY en-dessous du midnight open → retrace', 'Long de retour vers le midnight open') +
+      edgeHowTo('Marquez le prix du 00:00 EST (midnight) sur votre chart. À l\'ouverture NY (9:30 EST), notez si le prix est au-dessus ou en-dessous. Il y a '+edgePct(EDGE_ICT.above)+' de chances que le prix retrace vers ce niveau. Ce niveau reste valide sur toute la session.') +
+      edgeNote('Le midnight open est une donnée constante indépendante du jour. Avec 65-66% de retracement systématique, ce niveau mérite d\'être marqué chaque jour. Un setup de retour vers le midnight open offre une confluence statistique solide, surtout en début de session NY.');
+
+    var r4NyContent =
+      '<div style="margin-bottom:20px">'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text3);margin-bottom:12px">HIGH OF DAY</div>'+
+        edgeBar(d.r4.highNY, 'Fait pendant New York', d.r4.highNY >= 65 ? 'NY est la session qui forme le High du jour' : '') +
+        edgeBar(d.r4.highAsia, 'Fait pendant l\'Asie', '') +
+        edgeBar(d.r4.highLdn, 'Fait pendant London', '') +
+      '</div>'+
+      '<div style="margin-bottom:16px">'+
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text3);margin-bottom:12px">LOW OF DAY</div>'+
+        edgeBar(d.r4.lowNY, 'Fait pendant New York', d.r4.lowNY >= 65 ? 'NY est la session qui forme le Low du jour' : '') +
+        edgeBar(d.r4.lowAsia, 'Fait pendant l\'Asie', '') +
+        edgeBar(d.r4.lowLdn, 'Fait pendant London', '') +
+      '</div>'+
+      edgeHowTo('NY fait le High du jour '+edgePct(d.r4.highNY)+' du temps et le Low '+edgePct(d.r4.lowNY)+' du temps. Si NY doit faire les deux extrêmes, le premier mouvement est souvent une chasse de liquidité. Le vrai sens suit après.') +
+      edgeNote(
+        d.r4.highNY >= 65 && d.r4.lowNY >= 65
+          ? 'NY fait le High ET le Low du jour avec une forte probabilité. Journée à fort potentiel de volatilité. Attendez le premier sweep de liquidité avant de trader le vrai mouvement.'
+          : d.r4.highNY >= 65
+          ? 'NY tend à faire le High du jour ('+edgePct(d.r4.highNY)+'). Biais haussier en NY. Privilégiez les setups long ou les breakouts vers le haut des niveaux London.'
+          : d.r4.lowNY >= 65
+          ? 'NY tend à faire le Low du jour ('+edgePct(d.r4.lowNY)+'). Biais baissier. Prudence sur les longs en début de session — un flush est probable avant le rebond.'
+          : 'NY contribue modérément aux extrêmes aujourd\'hui. London garde une influence. Les extrêmes du jour peuvent se former dès 6h.'
+      );
+
+    cards += edgeAccordion(1, '🔗', 'Corrélation London → New York', '3 ANS · MNQ', Math.max(d.r1a.ldnGreen, 100-d.r1a.ldnRedGreen), r1aContent);
+    cards += edgeAccordion(4, '⚡', 'Breakout Range London · New York', '3 ANS · MNQ', 100, r2bContent);
+    cards += edgeAccordion(5, '🎯', 'ICT Retracement · Midnight Open', '2 ANS · MNQ', Math.max(EDGE_ICT.above, EDGE_ICT.below), r3Content);
+    cards += edgeAccordion(6, '📊', 'High & Low du jour', '6 MOIS · MNQ', Math.max(d.r4.highNY, d.r4.lowNY), r4NyContent);
+  }
+
+  var out = sessHtml + planHtml + scoreHtml + personalHtml + respectHtml + cards +
+    '<div style="text-align:center;padding:6px 0 2px;font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em">SOURCE · EDGEFUL.COM · NQ FUTURES</div>';
+
+  var container = document.getElementById('edge-content');
+  if (container) container.innerHTML = out;
+}
+
+// ═══════════════════════════════════════════════════════════
+// EDGE HELPERS : Game plan, Score, Personal stats, Timer, Respect
+// ═══════════════════════════════════════════════════════════
+
+function computeGamePlan(d, sess) {
+  var tags = [];
+  var sentences = [];
+
+  if (sess === 'london') {
+    // Asia correlation tag
+    var corrAsia = Math.max(d.r1b.asiaGreen, d.r1b.asiaRedRed);
+    if (corrAsia >= 85) tags.push({label:'CORRÉLATION ASIE FORTE', color:'var(--green)', bg:'rgba(34,197,94,.12)', border:'rgba(34,197,94,.25)'});
+    else if (corrAsia >= 75) tags.push({label:'CORRÉLATION ASIE MODÉRÉE', color:'var(--acc2)', bg:'rgba(96,165,250,.12)', border:'rgba(96,165,250,.25)'});
+
+    // Breakout tag
+    if (d.r2a >= 80) tags.push({label:'BREAKOUT ASIE PROBABLE', color:'var(--green)', bg:'rgba(34,197,94,.12)', border:'rgba(34,197,94,.25)'});
+    else if (d.r2a >= 65) tags.push({label:'BREAKOUT ASIE POSSIBLE', color:'var(--acc2)', bg:'rgba(96,165,250,.12)', border:'rgba(96,165,250,.25)'});
+    else tags.push({label:'RANGE ASIE TIENT', color:'var(--amber)', bg:'rgba(245,158,11,.1)', border:'rgba(245,158,11,.2)'});
+
+    // High/Low participation
+    if (d.r4.highLdn + d.r4.lowLdn >= 35) tags.push({label:'LONDON FAIT DES EXTRÊMES', color:'var(--acc2)', bg:'rgba(96,165,250,.12)', border:'rgba(96,165,250,.25)'});
+
+    // Build sentence
+    if (corrAsia >= 85 && d.r2a >= 80) {
+      sentences.push('Journée directionnelle en vue. La corrélation Asie→London est très forte ('+corrAsia+'%) et le range Asie sera probablement cassé ('+d.r2a+'%).');
+      sentences.push('Prenez position dans le sens de l\'Asie dès l\'ouverture, visez le High/Low Asie opposé.');
+    } else if (corrAsia >= 80) {
+      sentences.push('L\'Asie dicte le biais directionnel de London ('+corrAsia+'%). Le range Asie a '+d.r2a+'% d\'être cassé.');
+      sentences.push('Attendez la cassure d\'un extrême Asie pour confirmer l\'entrée.');
+    } else if (d.r2a >= 85) {
+      sentences.push('Breakout du range Asie quasi certain ('+d.r2a+'%) mais la corrélation est seulement '+corrAsia+'%.');
+      sentences.push('Le mouvement arrive mais la direction reste à confirmer — attendez l\'impulsion.');
+    } else {
+      sentences.push('Pas de signal fort pour aujourd\'hui. Corrélation Asie modérée ('+corrAsia+'%) et breakout à '+d.r2a+'%.');
+      sentences.push('Journée à jouer sobrement, privilégiez la qualité à la quantité.');
+    }
+  } else {
+    // NY session
+    var corrLdn = Math.max(d.r1a.ldnGreen, 100 - d.r1a.ldnRedGreen);
+    var reversalRisk = d.r1a.ldnRedGreen;
+
+    if (corrLdn >= 70) tags.push({label:'CORRÉLATION LONDON FORTE', color:'var(--green)', bg:'rgba(34,197,94,.12)', border:'rgba(34,197,94,.25)'});
+    else tags.push({label:'CORRÉLATION LONDON FAIBLE', color:'var(--amber)', bg:'rgba(245,158,11,.1)', border:'rgba(245,158,11,.2)'});
+
+    tags.push({label:'BREAKOUT LONDON 100%', color:'var(--green)', bg:'rgba(34,197,94,.12)', border:'rgba(34,197,94,.25)'});
+
+    if (reversalRisk >= 60) tags.push({label:'RISQUE DE REVERSAL', color:'var(--amber)', bg:'rgba(245,158,11,.1)', border:'rgba(245,158,11,.2)'});
+
+    if (d.r4.highNY >= 65 && d.r4.lowNY >= 60) tags.push({label:'VOLATILITÉ NY ÉLEVÉE', color:'var(--acc2)', bg:'rgba(96,165,250,.12)', border:'rgba(96,165,250,.25)'});
+
+    if (corrLdn >= 70 && d.r4.highNY >= 65) {
+      sentences.push('Setup idéal pour NY. London donne un biais clair ('+corrLdn+'%) et NY fera probablement le High du jour ('+d.r4.highNY+'%).');
+      sentences.push('Marquez High/Low London comme niveaux clés — NY les cassera à 100%.');
+    } else if (reversalRisk >= 65) {
+      sentences.push('Attention reversal. Même si London ferme rouge, NY repart vert '+reversalRisk+'% du temps.');
+      sentences.push('Patience à l\'open NY — un setup de retournement peut se présenter.');
+    } else if (corrLdn >= 70) {
+      sentences.push('London donne une direction solide pour NY ('+corrLdn+'%). Le midnight open sera un niveau clé de retracement.');
+      sentences.push('Tradez dans le sens London, utilisez le midnight open comme entrée.');
+    } else {
+      sentences.push('Corrélation London→NY modérée ('+corrLdn+'%). NY peut diverger.');
+      sentences.push('Attendez les 15 premières minutes NY pour confirmer le biais avant d\'entrer.');
+    }
+  }
+
+  return {
+    summary: sentences.join(' '),
+    tags: tags
+  };
+}
+
+function computeDirectionalityScore(d, sess) {
+  var score = 0;
+  var factors = 0;
+
+  if (sess === 'london') {
+    // Corrélation Asie (max 40 pts)
+    var corr = Math.max(d.r1b.asiaGreen, d.r1b.asiaRedRed);
+    score += (corr / 100) * 40;
+    // Breakout Asie (max 35 pts)
+    score += (d.r2a / 100) * 35;
+    // High/Low extension NY (max 25 pts) - if NY does big extremes, means London doesn't = directional day for London
+    var ldnExtremes = d.r4.highLdn + d.r4.lowLdn;
+    score += Math.max(0, Math.min(25, 25 - ldnExtremes/2));
+  } else {
+    // NY
+    var corrLdn = Math.max(d.r1a.ldnGreen, 100 - d.r1a.ldnRedGreen);
+    score += (corrLdn / 100) * 35;
+    // Breakout London (100% always) : 25 pts
+    score += 25;
+    // NY dominance on extremes
+    var nyDom = (d.r4.highNY + d.r4.lowNY) / 2;
+    score += (nyDom / 100) * 40;
+  }
+
+  score = Math.round(Math.min(100, Math.max(0, score)));
+
+  var label, advice;
+  if (score >= 80) {
+    label = 'FORTEMENT DIRECTIONNEL';
+    advice = 'Journée à setup clair, tradez avec conviction';
+  } else if (score >= 65) {
+    label = 'DIRECTIONNEL';
+    advice = 'Bon potentiel, attendez la confirmation';
+  } else if (score >= 50) {
+    label = 'MIXTE';
+    advice = 'Opportunité moyenne, patience requise';
+  } else if (score >= 35) {
+    label = 'RANGE PROBABLE';
+    advice = 'Évitez les breakouts agressifs';
+  } else {
+    label = 'INCERTAIN';
+    advice = 'Journée à jouer sobrement ou passer';
+  }
+
+  return { score: score, label: label, advice: advice };
+}
+
+function computePersonalEdgeStats(day, sess) {
+  // day: 1=Lundi...5=Vendredi
+  // sess: 'london' or 'ny'
+  var sessName = sess === 'london' ? 'London' : 'New York';
+  var trades = (S.trades || []).filter(function(t) {
+    var ts = t.ts || new Date(t.date + 'T12:00:00').getTime();
+    var dow = new Date(ts).getDay(); // 0=Sun
+    return dow === day && t.session === sessName;
+  });
+
+  if (trades.length === 0) {
+    return { count: 0 };
+  }
+
+  var wins = trades.filter(function(t){return t.status==='Win';}).length;
+  var losses = trades.filter(function(t){return t.status==='Loss';}).length;
+  var totalDecisive = wins + losses;
+  var wr = totalDecisive > 0 ? Math.round((wins/totalDecisive)*100) : 0;
+  var pnl = trades.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);}, 0);
+
+  var insight;
+  if (trades.length < 5) {
+    insight = 'Pas assez de trades ('+trades.length+') pour conclure. Continue à accumuler la data.';
+  } else if (wr >= 70) {
+    insight = 'Excellente performance sur ce créneau ('+wr+'% WR). C\'est un de tes meilleurs moments — tradez-le avec conviction.';
+  } else if (wr >= 55) {
+    insight = 'Performance solide ('+wr+'% WR). Ce créneau correspond à ta stratégie.';
+  } else if (wr >= 40) {
+    insight = 'Performance mitigée ('+wr+'% WR). Analyse les trades perdants pour identifier un pattern d\'erreur.';
+  } else {
+    insight = 'Performance faible ('+wr+'% WR). Envisage de réduire la taille ou de passer ce créneau.';
+  }
+
+  return {
+    count: trades.length,
+    wins: wins,
+    losses: losses,
+    wr: wr,
+    pnl: Math.round(pnl),
+    insight: insight
+  };
+}
+
+function computeEdgeTimer(sess) {
+  var now = new Date();
+  var utc = now.getUTCHours() * 60 + now.getUTCMinutes();
+  // Approx UK time (UTC+1 summer)
+  var uk = utc + 60;
+  if (uk >= 1440) uk -= 1440;
+
+  if (sess === 'london') {
+    // London session 6:00 - 12:00 UK
+    var londonClose = 12 * 60;
+    var londonOpen = 6 * 60;
+    if (uk >= londonOpen && uk < londonClose) {
+      var remaining = londonClose - uk;
+      var h = Math.floor(remaining / 60);
+      var m = remaining % 60;
+      return '● LONDON · ferme dans '+h+'h '+String(m).padStart(2,'0');
+    } else if (uk < londonOpen) {
+      var toOpen = londonOpen - uk;
+      var h2 = Math.floor(toOpen / 60);
+      var m2 = toOpen % 60;
+      return 'Ouverture dans '+h2+'h '+String(m2).padStart(2,'0');
+    }
+    return null;
+  } else {
+    // NY 13:30 - 20:00 UK (approx)
+    var nyOpen = 13 * 60 + 30;
+    var nyClose = 20 * 60;
+    if (uk >= nyOpen && uk < nyClose) {
+      var rem = nyClose - uk;
+      var h3 = Math.floor(rem / 60);
+      var m3 = rem % 60;
+      return '● NY · ferme dans '+h3+'h '+String(m3).padStart(2,'0');
+    } else if (uk < nyOpen) {
+      var toNy = nyOpen - uk;
+      var h4 = Math.floor(toNy / 60);
+      var m4 = toNy % 60;
+      return 'Ouverture dans '+h4+'h '+String(m4).padStart(2,'0');
+    }
+    return null;
+  }
+}
+
+function getStatRespectHistory() {
+  var trades = (S.trades || []).filter(function(t){ return t.statRespect; });
+  var respected = trades.filter(function(t){return t.statRespect==='with';});
+  var against = trades.filter(function(t){return t.statRespect==='against';});
+
+  function calc(arr) {
+    var w = arr.filter(function(t){return t.status==='Win';}).length;
+    var l = arr.filter(function(t){return t.status==='Loss';}).length;
+    var wr = (w+l) > 0 ? Math.round((w/(w+l))*100) : 0;
+    var pnl = Math.round(arr.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));
+    return {wr: wr, pnl: pnl};
+  }
+
+  var r = calc(respected);
+  var a = calc(against);
+
+  return {
+    total: trades.length,
+    respected: respected.length,
+    against: against.length,
+    respectedWR: r.wr,
+    respectedPnl: r.pnl,
+    againstWR: a.wr,
+    againstPnl: a.pnl
+  };
+}
+
+function initEdge() {
+  var today = new Date().getDay();
+  var day = today >= 1 && today <= 5 ? today : 1;
+  _edgeSess = getEdgeSession();
+  _edgeOpen = null;
+  var btns = document.querySelectorAll('.edge-day-btn');
+  if (btns[day - 1]) {
+    setEdgeDay(day, btns[day - 1]);
+  } else {
+    setEdgeDay(day, null);
+  }
+}
+
+
+function selStatRespect(val, btn) {
+  document.getElementById('f-statrespect').value = val || '';
+  document.querySelectorAll('.sr-btn').forEach(function(b){
+    b.style.background = 'var(--ink3)';
+    b.style.color = 'var(--text3)';
+    b.style.borderColor = 'var(--border)';
+  });
+  if (btn) {
+    if (val === 'with') {
+      btn.style.background = 'rgba(34,197,94,.12)';
+      btn.style.color = 'var(--green)';
+      btn.style.borderColor = 'rgba(34,197,94,.25)';
+    } else if (val === 'against') {
+      btn.style.background = 'rgba(239,68,68,.08)';
+      btn.style.color = 'var(--red2)';
+      btn.style.borderColor = 'rgba(239,68,68,.2)';
+    } else {
+      btn.style.background = 'var(--ink4)';
+      btn.style.color = 'var(--text2)';
+      btn.style.borderColor = 'var(--border)';
+    }
+  }
+}
+
 </script>
 </body>
 </html>
