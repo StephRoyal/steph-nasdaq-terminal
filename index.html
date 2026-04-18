@@ -111,6 +111,8 @@ body{font-family:var(--font);background:var(--ink);color:var(--text);min-height:
 
 /* TABS */
 .seg{display:flex;background:var(--ink3);border-radius:var(--r);padding:3px;gap:2px;margin-bottom:14px;border:1px solid var(--border);overflow-x:auto}
+.seg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--ink3);border-radius:var(--r);padding:3px;margin-bottom:14px;border:1px solid var(--border)}
+.seg-grid .sgb{flex:none;padding:8px 4px;font-size:10.5px;text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .sgb{flex:1;min-width:fit-content;padding:7px 8px;border:none;border-radius:8px;background:none;font-family:var(--font);font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;white-space:nowrap}
 .sgb.on{background:var(--ink4);color:var(--text)}
 
@@ -136,7 +138,7 @@ canvas{display:block;width:100%}
   <div class="tradingview-widget-container">
     <div class="tradingview-widget-container__widget"></div>
     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-    {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"TVC:DXY","title":"DXY"},{"proName":"TVC:VIX","title":"VIX"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI"},{"proName":"BITSTAMP:BTCUSD","title":"BTC"},{"proName":"BITSTAMP:ETHUSD","title":"ETH"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
+    {"symbols":[{"proName":"PEPPERSTONE:NAS100","title":"NQ"},{"proName":"PEPPERSTONE:US500","title":"S&P 500"},{"proName":"CAPITALCOM:DXY","title":"DXY"},{"proName":"CAPITALCOM:VIX","title":"VIX"},{"proName":"TVC:GOLD","title":"Gold"},{"proName":"TVC:USOIL","title":"WTI"},{"proName":"BITSTAMP:BTCUSD","title":"BTC"},{"proName":"BITSTAMP:ETHUSD","title":"ETH"}],"showSymbolLogo":false,"isTransparent":true,"displayMode":"compact","colorTheme":"dark","locale":"fr"}
     </script>
   </div>
 </div>
@@ -365,7 +367,7 @@ canvas{display:block;width:100%}
   </div>
   </div>
   <div id="daily-alerts"></div>
-  <div class="seg hs">
+  <div class="seg-grid">
     <button class="sgb on" onclick="showTab('stats',this)">Stats</button>
     <button class="sgb" onclick="showTab('calendar',this)">📅 Calendrier</button>
     <button class="sgb" onclick="showTab('revue',this);renderRevue()">📝 Revue</button>
@@ -402,6 +404,10 @@ canvas{display:block;width:100%}
     </div>
   </div>
   <div id="tab-calendar" style="display:none"><div id="cal-wrap"><div class="empty">Ajoute des trades pour voir le calendrier</div></div></div>
+  <div id="tab-revue" style="display:none"></div>
+  <div id="tab-goals" style="display:none"></div>
+  <div id="tab-backtest" style="display:none"></div>
+  <div id="tab-news" style="display:none"></div>
   <div id="tab-list" style="display:none">
     <div class="card" id="no-list"><div class="empty">Aucun trade</div></div>
     <div class="card" id="list-card" style="display:none"><div id="trades-list"></div></div>
@@ -2766,113 +2772,46 @@ function showKillPopup(tier, streakN) {
 
 
 // ═══════════════════════════════════════════════════════════
-// MARKET CONTEXT : DXY + VIX interpretation (no live data, text-based)
+// MARKET CONTEXT : Educational card (DXY/VIX in ticker above)
 // ═══════════════════════════════════════════════════════════
-var _marketCtxCache = null;
-var _marketCtxTime = 0;
-
 function fetchMarketContext() {
-  // Attempt to fetch DXY and VIX via Yahoo Finance proxy
-  // If fails, fall back to text-only interpretation
-  var now = Date.now();
-  if (_marketCtxCache && (now - _marketCtxTime) < 180000) {
-    // Use cache (3 min)
-    renderMarketContext(_marketCtxCache);
-    return;
-  }
-
-  // Yahoo Finance free endpoint (may have CORS issues on some setups)
-  Promise.all([
-    fetch('https://query1.finance.yahoo.com/v8/finance/chart/DX-Y.NYB?interval=1d&range=5d').then(function(r){return r.json();}).catch(function(){return null;}),
-    fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?interval=1d&range=5d').then(function(r){return r.json();}).catch(function(){return null;})
-  ]).then(function(results) {
-    var dxy = null, vix = null, dxyChg = 0, vixChg = 0;
-    try {
-      if (results[0] && results[0].chart && results[0].chart.result && results[0].chart.result[0]) {
-        var r = results[0].chart.result[0];
-        var closes = r.indicators.quote[0].close.filter(function(x){return x!=null;});
-        dxy = closes[closes.length-1];
-        if (closes.length >= 2) dxyChg = ((dxy - closes[closes.length-2]) / closes[closes.length-2]) * 100;
-      }
-      if (results[1] && results[1].chart && results[1].chart.result && results[1].chart.result[0]) {
-        var r2 = results[1].chart.result[0];
-        var closes2 = r2.indicators.quote[0].close.filter(function(x){return x!=null;});
-        vix = closes2[closes2.length-1];
-        if (closes2.length >= 2) vixChg = ((vix - closes2[closes2.length-2]) / closes2[closes2.length-2]) * 100;
-      }
-    } catch(e) {}
-
-    var data = {dxy:dxy, vix:vix, dxyChg:dxyChg, vixChg:vixChg};
-    _marketCtxCache = data;
-    _marketCtxTime = now;
-    renderMarketContext(data);
-  });
+  renderMarketContext();
 }
 
-function renderMarketContext(data) {
+function renderMarketContext() {
   var el = document.getElementById('home-market-ctx');
   if (!el) return;
 
-  // If no data (fetch failed), show generic interpretation guide
-  if (!data || (!data.dxy && !data.vix)) {
-    el.innerHTML =
-      '<div style="font-size:11px;color:var(--text3);line-height:1.6;font-style:italic">' +
-        'Données DXY / VIX indisponibles. Consultez directement le ticker en haut.' +
-      '</div>';
-    return;
-  }
-
-  var dxy = data.dxy, vix = data.vix, dxyChg = data.dxyChg||0, vixChg = data.vixChg||0;
-
-  // Interpret for NQ trading
-  var dxyBias = dxyChg > 0.3 ? 'baissier' : dxyChg < -0.3 ? 'haussier' : 'neutre';
-  var vixLevel = vix >= 25 ? 'élevé' : vix >= 18 ? 'modéré' : 'calme';
-  var vixBias = vixChg > 3 ? 'en hausse' : vixChg < -3 ? 'en baisse' : 'stable';
-
-  // Combined interpretation for NQ
-  var interpretation;
-  if (vix >= 25 && dxyChg > 0.3) {
-    interpretation = 'Contexte risk-off marqué : DXY en hausse + VIX élevé. Pression baissière sur le NQ attendue. Prudence sur les longs.';
-  } else if (vix <= 16 && dxyChg < -0.3) {
-    interpretation = 'Contexte risk-on : DXY en baisse + VIX bas. Environnement favorable aux longs NQ. Les pullbacks sont souvent achetés.';
-  } else if (vix >= 25) {
-    interpretation = 'VIX élevé (' + vix.toFixed(1) + '). Volatilité importante, les mouvements seront amples. Ajustez vos stops et ne sur-tradez pas.';
-  } else if (vix <= 16) {
-    interpretation = 'VIX calme (' + vix.toFixed(1) + '). Marché compressé, les mouvements peuvent être lents. Attention aux faux breakouts.';
-  } else if (dxyChg > 0.3) {
-    interpretation = 'DXY en hausse (+' + dxyChg.toFixed(2) + '%). Biais baissier sur le NQ. Les setups shorts ont un vent favorable.';
-  } else if (dxyChg < -0.3) {
-    interpretation = 'DXY en baisse (' + dxyChg.toFixed(2) + '%). Biais haussier sur le NQ. Les longs bénéficient du dollar faible.';
-  } else {
-    interpretation = 'Marché en équilibre. DXY et VIX sans pression directionnelle forte. Le NQ suit ses propres flux techniques aujourd\'hui.';
-  }
-
-  var dxyColor = dxyChg > 0.3 ? 'var(--red2)' : dxyChg < -0.3 ? 'var(--green)' : 'var(--text2)';
-  var vixColor = vix >= 25 ? 'var(--red2)' : vix <= 16 ? 'var(--green)' : 'var(--amber)';
-
+  // Educational static card - explains how to read DXY & VIX for NQ trading
+  // The actual live values are visible in the TradingView ticker at the top
   el.innerHTML =
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
       '<div style="background:var(--ink3);border-radius:10px;padding:10px 12px">' +
-        '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase">DXY · Dollar Index</div>' +
-        '<div style="display:flex;align-items:baseline;gap:6px;margin-top:3px">' +
-          '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text)">' + dxy.toFixed(2) + '</div>' +
-          '<div style="font-family:var(--mono);font-size:11px;color:' + dxyColor + ';font-weight:600">' + (dxyChg>=0?'+':'') + dxyChg.toFixed(2) + '%</div>' +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">' +
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;font-weight:700">DXY</div>' +
+          '<div style="font-size:9px;color:var(--text3);font-style:italic">voir ticker</div>' +
         '</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:2px;font-style:italic">Biais NQ : ' + dxyBias + '</div>' +
+        '<div style="font-size:10px;color:var(--text2);line-height:1.5">' +
+          '<span style="color:var(--red2);font-weight:600">↑ DXY</span> = baissier NQ<br>' +
+          '<span style="color:var(--green);font-weight:600">↓ DXY</span> = haussier NQ' +
+        '</div>' +
       '</div>' +
       '<div style="background:var(--ink3);border-radius:10px;padding:10px 12px">' +
-        '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase">VIX · Volatilité</div>' +
-        '<div style="display:flex;align-items:baseline;gap:6px;margin-top:3px">' +
-          '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:' + vixColor + '">' + vix.toFixed(1) + '</div>' +
-          '<div style="font-family:var(--mono);font-size:11px;color:' + (vixChg>0?'var(--red2)':'var(--green)') + ';font-weight:600">' + (vixChg>=0?'+':'') + vixChg.toFixed(1) + '%</div>' +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">' +
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;font-weight:700">VIX</div>' +
+          '<div style="font-size:9px;color:var(--text3);font-style:italic">voir ticker</div>' +
         '</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:2px;font-style:italic">Niveau : ' + vixLevel + '</div>' +
+        '<div style="font-size:10px;color:var(--text2);line-height:1.5">' +
+          '<span style="color:var(--red2);font-weight:600">&gt;25</span> risk-off · mouvements amples<br>' +
+          '<span style="color:var(--green);font-weight:600">&lt;16</span> risk-on · compression' +
+        '</div>' +
       '</div>' +
     '</div>' +
     '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.55">' +
-      interpretation +
+      '<b style="color:var(--acc2)">Lecture combinée :</b> DXY haut + VIX haut = forte pression baissière NQ. DXY bas + VIX bas = environnement favorable aux longs. Vérifie les valeurs dans le ticker en haut de page.' +
     '</div>';
 }
+
 
 function renderHome() {
   // Read trades directly from localStorage - most reliable source
