@@ -3291,24 +3291,41 @@ function openAddAccount(){
   document.getElementById('acc-status').value='challenge'; 
   document.getElementById('acc-drawdown').value=''; 
   document.getElementById('acc-drawdown-max').value=''; 
-  document.getElementById('acc-edit-idx').value=''; 
-  document.getElementById('acc-modal-title').textContent='Ajouter un compte';
+  var ei = document.getElementById('acc-edit-idx');
+  if(ei) ei.value = '';
+  var t = document.getElementById('acc-modal-title');
+  if(t) t.textContent = 'Ajouter un compte';
   openOv('add-account-ov'); 
 }
+window.openAddAccount = openAddAccount;
 
 function editAccount(i){
-  var accounts = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
-  var a = accounts[i];
-  if(!a) return;
-  document.getElementById('acc-firm').value = a.firm || '';
-  document.getElementById('acc-size').value = a.size || '';
-  document.getElementById('acc-status').value = a.status || 'challenge';
-  document.getElementById('acc-drawdown').value = a.drawdown != null ? a.drawdown : '';
-  document.getElementById('acc-drawdown-max').value = a.drawdownMax != null ? a.drawdownMax : '';
-  document.getElementById('acc-edit-idx').value = i;
-  document.getElementById('acc-modal-title').textContent = 'Modifier le compte';
-  openOv('add-account-ov');
+  console.log('editAccount called with index', i);
+  try {
+    var accounts = JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
+    var a = accounts[i];
+    if(!a) { alert('Compte introuvable a l\'index ' + i); return; }
+    var firm = document.getElementById('acc-firm');
+    var size = document.getElementById('acc-size');
+    var status = document.getElementById('acc-status');
+    var dd = document.getElementById('acc-drawdown');
+    var ddMax = document.getElementById('acc-drawdown-max');
+    var editIdx = document.getElementById('acc-edit-idx');
+    var title = document.getElementById('acc-modal-title');
+    if(!firm || !editIdx) { alert('Modal non trouve - rechargez la page'); return; }
+    firm.value = a.firm || '';
+    size.value = a.size || '';
+    status.value = a.status || 'challenge';
+    dd.value = a.drawdown != null ? a.drawdown : '';
+    ddMax.value = a.drawdownMax != null ? a.drawdownMax : '';
+    editIdx.value = i;
+    if(title) title.textContent = 'Modifier le compte';
+    openOv('add-account-ov');
+  } catch(e) {
+    alert('Erreur editAccount: ' + e.message);
+  }
 }
+window.editAccount = editAccount;
 function saveAccount(){
   var firm=document.getElementById('acc-firm').value.trim();
   var size=document.getElementById('acc-size').value.trim();
