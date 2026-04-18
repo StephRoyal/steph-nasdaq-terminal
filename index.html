@@ -285,9 +285,10 @@ canvas{display:block;width:100%}
 <div id="add-account-ov" class="ov" style="align-items:center;padding:20px">
   <div class="ov-box" style="max-width:400px;width:100%;max-height:85vh;overflow-y:auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <div style="font-size:16px;font-weight:800">Ajouter un compte</div>
+      <div id="acc-modal-title" style="font-size:16px;font-weight:800">Ajouter un compte</div>
       <button onclick="closeOv('add-account-ov')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3)">✕</button>
     </div>
+    <input type="hidden" id="acc-edit-idx" value="">
     <div class="fg"><label class="fl">Prop Firm</label><input type="text" id="acc-firm" class="fs" placeholder="ex: Topstep, Lucid, FTMO..."/></div>
     <div class="fg"><label class="fl">Taille du compte</label><input type="text" id="acc-size" class="fs" placeholder="ex: 50k, 100k..."/></div>
     <div class="fg"><label class="fl">Statut</label>
@@ -3331,7 +3332,8 @@ function saveAccount(){
   var size=document.getElementById('acc-size').value.trim();
   if(!firm){return;}
   var accounts=JSON.parse(localStorage.getItem('nqt-accounts')||'[]');
-  var editIdx = document.getElementById('acc-edit-idx').value;
+  var editIdxEl = document.getElementById('acc-edit-idx');
+  var editIdx = editIdxEl ? editIdxEl.value : '';
   var isEdit = editIdx !== '' && accounts[parseInt(editIdx)];
   var accData = {firm:firm,size:size,status:document.getElementById('acc-status').value,drawdown:parseFloat(document.getElementById('acc-drawdown').value)||null,drawdownMax:parseFloat(document.getElementById('acc-drawdown-max').value)||null};
   if(isEdit){
