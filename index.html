@@ -3422,12 +3422,15 @@ var _edgeSess = 'london'; // 'london' or 'ny'
 var _edgeOpen = null;
 
 function getEdgeSession() {
+  // Use local time (user's phone timezone)
   var now = new Date();
-  var utc = now.getUTCHours() + now.getUTCMinutes()/60;
-  var london = utc + 1;
-  if (london >= 6 && london < 12.5) return 'london';
-  if (london >= 13.5 || london < 2) return 'ny';
-  return 'london'; // default London
+  var h = now.getHours() + now.getMinutes()/60;
+  // Rules:
+  // 00:00-12:00 : London (morning prep + during London session)
+  // 12:00-21:00 : New York
+  // 21:00-24:00 : London (next day prep)
+  if (h >= 12 && h < 21) return 'ny';
+  return 'london';
 }
 
 function setEdgeDay(day, btn) {
@@ -4034,12 +4037,19 @@ function initEdge() {
   var day = today >= 1 && today <= 5 ? today : 1;
   _edgeSess = getEdgeSession();
   _edgeOpen = null;
-  var btns = document.querySelectorAll('.edge-day-btn');
-  if (btns[day - 1]) {
-    setEdgeDay(day, btns[day - 1]);
-  } else {
-    setEdgeDay(day, null);
+  _edgeDay = day;
+  // Retry finding buttons in case DOM not ready
+  var tries = 0;
+  function tryInit() {
+    var btns = document.querySelectorAll('.edge-day-btn');
+    if (btns && btns.length >= 5) {
+      setEdgeDay(day, btns[day - 1]);
+    } else if (tries < 10) {
+      tries++;
+      setTimeout(tryInit, 50);
+    }
   }
+  tryInit();
 }
 
 
