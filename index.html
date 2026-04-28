@@ -1153,6 +1153,77 @@ function renderList(){
 
 // ── CALENDAR ──────────────────────────────────────────────────────
 let calY=new Date().getFullYear(),calM=new Date().getMonth();
+
+// ═══════════════════════════════════════════════════════════
+// MAG 7 EARNINGS — Historical + upcoming earnings dates
+// Source: confirmed dates from company IR pages and analyst calendars
+// Format: { date: 'YYYY-MM-DD', tickers: ['XXX'], when: 'AMC'|'BMO' }
+// AMC = After Market Close (post-20h UK), BMO = Before Market Open
+// ═══════════════════════════════════════════════════════════
+const MAG7_EARNINGS = [
+  // ─── 2025 Q3 (Jul-Oct 2025 earnings)
+  { date: '2025-07-23', tickers: ['GOOGL','TSLA'], when: 'AMC' },
+  { date: '2025-07-30', tickers: ['MSFT','META'], when: 'AMC' },
+  { date: '2025-07-31', tickers: ['AAPL','AMZN'], when: 'AMC' },
+  { date: '2025-08-27', tickers: ['NVDA'], when: 'AMC' },
+  // ─── 2025 Q4 (Oct 2025 - Jan 2026 earnings)
+  { date: '2025-10-22', tickers: ['TSLA'], when: 'AMC' },
+  { date: '2025-10-29', tickers: ['GOOGL','MSFT','META'], when: 'AMC' },
+  { date: '2025-10-30', tickers: ['AAPL','AMZN'], when: 'AMC' },
+  { date: '2025-11-19', tickers: ['NVDA'], when: 'AMC' },
+  // ─── 2026 Q1 (Jan-Feb 2026 earnings)
+  { date: '2026-01-28', tickers: ['TSLA','MSFT'], when: 'AMC' },
+  { date: '2026-01-29', tickers: ['META'], when: 'AMC' },
+  { date: '2026-02-04', tickers: ['GOOGL','AMZN'], when: 'AMC' },
+  { date: '2026-02-05', tickers: ['AAPL'], when: 'AMC' },
+  { date: '2026-02-25', tickers: ['NVDA'], when: 'AMC' },
+  // ─── 2026 Q2 (Apr-May 2026 earnings)
+  { date: '2026-04-22', tickers: ['TSLA'], when: 'AMC' },
+  { date: '2026-04-29', tickers: ['META','MSFT'], when: 'AMC' },
+  { date: '2026-04-30', tickers: ['AAPL','AMZN','GOOGL'], when: 'AMC' },
+  { date: '2026-05-27', tickers: ['NVDA'], when: 'AMC' },
+  // ─── 2026 Q3 (Jul-Aug 2026 earnings, estimated)
+  { date: '2026-07-22', tickers: ['TSLA'], when: 'AMC' },
+  { date: '2026-07-29', tickers: ['META','MSFT'], when: 'AMC' },
+  { date: '2026-07-30', tickers: ['AAPL','AMZN','GOOGL'], when: 'AMC' },
+  { date: '2026-08-26', tickers: ['NVDA'], when: 'AMC' },
+  // ─── 2026 Q4 (Oct-Nov 2026 earnings, estimated)
+  { date: '2026-10-21', tickers: ['TSLA'], when: 'AMC' },
+  { date: '2026-10-28', tickers: ['META','MSFT'], when: 'AMC' },
+  { date: '2026-10-29', tickers: ['AAPL','AMZN','GOOGL'], when: 'AMC' },
+  { date: '2026-11-18', tickers: ['NVDA'], when: 'AMC' },
+];
+
+// Ticker to color mapping for visual tags
+const MAG7_COLORS = {
+  AAPL:  '#A2AAAD',  // Apple silver
+  MSFT:  '#00A4EF',  // Microsoft blue
+  GOOGL: '#EA4335',  // Google red
+  META:  '#1877F2',  // Meta blue
+  AMZN:  '#FF9900',  // Amazon orange
+  NVDA:  '#76B900',  // Nvidia green
+  TSLA:  '#E82127',  // Tesla red
+};
+
+// Helper: get earnings on a specific date
+function getMag7EarningsForDate(dateStr) {
+  return MAG7_EARNINGS.filter(e => e.date === dateStr);
+}
+
+// Helper: get all dates in current week that have earnings
+function getMag7EarningsForWeek(year, month, weekDates) {
+  const result = [];
+  weekDates.forEach(ds => {
+    const earnings = getMag7EarningsForDate(ds);
+    if (earnings.length > 0) {
+      earnings.forEach(e => {
+        e.tickers.forEach(t => result.push({ date: ds, ticker: t, when: e.when }));
+      });
+    }
+  });
+  return result;
+}
+
 function renderCalendar(){
   const el=document.getElementById('cal-wrap');
   if(!S.trades.length){el.innerHTML='<div class="empty">Ajoute des trades</div>';return;}
@@ -1188,6 +1259,99 @@ function renderCalendar(){
       <div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Perf par jour</div>
       <div style="display:flex;gap:6px">${Object.entries(dow).map(([,d])=>`<div style="flex:1;text-align:center;background:${d.n?d.pnl>=0?'rgba(34,197,94,.08)':'rgba(239,68,68,.08)':'var(--ink4)'};border-radius:7px;padding:6px 4px;border:1px solid var(--bdr2)"><div style="font-size:11px;font-weight:700;font-family:var(--mono);color:${d.n?fpc(d.pnl):'var(--text3)'}">${d.n?fp(d.pnl):'—'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${d.l}</div></div>`).join('')}</div>
     </div>
+    ${(()=>{
+      // Mag 7 earnings performance card
+      const earningsDates = MAG7_EARNINGS.map(e=>e.date);
+      const tradesOnEarnings = (S.trades||[]).filter(t=>earningsDates.includes(t.date));
+      const tradesNotOnEarnings = (S.trades||[]).filter(t=>!earningsDates.includes(t.date));
+      // Also include "earnings week" = same week as a Mag7 earning date
+      const earningsWeekSet = new Set();
+      earningsDates.forEach(ds=>{
+        const d = new Date(ds+'T00:00:00');
+        const dow = d.getDay() === 0 ? 6 : d.getDay() - 1;
+        const monday = new Date(d.getTime() - dow * 86400000);
+        for (let i=0; i<5; i++) {
+          earningsWeekSet.add(new Date(monday.getTime() + i*86400000).toISOString().slice(0,10));
+        }
+      });
+      const tradesEarningsWeek = (S.trades||[]).filter(t=>earningsWeekSet.has(t.date));
+      const tradesNormalWeek = (S.trades||[]).filter(t=>!earningsWeekSet.has(t.date));
+
+      const calc = (arr) => {
+        const w = arr.filter(t=>t.status==='Win').length;
+        const l = arr.filter(t=>t.status==='Loss').length;
+        const wr = (w+l)>0 ? Math.round((w/(w+l))*100) : 0;
+        const pnl = Math.round(arr.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0));
+        return { count: arr.length, wr, pnl };
+      };
+
+      const ewStats = calc(tradesEarningsWeek);
+      const nwStats = calc(tradesNormalWeek);
+
+      // Upcoming earnings in next 14 days
+      const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+      const upcoming = MAG7_EARNINGS.filter(e=>{
+        const ed = new Date(e.date+'T00:00:00');
+        const diff = (ed - todayDate) / 86400000;
+        return diff >= 0 && diff <= 21;
+      }).slice(0, 5);
+
+      let html = '<div class="card" style="margin-bottom:10px;padding:12px 14px">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+      html += '<div style="font-size:11px;color:var(--amber);font-weight:700;text-transform:uppercase;letter-spacing:.07em">📊 Earnings Mag 7</div>';
+      html += '<div style="font-size:9px;color:var(--text3);font-style:italic">Performance pendant les semaines d\'earnings</div>';
+      html += '</div>';
+
+      // Comparison cards
+      if (ewStats.count > 0 || nwStats.count > 0) {
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+        html += '<div style="background:rgba(252,211,77,.06);border:1px solid rgba(252,211,77,.18);border-radius:8px;padding:10px 12px">';
+        html += '<div style="font-size:9px;color:var(--amber);font-weight:700;letter-spacing:.08em;margin-bottom:4px">SEMAINES EARNINGS</div>';
+        html += '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:'+(ewStats.pnl>=0?'var(--green2)':'var(--red2)')+';white-space:nowrap">'+(ewStats.pnl>=0?'+':'')+'$'+fNum(Math.abs(ewStats.pnl))+'</div>';
+        html += '<div style="font-size:10px;color:var(--text3);margin-top:2px">'+ewStats.count+' trades · '+ewStats.wr+'% WR</div>';
+        html += '</div>';
+        html += '<div style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px">';
+        html += '<div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.08em;margin-bottom:4px">SEMAINES NORMALES</div>';
+        html += '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:'+(nwStats.pnl>=0?'var(--green2)':'var(--red2)')+';white-space:nowrap">'+(nwStats.pnl>=0?'+':'')+'$'+fNum(Math.abs(nwStats.pnl))+'</div>';
+        html += '<div style="font-size:10px;color:var(--text3);margin-top:2px">'+nwStats.count+' trades · '+nwStats.wr+'% WR</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // Insight
+        if (ewStats.count >= 3 && nwStats.count >= 3) {
+          const wrDiff = ewStats.wr - nwStats.wr;
+          let insight = '';
+          if (Math.abs(wrDiff) < 8) {
+            insight = 'Pas d\'écart notable entre semaines earnings et normales. Ta stratégie est robuste face à la volatilité tech.';
+          } else if (wrDiff < 0) {
+            insight = 'Tu performes <b>'+Math.abs(wrDiff)+' pts moins bien</b> en semaine earnings Mag 7. La volatilité gamma perturbe peut-être ton setup — envisage de réduire la taille ou de filtrer ces jours.';
+          } else {
+            insight = 'Tu performes <b>'+wrDiff+' pts mieux</b> en semaine earnings Mag 7. La volatilité technique te convient.';
+          }
+          html += '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:10px">'+insight+'</div>';
+        }
+      }
+
+      // Upcoming earnings
+      if (upcoming.length > 0) {
+        html += '<div style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">PROCHAINES PUBLICATIONS (21 JOURS)</div>';
+        upcoming.forEach(e => {
+          const ed = new Date(e.date+'T00:00:00');
+          const days = Math.round((ed - todayDate) / 86400000);
+          const dayLabel = days === 0 ? 'Aujourd\'hui' : days === 1 ? 'Demain' : 'Dans '+days+'j';
+          const dateLabel = ed.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' });
+          html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bdr2);font-size:11px">';
+          html += '<div style="display:flex;gap:3px;flex-shrink:0">'+e.tickers.map(t=>'<div style="width:8px;height:8px;border-radius:50%;background:'+(MAG7_COLORS[t]||'#888')+'"></div>').join('')+'</div>';
+          html += '<div style="font-weight:600;color:var(--text);flex:1">'+e.tickers.join(' · ')+'</div>';
+          html += '<div style="color:var(--text3);font-size:10px">'+dateLabel+'</div>';
+          html += '<div style="color:var(--amber);font-size:10px;font-weight:700;min-width:60px;text-align:right">'+dayLabel+'</div>';
+          html += '</div>';
+        });
+      }
+
+      html += '</div>';
+      return html;
+    })()}
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--bdr2)">
         <button onclick="calPrev()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 6px">‹</button>
@@ -1223,9 +1387,16 @@ function renderCalGrid(byDate,todayStr){
     const dd=byDate[ds];
     const isTod=ds===todayStr;
     const cls=dd?(dd.pnl>=0?'pos':'neg'):'';
-    h+=`<div class="cal-day ${cls} ${isTod?'today':''}" onclick="${dd?`showDayTrades('${ds}')`:''}" style="${dd?'cursor:pointer':''}">
+    const earnings = getMag7EarningsForDate(ds);
+    const hasEarnings = earnings.length > 0;
+    const allTickers = hasEarnings ? earnings.flatMap(e => e.tickers) : [];
+    const earningsDots = allTickers.length > 0 ? `<div style="display:flex;gap:2px;justify-content:center;margin-top:1px;flex-wrap:wrap">${allTickers.map(t => `<div title="${t} earnings" style="width:5px;height:5px;border-radius:50%;background:${MAG7_COLORS[t]||'#888'};box-shadow:0 0 3px ${MAG7_COLORS[t]||'#888'}"></div>`).join('')}</div>` : '';
+    const clickable = dd || hasEarnings;
+    const onclickHandler = dd ? `showDayTrades('${ds}')` : (hasEarnings ? `showDayEarnings('${ds}')` : '');
+    h+=`<div class="cal-day ${cls} ${isTod?'today':''}${hasEarnings?' has-earnings':''}" onclick="${onclickHandler}" style="${clickable?'cursor:pointer':''}${hasEarnings?';border-top:2px solid #FCD34D':''}">
       <div style="font-size:10px;font-weight:${isTod?700:500};color:${isTod?'var(--acc2)':'var(--text3)'}">${d}</div>
       ${dd?`<div style="font-size:10px;font-weight:700;font-family:var(--mono);color:${fpc(dd.pnl)};margin-top:1px">${fp(dd.pnl)}</div><div style="font-size:9px;color:var(--text3)">${dd.n}t</div>`:''}
+      ${earningsDots}
     </div>`;
     cellsInRow++;
     if(dd) weekPnl += dd.pnl;
@@ -1257,6 +1428,55 @@ function renderCalGrid(byDate,todayStr){
 }
 function calPrev(){calM--;if(calM<0){calM=11;calY--;}const b={};S.trades.forEach(t=>{if(!b[t.date])b[t.date]={pnl:0,n:0};b[t.date].pnl+=parseFloat(t.pnl)||0;b[t.date].n++;});renderCalGrid(b,tod());}
 function calNext(){calM++;if(calM>11){calM=0;calY++;}const b={};S.trades.forEach(t=>{if(!b[t.date])b[t.date]={pnl:0,n:0};b[t.date].pnl+=parseFloat(t.pnl)||0;b[t.date].n++;});renderCalGrid(b,tod());}
+
+function showDayEarnings(dateStr){
+  const earnings = getMag7EarningsForDate(dateStr);
+  if (!earnings.length) return;
+  const d = new Date(dateStr + 'T00:00:00');
+  const dateLabel = d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const allTickers = earnings.flatMap(e => e.tickers.map(t => ({ ticker: t, when: e.when })));
+
+  const tickerNames = {
+    AAPL: 'Apple', MSFT: 'Microsoft', GOOGL: 'Alphabet',
+    META: 'Meta', AMZN: 'Amazon', NVDA: 'Nvidia', TSLA: 'Tesla'
+  };
+
+  let html = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px">';
+  html += '<div><div style="font-size:11px;color:var(--amber);font-weight:700;letter-spacing:.1em">📊 EARNINGS MAG 7</div>';
+  html += '<div style="font-size:14px;font-weight:700;color:var(--text);margin-top:4px;text-transform:capitalize">' + dateLabel + '</div></div>';
+  html += '<button onclick="closeOv(\'day-trades-ov\')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);flex-shrink:0">✕</button></div>';
+
+  html += '<div style="background:var(--ink3);border-radius:10px;padding:12px;margin-bottom:14px">';
+  html += '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-weight:700">Sociétés qui publient</div>';
+  allTickers.forEach(({ ticker, when }) => {
+    const color = MAG7_COLORS[ticker] || '#888';
+    const whenLabel = when === 'AMC' ? 'Après clôture US (≈ 21h-22h UK)' : 'Avant ouverture US (≈ 13h UK)';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr2)">';
+    html += '<div style="width:10px;height:10px;border-radius:50%;background:' + color + ';box-shadow:0 0 6px ' + color + ';flex-shrink:0"></div>';
+    html += '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">' + ticker + ' · ' + (tickerNames[ticker]||ticker) + '</div>';
+    html += '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + whenLabel + '</div></div></div>';
+  });
+  html += '</div>';
+
+  html += '<div style="background:rgba(252,211,77,.06);border:1px solid rgba(252,211,77,.18);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.55">';
+  html += '<b style="color:var(--amber)">⚠️ Implications NQ :</b> Les earnings AMC tombent après ta session NY. Mais l\'attente toute la journée crée souvent une compression de volatilité avant 20h, suivie d\'un gap potentiel le lendemain à l\'ouverture. Sur des days avec multi-earnings (NVDA, META+MSFT, AAPL+AMZN), le marché peut être en mode défensif toute la journée.';
+  html += '</div>';
+
+  // Check if user has trades on this date
+  const dayTrades = (S.trades||[]).filter(t => t.date === dateStr);
+  if (dayTrades.length > 0) {
+    const dayPnl = dayTrades.reduce((s,t) => s+(parseFloat(t.pnl)||0), 0);
+    html += '<div style="margin-top:14px;padding:10px;background:var(--ink3);border-radius:10px;border-left:3px solid ' + (dayPnl>=0?'var(--green2)':'var(--red2)') + '">';
+    html += '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:700;letter-spacing:.08em;margin-bottom:4px">Tes trades ce jour</div>';
+    html += '<div style="font-size:14px;font-weight:700;font-family:var(--mono);color:' + (dayPnl>=0?'var(--green2)':'var(--red2)') + '">' + (dayPnl>=0?'+':'') + '$' + fNum(Math.abs(dayPnl)) + ' · ' + dayTrades.length + ' trade' + (dayTrades.length>1?'s':'') + '</div>';
+    html += '<button onclick="showDayTrades(\'' + dateStr + '\')" style="margin-top:8px;padding:6px 12px;border-radius:6px;border:1px solid var(--bdr2);background:var(--ink4);color:var(--text2);font-size:11px;cursor:pointer">Voir les trades →</button>';
+    html += '</div>';
+  }
+
+  document.getElementById('day-trades-content').innerHTML = html;
+  openOv('day-trades-ov');
+}
+
 function showDayTrades(date){
   const dayTr=S.trades.filter(t=>t.date===date);if(!dayTr.length)return;
   const tot=dayTr.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
