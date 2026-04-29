@@ -235,6 +235,12 @@ canvas{display:block;width:100%}
     <div id="home-scenario-box"></div>
   </div>
 
+  <!-- PSYCH STATE: drawdown tracker / streak tracker -->
+  <div id="home-psych-box" style="margin-bottom:16px;display:none"></div>
+
+  <!-- MACRO REGIME -->
+  <div id="home-macro-box" style="margin-bottom:16px;display:none"></div>
+
   <!-- FUNDED ACCOUNTS -->
   <div style="margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -304,6 +310,83 @@ canvas{display:block;width:100%}
   </div>
 </div>
 
+<!-- DAY TRADES / EARNINGS / TRADE OUTCOME modal (shared) -->
+<div id="day-trades-ov" class="ov" style="align-items:flex-start;padding:20px;padding-top:60px">
+  <div class="ov-box" style="max-width:480px;width:100%;max-height:80vh;overflow-y:auto">
+    <div id="day-trades-content"></div>
+  </div>
+</div>
+
+<!-- CUSTOM RULE modal -->
+<div id="custom-rule-ov" class="ov" style="align-items:center;padding:20px">
+  <div class="ov-box" style="max-width:420px;width:100%;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800">Nouvelle règle custom</div>
+      <button onclick="closeOv('custom-rule-ov')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">Combine plusieurs filtres pour créer ta règle. Laisse "tous" si tu ne veux pas filtrer sur un critère.</div>
+    <div class="fg"><label class="fl">Nom de la règle</label><input type="text" id="cr-name" class="fs" placeholder="ex: Shorts NY mardi"/></div>
+    <div class="fg"><label class="fl">Session</label>
+      <select id="cr-session" class="fs">
+        <option value="any">Toutes les sessions</option>
+        <option value="London">London uniquement</option>
+        <option value="New York">New York uniquement</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Direction</label>
+      <select id="cr-direction" class="fs">
+        <option value="any">Long et Short</option>
+        <option value="Long">Long uniquement</option>
+        <option value="Short">Short uniquement</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Jour de la semaine</label>
+      <select id="cr-dow" class="fs">
+        <option value="any">Tous les jours</option>
+        <option value="mon">Lundi</option>
+        <option value="tue">Mardi</option>
+        <option value="wed">Mercredi</option>
+        <option value="thu">Jeudi</option>
+        <option value="fri">Vendredi</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Discipline minimum (%)</label><input type="number" id="cr-mindisc" class="fs" placeholder="ex: 80 — laisse vide pour ignorer" min="0" max="100"/></div>
+    <div class="fg"><label class="fl">Respect des stats Edgeful</label>
+      <select id="cr-stat" class="fs">
+        <option value="any">Tous</option>
+        <option value="with">Avec les stats</option>
+        <option value="against">Contre les stats</option>
+      </select>
+    </div>
+    <button onclick="saveCustomRule()" class="btn ba bs" style="width:100%;margin-top:8px">Enregistrer la règle</button>
+  </div>
+</div>
+
+<!-- WEEKLY REVIEW modal -->
+<div id="weekly-review-ov" class="ov" style="align-items:flex-start;padding:20px;padding-top:40px">
+  <div class="ov-box" style="max-width:480px;width:100%;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div id="wr-modal-title" style="font-size:15px;font-weight:800">Revue de la semaine</div>
+      <button onclick="closeOv('weekly-review-ov')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)">✕</button>
+    </div>
+    <input type="hidden" id="wr-week-key" value="">
+    <div class="fg">
+      <label class="fl">🏆 Quel a été ton meilleur trade et pourquoi ?</label>
+      <textarea id="wr-best" class="fta" placeholder="Le setup qui a marché, ce qui était bien lu, l\'exécution..." style="min-height:80px"></textarea>
+    </div>
+    <div class="fg">
+      <label class="fl">📉 Quel a été ton pire trade et qu\'aurais-tu dû faire différemment ?</label>
+      <textarea id="wr-worst" class="fta" placeholder="L\'erreur, le contexte qui aurait dû t\'alerter, la règle non respectée..." style="min-height:80px"></textarea>
+    </div>
+    <div class="fg">
+      <label class="fl">🎯 Quelle règle vas-tu mieux respecter cette semaine ?</label>
+      <textarea id="wr-rule" class="fta" placeholder="Pas plus de 2 trades, pas de long London avant 8h30, attendre confirmation..." style="min-height:80px"></textarea>
+    </div>
+    <button onclick="saveWeeklyReview()" class="btn ba bs" style="width:100%;margin-top:8px">Enregistrer ma revue</button>
+  </div>
+</div>
+
+
 <!-- ADD PAYOUT OVERLAY -->
 <div id="add-payout-ov" class="ov" style="align-items:center;padding:20px">
   <div class="ov-box" style="max-width:400px;width:100%;max-height:85vh;overflow-y:auto">
@@ -365,9 +448,9 @@ canvas{display:block;width:100%}
   <div class="seg-grid">
     <button class="sgb on" onclick="showTab('stats',this)">Stats</button>
     <button class="sgb" onclick="showTab('calendar',this)">📅 Calendrier</button>
-    <button class="sgb" onclick="showTab('revue',this);renderRevue()">📝 Revue</button>
+    <button class="sgb" onclick="showTab('revue',this);renderRevue();renderWeeklyReview()">📝 Revue</button>
     <button class="sgb" onclick="showTab('goals',this);renderGoals()">🎯 Objectifs</button>
-    <button class="sgb" onclick="showTab('backtest',this);renderBacktest()">🔬 Backtest</button>
+    <button class="sgb" onclick="showTab('backtest',this);renderBacktest();renderCustomBacktest()">🔬 Backtest</button>
     <button class="sgb" onclick="showTab('news',this);renderNewsCorr()">📰 News</button>
     <button class="sgb" onclick="showTab('list',this)">Historique</button>
     <button class="sgb" onclick="showTab('csv',this)">CSV</button>
@@ -388,6 +471,12 @@ canvas{display:block;width:100%}
       <div class="card"><div id="strat-list"></div></div>
       <div class="sl">📊 Long vs Short</div>
       <div class="card" id="longshort-card" style="padding:14px 16px;margin-bottom:12px"></div>
+      <div class="sl">🔀 Session × Direction</div>
+      <div class="card" id="sessdir-card" style="padding:14px 16px;margin-bottom:12px"></div>
+      <div class="sl">🎯 Marché m'a-t-il donné raison ?</div>
+      <div class="card" id="rightlater-card" style="padding:14px 16px;margin-bottom:12px"></div>
+      <div class="sl">⭐ Best Version of You</div>
+      <div class="card" id="best-version-card" style="padding:14px 16px;margin-bottom:12px"></div>
       <div class="sl">📅 Win % par Jour</div>
       <div class="card" id="winday-card" style="padding:14px 16px;margin-bottom:12px"></div>
       <div class="sl">📊 Streak & Sessions</div>
@@ -1097,7 +1186,7 @@ function renderStats(){
     const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,col+'30');g.addColorStop(1,col+'00');
     ctx.beginPath();ctx.moveTo(0,zy);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(W,zy);ctx.closePath();ctx.fillStyle=g;ctx.fill();}
   const byS={};tr.forEach(t=>{if(!byS[t.strategy])byS[t.strategy]={w:0,n:0,pnl:0};byS[t.strategy].n++;if(t.status==='Win')byS[t.strategy].w++;byS[t.strategy].pnl+=parseFloat(t.pnl)||0;});
-  renderRecap(); renderRMetrics(); renderRPotential(); renderLongShort(); renderWinByDay(); renderBestHour(); renderStratWinRate(); if(document.getElementById('pg-home')&&document.getElementById('pg-home').style.display!=='none'){setTimeout(renderHome,50);} document.getElementById('strat-list').innerHTML=Object.entries(byS).sort((a,b)=>b[1].pnl-a[1].pnl).map(([s,d])=>`<div class="row"><div><div style="font-size:13px;font-weight:600">${s}</div><div style="font-size:11px;color:var(--text3)">${d.w}/${d.n} · ${(d.w/d.n*100).toFixed(0)}% WR</div></div><div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${fpc(d.pnl)}">${fp(d.pnl)}</div></div>`).join('');
+  renderRecap(); renderRMetrics(); renderRPotential(); renderLongShort(); renderSessDir(); renderRightLater(); renderBestVersion(); renderWinByDay(); renderBestHour(); renderStratWinRate(); if(document.getElementById('pg-home')&&document.getElementById('pg-home').style.display!=='none'){setTimeout(renderHome,50);} document.getElementById('strat-list').innerHTML=Object.entries(byS).sort((a,b)=>b[1].pnl-a[1].pnl).map(([s,d])=>`<div class="row"><div><div style="font-size:13px;font-weight:600">${s}</div><div style="font-size:11px;color:var(--text3)">${d.w}/${d.n} · ${(d.w/d.n*100).toFixed(0)}% WR</div></div><div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${fpc(d.pnl)}">${fp(d.pnl)}</div></div>`).join('');
   // Discipline breakdown
   const DISC_RULE_NAMES = {plan:'Plan respecté',sl:'SL respecté',size:'Size correcte',setup:'Setup valide',emotion:'Pas d’émotion',revenge:'Pas revenge'};
   const DISC_RULES = ['plan','sl','size','setup','emotion','revenge'];
@@ -1130,6 +1219,254 @@ function renderStats(){
   if (discSection) discSection.innerHTML = discHtml;
 }
 
+
+
+// ═══════════════════════════════════════════════════════════
+// SESSION × DIRECTION BREAKDOWN
+// ═══════════════════════════════════════════════════════════
+function renderSessDir() {
+  const el = document.getElementById('sessdir-card');
+  if (!el) return;
+  const trades = S.trades || [];
+  if (trades.length < 4) {
+    el.innerHTML = '<div style="text-align:center;padding:8px 0;color:var(--text3);font-size:12px;font-style:italic">4+ trades requis pour cette analyse</div>';
+    return;
+  }
+
+  function calc(arr) {
+    const w = arr.filter(t => t.status === 'Win').length;
+    const l = arr.filter(t => t.status === 'Loss').length;
+    const wr = (w + l) > 0 ? Math.round((w / (w + l)) * 100) : 0;
+    const pnl = Math.round(arr.reduce((s, t) => s + (parseFloat(t.pnl) || 0), 0));
+    return { count: arr.length, w, l, wr, pnl };
+  }
+
+  const lonLong  = calc(trades.filter(t => t.session === 'London'   && t.direction === 'Long'));
+  const lonShort = calc(trades.filter(t => t.session === 'London'   && t.direction === 'Short'));
+  const nyLong   = calc(trades.filter(t => t.session === 'New York' && t.direction === 'Long'));
+  const nyShort  = calc(trades.filter(t => t.session === 'New York' && t.direction === 'Short'));
+
+  function cell(label, s, color) {
+    if (s.count === 0) {
+      return '<div style="background:var(--ink4);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--bdr2)"><div style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.08em;margin-bottom:4px">'+label+'</div><div style="font-size:11px;color:var(--text3);font-style:italic">Aucun trade</div></div>';
+    }
+    const wrCol = s.wr >= 65 ? 'var(--green2)' : s.wr >= 50 ? 'var(--acc2)' : 'var(--red2)';
+    const pnlCol = s.pnl >= 0 ? 'var(--green2)' : 'var(--red2)';
+    return '<div style="background:var(--ink3);border-radius:8px;padding:10px;border:1px solid var(--bdr2)">' +
+      '<div style="font-size:9px;color:'+color+';font-weight:700;letter-spacing:.08em;margin-bottom:6px">'+label+'</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">' +
+        '<span style="font-family:var(--mono);font-size:18px;font-weight:700;color:'+wrCol+'">'+s.wr+'%</span>' +
+        '<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+pnlCol+';white-space:nowrap">'+(s.pnl>=0?'+':'')+'$'+fNum(Math.abs(s.pnl))+'</span>' +
+      '</div>' +
+      '<div style="font-size:10px;color:var(--text3)">'+s.count+' trades · '+s.w+'W·'+s.l+'L</div>' +
+    '</div>';
+  }
+
+  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
+    cell('🇬🇧 LONDON · LONG',  lonLong,  'var(--acc2)') +
+    cell('🇬🇧 LONDON · SHORT', lonShort, 'var(--acc2)') +
+    cell('🇺🇸 NY · LONG',      nyLong,   'var(--green2)') +
+    cell('🇺🇸 NY · SHORT',     nyShort,  'var(--green2)') +
+  '</div>';
+
+  // Auto insight
+  const buckets = [
+    { label: 'London Long',  s: lonLong },
+    { label: 'London Short', s: lonShort },
+    { label: 'NY Long',      s: nyLong },
+    { label: 'NY Short',     s: nyShort },
+  ].filter(b => b.s.count >= 3);
+
+  if (buckets.length >= 2) {
+    const best  = [...buckets].sort((a,b) => b.s.wr - a.s.wr)[0];
+    const worst = [...buckets].sort((a,b) => a.s.wr - b.s.wr)[0];
+    const diff  = best.s.wr - worst.s.wr;
+    const bestPnlPerTrade  = best.s.pnl  / best.s.count;
+    const worstPnlPerTrade = worst.s.pnl / worst.s.count;
+
+    let insight;
+    if (diff >= 15) {
+      insight = 'Ton meilleur combo est <b>' + best.label + '</b> à ' + best.s.wr + '% WR (' + (bestPnlPerTrade>=0?'+':'') + '$' + fNum(Math.abs(Math.round(bestPnlPerTrade))) + '/trade). Ton plus faible est <b>' + worst.label + '</b> à ' + worst.s.wr + '% WR (' + (worstPnlPerTrade>=0?'+':'') + '$' + fNum(Math.abs(Math.round(worstPnlPerTrade))) + '/trade). Écart de ' + diff + ' pts — privilégie ' + best.label + ' et reconsidère ' + worst.label + '.';
+    } else if (diff >= 8) {
+      insight = '<b>' + best.label + '</b> légèrement devant à ' + best.s.wr + '% WR vs <b>' + worst.label + '</b> à ' + worst.s.wr + '%. Écart modéré (' + diff + ' pts), continue à monitorer.';
+    } else {
+      insight = 'Performance équilibrée entre les 4 combos session × direction. Pas de biais clair à exploiter.';
+    }
+
+    html += '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:var(--text2);line-height:1.5">' + insight + '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// "MARCHÉ M'A-T-IL DONNÉ RAISON ?" — TP retour sur Loss
+// ═══════════════════════════════════════════════════════════
+function renderRightLater() {
+  const el = document.getElementById('rightlater-card');
+  if (!el) return;
+  const losses = (S.trades || []).filter(t => t.status === 'Loss');
+  const reviewed = losses.filter(t => t.tpAfterSL !== undefined && t.tpAfterSL !== null && t.tpAfterSL !== '');
+
+  if (losses.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:8px 0;color:var(--text3);font-size:12px;font-style:italic">Pas de trades perdants dans l\'historique</div>';
+    return;
+  }
+
+  let html = '<div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Pour chaque Loss, indique si le marché a quand même touché ton TP <b>dans la même session</b>. Va dans <b>Historique</b> et clique sur ✏️ pour éditer.</div>';
+
+  if (reviewed.length === 0) {
+    html += '<div style="background:var(--ink3);border-radius:8px;padding:14px;text-align:center">' +
+      '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text)">' + losses.length + '</div>' +
+      '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Loss à analyser</div>' +
+    '</div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  // Counts
+  const wouldHaveWin = reviewed.filter(t => t.tpAfterSL === 'yes').length;
+  const continuedAgainst = reviewed.filter(t => t.tpAfterSL === 'no').length;
+  const pct = reviewed.length > 0 ? Math.round((wouldHaveWin / reviewed.length) * 100) : 0;
+
+  // Avg minutes when TP was hit
+  const minutesArr = reviewed
+    .filter(t => t.tpAfterSL === 'yes' && t.tpMinutesAfter)
+    .map(t => parseInt(t.tpMinutesAfter, 10))
+    .filter(n => !isNaN(n));
+  const avgMinutes = minutesArr.length > 0 ? Math.round(minutesArr.reduce((s,n)=>s+n,0) / minutesArr.length) : null;
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">' +
+    '<div style="background:rgba(252,211,77,.06);border:1px solid rgba(252,211,77,.18);border-radius:8px;padding:10px 12px">' +
+      '<div style="font-size:9px;color:var(--amber);font-weight:700;letter-spacing:.08em;margin-bottom:4px">TP TOUCHÉ APRÈS SL</div>' +
+      '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--amber)">' + wouldHaveWin + '/' + reviewed.length + '</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + pct + '% des cas' + (avgMinutes ? ' · ⌀ ' + avgMinutes + 'min après' : '') + '</div>' +
+    '</div>' +
+    '<div style="background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.15);border-radius:8px;padding:10px 12px">' +
+      '<div style="font-size:9px;color:var(--red2);font-weight:700;letter-spacing:.08em;margin-bottom:4px">CONTINUÉ CONTRE TOI</div>' +
+      '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--red2)">' + continuedAgainst + '/' + reviewed.length + '</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + (100 - pct) + '% des cas</div>' +
+    '</div>' +
+  '</div>';
+
+  // Insight
+  let insight;
+  if (reviewed.length < 5) {
+    insight = 'Échantillon trop petit (' + reviewed.length + ' Loss analysés). Continue à tagger pour avoir une vraie tendance.';
+  } else if (pct >= 65) {
+    insight = '⚠️ Le marché te donne raison ' + pct + '% du temps après ton SL. Ton problème n\'est pas la lecture directionnelle mais le <b>timing d\'entrée</b> ou le <b>placement du stop</b>. Envisage d\'attendre une confirmation supplémentaire (pullback, niveau testé) ou d\'élargir légèrement ton stop.';
+  } else if (pct >= 45) {
+    insight = 'Le marché touche ton TP ' + pct + '% du temps après SL. C\'est mitigé — il y a une part de timing et une part de mauvaise lecture. Analyse les 3 derniers cas où le marché a continué contre toi pour identifier le pattern.';
+  } else {
+    insight = 'Le marché continue contre toi ' + (100 - pct) + '% du temps après SL. Ton stop est correct — c\'est ta <b>lecture directionnelle</b> qui doit s\'améliorer. Travaille les confluences avant d\'entrer.';
+  }
+
+  html += '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:8px">' + insight + '</div>';
+
+  // Pending count
+  const pending = losses.length - reviewed.length;
+  if (pending > 0) {
+    html += '<div style="font-size:10px;color:var(--text3);text-align:center;font-style:italic">' + pending + ' Loss à tagger dans l\'historique</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// EDIT TRADE OUTCOME — popup to set tpAfterSL on a Loss
+// ═══════════════════════════════════════════════════════════
+function editTradeOutcome(tradeId) {
+  const t = (S.trades || []).find(x => x.id === tradeId);
+  if (!t) return;
+  if (t.status !== 'Loss') {
+    alert('Cette action n\'est disponible que pour les Loss.');
+    return;
+  }
+
+  const dateLabel = new Date(t.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' });
+  const currentValue = t.tpAfterSL || '';
+  const currentMinutes = t.tpMinutesAfter || '';
+
+  let html = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px">';
+  html += '<div><div style="font-size:11px;color:var(--amber);font-weight:700;letter-spacing:.1em">🎯 ANALYSE DU LOSS</div>';
+  html += '<div style="font-size:14px;font-weight:700;color:var(--text);margin-top:4px">' + t.session + ' · ' + t.direction + ' · ' + dateLabel + '</div></div>';
+  html += '<button onclick="closeOv(\'day-trades-ov\')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3);flex-shrink:0">✕</button></div>';
+
+  html += '<div style="background:var(--ink3);border-radius:10px;padding:12px;margin-bottom:12px">';
+  html += '<div style="font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:10px">Après ton SL, le marché a-t-il <b>touché ton TP dans la même session</b> ?</div>';
+  html += '<div style="display:flex;gap:6px;margin-bottom:10px">';
+  html += '<button onclick="setTpAfterSL(\'' + tradeId + '\',\'yes\')" id="tp-yes-btn" style="flex:1;padding:10px;border-radius:8px;border:1px solid ' + (currentValue === 'yes' ? 'rgba(252,211,77,.4)' : 'var(--bdr2)') + ';background:' + (currentValue === 'yes' ? 'rgba(252,211,77,.12)' : 'var(--ink4)') + ';color:' + (currentValue === 'yes' ? 'var(--amber)' : 'var(--text2)') + ';font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer">OUI · TP TOUCHÉ</button>';
+  html += '<button onclick="setTpAfterSL(\'' + tradeId + '\',\'no\')" id="tp-no-btn" style="flex:1;padding:10px;border-radius:8px;border:1px solid ' + (currentValue === 'no' ? 'rgba(239,68,68,.3)' : 'var(--bdr2)') + ';background:' + (currentValue === 'no' ? 'rgba(239,68,68,.08)' : 'var(--ink4)') + ';color:' + (currentValue === 'no' ? 'var(--red2)' : 'var(--text2)') + ';font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;cursor:pointer">NON · CONTINUÉ CONTRE</button>';
+  html += '</div>';
+
+  html += '<div id="tp-minutes-wrap" style="display:' + (currentValue === 'yes' ? 'block' : 'none') + ';margin-top:10px">';
+  html += '<div style="font-size:11px;color:var(--text2);margin-bottom:5px">Combien de minutes après le SL le TP a-t-il été touché ?</div>';
+  html += '<input type="number" id="tp-minutes-input" value="' + currentMinutes + '" placeholder="ex: 25" min="1" max="480" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--bdr2);background:var(--ink4);color:var(--text);font-family:var(--mono);font-size:13px"/>';
+  html += '<div style="font-size:10px;color:var(--text3);margin-top:5px;font-style:italic">Reste dans la même session — si TP touché à NY après SL London, ça ne compte pas.</div>';
+  html += '</div>';
+
+  html += '</div>';
+
+  html += '<button onclick="saveTradeOutcome(\'' + tradeId + '\')" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--acc);color:#fff;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">Enregistrer</button>';
+
+  document.getElementById('day-trades-content').innerHTML = html;
+  openOv('day-trades-ov');
+}
+
+function setTpAfterSL(tradeId, val) {
+  // Update UI buttons
+  const yesBtn = document.getElementById('tp-yes-btn');
+  const noBtn = document.getElementById('tp-no-btn');
+  const minutesWrap = document.getElementById('tp-minutes-wrap');
+  if (val === 'yes') {
+    yesBtn.style.borderColor = 'rgba(252,211,77,.4)';
+    yesBtn.style.background = 'rgba(252,211,77,.12)';
+    yesBtn.style.color = 'var(--amber)';
+    noBtn.style.borderColor = 'var(--bdr2)';
+    noBtn.style.background = 'var(--ink4)';
+    noBtn.style.color = 'var(--text2)';
+    if (minutesWrap) minutesWrap.style.display = 'block';
+  } else {
+    noBtn.style.borderColor = 'rgba(239,68,68,.3)';
+    noBtn.style.background = 'rgba(239,68,68,.08)';
+    noBtn.style.color = 'var(--red2)';
+    yesBtn.style.borderColor = 'var(--bdr2)';
+    yesBtn.style.background = 'var(--ink4)';
+    yesBtn.style.color = 'var(--text2)';
+    if (minutesWrap) minutesWrap.style.display = 'none';
+  }
+  // Store temporarily
+  window._pendingTpAfterSL = val;
+}
+
+function saveTradeOutcome(tradeId) {
+  const t = (S.trades || []).find(x => x.id === tradeId);
+  if (!t) return;
+  const val = window._pendingTpAfterSL || t.tpAfterSL;
+  if (!val) {
+    alert('Sélectionne d\'abord OUI ou NON.');
+    return;
+  }
+  t.tpAfterSL = val;
+  if (val === 'yes') {
+    const mins = document.getElementById('tp-minutes-input');
+    if (mins && mins.value) t.tpMinutesAfter = parseInt(mins.value, 10);
+  } else {
+    delete t.tpMinutesAfter;
+  }
+  save();
+  delete window._pendingTpAfterSL;
+  closeOv('day-trades-ov');
+  // Refresh UI
+  if (typeof renderList === 'function') renderList();
+  if (typeof renderRightLater === 'function') renderRightLater();
+}
+
+window.editTradeOutcome = editTradeOutcome;
+window.setTpAfterSL = setTpAfterSL;
+window.saveTradeOutcome = saveTradeOutcome;
+
+
 // ── TRADE LIST ────────────────────────────────────────────────────
 function renderList(){
   const sorted=[...S.trades].sort((a,b)=>b.ts-a.ts);
@@ -1143,13 +1480,739 @@ function renderList(){
       <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.date} · ${t.session}</div>
       <div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px">${t.strategy}</div></div>
       <div style="text-align:right"><div style="font-size:17px;font-weight:700;font-family:var(--mono);color:${fpc(pnl)}">${t.pnl?fp(pnl):'—'}</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.rr||'—'}</div>      <div style="display:flex;gap:8px;margin-top:3px;align-items:center">
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">${t.rr||'—'}</div>      <div style="display:flex;gap:6px;margin-top:3px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
           <span style="font-size:10px;color:var(--acc2)">Détail →</span>
+          ${t.status==='Loss'?`<button onclick="event.stopPropagation();editTradeOutcome('${t.id}')" title="Marché t'a-t-il donné raison ?" style="font-size:10px;background:${t.tpAfterSL?'rgba(252,211,77,.12)':'var(--ink4)'};border:1px solid ${t.tpAfterSL?'rgba(252,211,77,.3)':'var(--border)'};border-radius:6px;color:${t.tpAfterSL?'var(--amber)':'var(--text3)'};padding:2px 7px;cursor:pointer;font-family:var(--font)">🎯${t.tpAfterSL==='yes'?' OUI':t.tpAfterSL==='no'?' NON':''}</button>`:''}
           <button onclick="event.stopPropagation();openEdit('${t.id}')" style="font-size:10px;background:var(--ink4);border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:2px 7px;cursor:pointer;font-family:var(--font)">✏️</button>
         </div></div>
     </div>`;
   }).join('');
 }
+
+
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: PSYCH STATE TRACKER
+// Detects current emotional state based on recent trade outcomes
+// Shows drawdown context or win-streak warning on Home
+// ═══════════════════════════════════════════════════════════
+function renderPsychState() {
+  var el = document.getElementById('home-psych-box');
+  if (!el) return;
+
+  var trades = (S.trades || []).slice().sort(function(a,b){return b.ts - a.ts;});
+  if (trades.length < 5) { el.style.display = 'none'; return; }
+
+  // Check current streak (consecutive wins or losses)
+  var streak = 0;
+  var streakType = null;
+  for (var i = 0; i < trades.length; i++) {
+    var t = trades[i];
+    if (t.status === 'Win') {
+      if (streakType === null) { streakType = 'win'; streak = 1; }
+      else if (streakType === 'win') streak++;
+      else break;
+    } else if (t.status === 'Loss') {
+      if (streakType === null) { streakType = 'loss'; streak = 1; }
+      else if (streakType === 'loss') streak++;
+      else break;
+    } else {
+      // Break Even - end streak count
+      if (streakType !== null) break;
+    }
+  }
+
+  // Compute historical performance stats for context
+  var winsAll = trades.filter(function(t){return t.status==='Win';}).length;
+  var lossesAll = trades.filter(function(t){return t.status==='Loss';}).length;
+  var avgWR = (winsAll + lossesAll) > 0 ? Math.round((winsAll / (winsAll + lossesAll)) * 100) : 0;
+
+  // Find historical patterns: trade after N losses, trade after N wins
+  function calcPostStreak(streakLen, type) {
+    var hits = 0, total = 0;
+    var chronoTrades = trades.slice().reverse(); // chronological order
+    for (var j = 0; j < chronoTrades.length - streakLen; j++) {
+      var ok = true;
+      for (var k = 0; k < streakLen; k++) {
+        if (chronoTrades[j + k].status !== (type === 'loss' ? 'Loss' : 'Win')) { ok = false; break; }
+      }
+      if (ok) {
+        var nextT = chronoTrades[j + streakLen];
+        if (nextT && (nextT.status === 'Win' || nextT.status === 'Loss')) {
+          total++;
+          if (nextT.status === 'Win') hits++;
+        }
+      }
+    }
+    return { hits: hits, total: total, wr: total > 0 ? Math.round((hits/total)*100) : null };
+  }
+
+  // Current drawdown size (cumulative P&L of consecutive losses)
+  var ddLoss = 0;
+  if (streakType === 'loss' && streak >= 2) {
+    for (var d = 0; d < streak; d++) {
+      ddLoss += parseFloat(trades[d].pnl) || 0;
+    }
+  }
+
+  // Average drawdown duration historically (length of all loss streaks of 2+)
+  var allLossStreaks = [];
+  var curr = 0;
+  trades.slice().reverse().forEach(function(t) {
+    if (t.status === 'Loss') curr++;
+    else if (t.status === 'Win') {
+      if (curr >= 2) allLossStreaks.push(curr);
+      curr = 0;
+    }
+  });
+  if (curr >= 2) allLossStreaks.push(curr);
+  var avgDdLen = allLossStreaks.length > 0
+    ? (allLossStreaks.reduce(function(s,n){return s+n;}, 0) / allLossStreaks.length).toFixed(1)
+    : null;
+
+  var html = '';
+
+  // ── DRAWDOWN MODE (3+ consecutive losses)
+  if (streakType === 'loss' && streak >= 3) {
+    var postLossStat = calcPostStreak(3, 'loss');
+    var lenContext = avgDdLen ? 'En moyenne tes drawdowns durent ' + avgDdLen + ' trades avant le rebond. ' : '';
+    var nextStat = postLossStat.total >= 3
+      ? 'Sur tes ' + postLossStat.total + ' précédents drawdowns de 3+, le trade suivant a été gagnant ' + postLossStat.wr + '% du temps.'
+      : 'Pas assez de data historique sur ce pattern, mais ton WR moyen est de ' + avgWR + '%.';
+
+    html += '<div style="background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.02));border:1px solid rgba(239,68,68,.2);border-radius:var(--r2);padding:14px 16px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--red2)">⚠️ DRAWDOWN EN COURS</div>' +
+        '<div style="font-family:var(--mono);font-size:10px;color:var(--text3)">' + streak + ' loss · ' + (ddLoss>=0?'+':'') + '$' + fNum(Math.abs(Math.round(ddLoss))) + '</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text);line-height:1.55;margin-bottom:8px"><b>Ne change pas ta stratégie.</b> ' + lenContext + nextStat + '</div>' +
+      '<div style="font-size:11px;color:var(--text2);line-height:1.5;font-style:italic">Réduire ta taille par peur ou l\'augmenter pour rattraper sont les deux pires réactions. Reste mécanique.</div>' +
+    '</div>';
+  }
+  // ── WIN STREAK WARNING (4+ consecutive wins)
+  else if (streakType === 'win' && streak >= 4) {
+    var postWinStat = calcPostStreak(4, 'win');
+    var statText = postWinStat.total >= 3
+      ? 'Sur tes ' + postWinStat.total + ' précédentes win streaks de 4+, le trade suivant n\'a été gagnant que ' + postWinStat.wr + '% du temps (vs ' + avgWR + '% en moyenne).'
+      : 'Ton WR moyen est de ' + avgWR + '% — reste sur ta stratégie habituelle.';
+
+    html += '<div style="background:linear-gradient(135deg,rgba(252,211,77,.08),rgba(252,211,77,.02));border:1px solid rgba(252,211,77,.2);border-radius:var(--r2);padding:14px 16px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.15em;color:var(--amber)">🔥 WIN STREAK · ATTENTION</div>' +
+        '<div style="font-family:var(--mono);font-size:10px;color:var(--text3)">' + streak + ' wins consécutifs</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--text);line-height:1.55;margin-bottom:8px"><b>Ne change pas ta taille.</b> ' + statText + '</div>' +
+      '<div style="font-size:11px;color:var(--text2);line-height:1.5;font-style:italic">L\'overconfidence après une bonne série coûte plus que les drawdowns. Reste mécanique.</div>' +
+    '</div>';
+  }
+
+  if (html) {
+    el.innerHTML = html;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: BEST VERSION OF YOU TRACKER
+// Analyzes 30 last trades, finds patterns of best vs worst days
+// ═══════════════════════════════════════════════════════════
+function renderBestVersion() {
+  var el = document.getElementById('best-version-card');
+  if (!el) return;
+
+  var allTrades = (S.trades || []).slice().sort(function(a,b){return b.ts - a.ts;}).slice(0, 30);
+  if (allTrades.length < 10) {
+    el.innerHTML = '<div style="text-align:center;padding:8px 0;color:var(--text3);font-size:12px;font-style:italic">Minimum 10 trades requis (' + allTrades.length + '/10)</div>';
+    return;
+  }
+
+  // Group by date
+  var byDate = {};
+  allTrades.forEach(function(t) {
+    if (!byDate[t.date]) byDate[t.date] = [];
+    byDate[t.date].push(t);
+  });
+
+  // Compute day-level stats
+  var days = Object.entries(byDate).map(function(entry) {
+    var ds = entry[0];
+    var dayTrades = entry[1];
+    var pnl = dayTrades.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);}, 0);
+    var wins = dayTrades.filter(function(t){return t.status==='Win';}).length;
+    var losses = dayTrades.filter(function(t){return t.status==='Loss';}).length;
+    var wr = (wins + losses) > 0 ? (wins / (wins + losses)) * 100 : 0;
+    var disc = dayTrades.filter(function(t){return t.disc != null;});
+    var avgDisc = disc.length > 0 ? disc.reduce(function(s,t){return s + t.disc;}, 0) / disc.length : null;
+    var sessions = Array.from(new Set(dayTrades.map(function(t){return t.session;})));
+    var directions = Array.from(new Set(dayTrades.map(function(t){return t.direction;})));
+    return {
+      date: ds,
+      pnl: pnl,
+      count: dayTrades.length,
+      wr: wr,
+      avgDisc: avgDisc,
+      sessions: sessions,
+      directions: directions,
+      trades: dayTrades,
+    };
+  });
+
+  if (days.length < 5) {
+    el.innerHTML = '<div style="text-align:center;padding:8px 0;color:var(--text3);font-size:12px;font-style:italic">Minimum 5 journées de trading requises (' + days.length + '/5)</div>';
+    return;
+  }
+
+  days.sort(function(a,b){return b.pnl - a.pnl;});
+  var topN = Math.min(5, Math.floor(days.length / 3));
+  var bestDays = days.slice(0, topN);
+  var worstDays = days.slice(-topN);
+
+  // Aggregate patterns
+  function patterns(arr) {
+    var totalCount = arr.reduce(function(s,d){return s+d.count;}, 0);
+    var avgTradesPerDay = (totalCount / arr.length).toFixed(1);
+    var totalDisc = arr.filter(function(d){return d.avgDisc != null;});
+    var avgDisc = totalDisc.length > 0
+      ? Math.round(totalDisc.reduce(function(s,d){return s+d.avgDisc;}, 0) / totalDisc.length)
+      : null;
+    var sessionFreq = { 'London': 0, 'New York': 0 };
+    var dirFreq = { 'Long': 0, 'Short': 0 };
+    arr.forEach(function(d) {
+      d.trades.forEach(function(t) {
+        if (sessionFreq[t.session] != null) sessionFreq[t.session]++;
+        if (dirFreq[t.direction] != null) dirFreq[t.direction]++;
+      });
+    });
+    var totSess = sessionFreq['London'] + sessionFreq['New York'];
+    var totDir = dirFreq['Long'] + dirFreq['Short'];
+    return {
+      avgTradesPerDay: avgTradesPerDay,
+      avgDisc: avgDisc,
+      londonPct: totSess > 0 ? Math.round((sessionFreq['London'] / totSess) * 100) : 0,
+      nyPct: totSess > 0 ? Math.round((sessionFreq['New York'] / totSess) * 100) : 0,
+      longPct: totDir > 0 ? Math.round((dirFreq['Long'] / totDir) * 100) : 0,
+      shortPct: totDir > 0 ? Math.round((dirFreq['Short'] / totDir) * 100) : 0,
+    };
+  }
+
+  var bestP = patterns(bestDays);
+  var worstP = patterns(worstDays);
+  var bestPnl = bestDays.reduce(function(s,d){return s+d.pnl;}, 0);
+  var worstPnl = worstDays.reduce(function(s,d){return s+d.pnl;}, 0);
+
+  var html = '<div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">Patterns de tes <b>' + topN + ' meilleures</b> vs <b>' + topN + ' pires</b> journées sur les 30 derniers trades.</div>';
+
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+
+  // Best days card
+  html += '<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:10px 12px">' +
+    '<div style="font-size:9px;color:var(--green2);font-weight:700;letter-spacing:.08em;margin-bottom:6px">🏆 MEILLEURES JOURNÉES</div>' +
+    '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green2);white-space:nowrap;margin-bottom:6px">+$' + fNum(Math.round(bestPnl)) + '</div>' +
+    '<div style="font-size:10px;color:var(--text2);line-height:1.6">' +
+      '⌀ ' + bestP.avgTradesPerDay + ' trades/jour<br>' +
+      (bestP.avgDisc !== null ? 'Discipline ⌀ ' + bestP.avgDisc + '%<br>' : '') +
+      bestP.londonPct + '% London · ' + bestP.nyPct + '% NY<br>' +
+      bestP.longPct + '% Long · ' + bestP.shortPct + '% Short' +
+    '</div>' +
+  '</div>';
+
+  // Worst days card
+  html += '<div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 12px">' +
+    '<div style="font-size:9px;color:var(--red2);font-weight:700;letter-spacing:.08em;margin-bottom:6px">📉 PIRES JOURNÉES</div>' +
+    '<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--red2);white-space:nowrap;margin-bottom:6px">' + (worstPnl>=0?'+':'') + '$' + fNum(Math.abs(Math.round(worstPnl))) + '</div>' +
+    '<div style="font-size:10px;color:var(--text2);line-height:1.6">' +
+      '⌀ ' + worstP.avgTradesPerDay + ' trades/jour<br>' +
+      (worstP.avgDisc !== null ? 'Discipline ⌀ ' + worstP.avgDisc + '%<br>' : '') +
+      worstP.londonPct + '% London · ' + worstP.nyPct + '% NY<br>' +
+      worstP.longPct + '% Long · ' + worstP.shortPct + '% Short' +
+    '</div>' +
+  '</div>';
+
+  html += '</div>';
+
+  // Insight
+  var insights = [];
+  var tradeDiff = parseFloat(bestP.avgTradesPerDay) - parseFloat(worstP.avgTradesPerDay);
+  if (Math.abs(tradeDiff) >= 0.5) {
+    insights.push(tradeDiff < 0
+      ? '<b>Moins de trades = meilleurs jours</b> (' + bestP.avgTradesPerDay + ' vs ' + worstP.avgTradesPerDay + '/jour). Le sur-trading te coûte.'
+      : 'Tes meilleurs jours ont plus de trades (' + bestP.avgTradesPerDay + ' vs ' + worstP.avgTradesPerDay + '). Quand tu es en flow, capitalise.');
+  }
+  if (bestP.avgDisc !== null && worstP.avgDisc !== null) {
+    var discDiff = bestP.avgDisc - worstP.avgDisc;
+    if (Math.abs(discDiff) >= 8) {
+      insights.push('<b>Discipline ' + Math.abs(discDiff) + ' pts plus haute</b> sur tes meilleurs jours. La discipline n\'est pas négociable.');
+    }
+  }
+  var sessDiff = bestP.nyPct - worstP.nyPct;
+  if (Math.abs(sessDiff) >= 15) {
+    insights.push(sessDiff > 0
+      ? '<b>NY domine tes meilleurs jours</b> (' + bestP.nyPct + '% vs ' + worstP.nyPct + '%). Privilégie cette session.'
+      : '<b>London domine tes meilleurs jours</b> (' + bestP.londonPct + '% vs ' + worstP.londonPct + '%). Surprenant.');
+  }
+  var dirDiff = bestP.shortPct - worstP.shortPct;
+  if (Math.abs(dirDiff) >= 15) {
+    insights.push(dirDiff > 0
+      ? '<b>Tu shortes plus sur tes meilleurs jours</b> (' + bestP.shortPct + '% vs ' + worstP.shortPct + '%). C\'est ton edge directionnel.'
+      : '<b>Tu longes plus sur tes meilleurs jours</b> (' + bestP.longPct + '% vs ' + worstP.longPct + '%).');
+  }
+
+  if (insights.length > 0) {
+    html += '<div style="background:rgba(59,130,246,.05);border-left:3px solid var(--acc);padding:9px 12px;border-radius:0 6px 6px 0;font-size:11px;color:var(--text2);line-height:1.55">';
+    html += insights.map(function(i){return '• ' + i;}).join('<br>');
+    html += '</div>';
+  } else {
+    html += '<div style="font-size:11px;color:var(--text3);font-style:italic;text-align:center;padding:6px 0">Pas de pattern significatif détecté entre tes meilleurs et pires jours.</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: CUSTOM BACKTEST RULES
+// Lets user create their own rules to test on history
+// ═══════════════════════════════════════════════════════════
+function renderCustomBacktest() {
+  var el = document.getElementById('custom-backtest-card');
+  if (!el) return;
+
+  if (!S.customRules) S.customRules = [];
+
+  var trades = S.trades || [];
+  if (trades.length < 10) {
+    el.innerHTML = '<div style="text-align:center;padding:8px 0;color:var(--text3);font-size:12px;font-style:italic">10+ trades requis</div>';
+    return;
+  }
+
+  function calc(arr) {
+    var w = arr.filter(function(t){return t.status==='Win';}).length;
+    var l = arr.filter(function(t){return t.status==='Loss';}).length;
+    var wr = (w+l) > 0 ? Math.round((w/(w+l))*100) : 0;
+    var pnl = Math.round(arr.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);}, 0));
+    return { count: arr.length, wr: wr, pnl: pnl };
+  }
+
+  // Apply a rule definition to trades — returns filtered array
+  function applyRule(rule, allTrades) {
+    return allTrades.filter(function(t, idx, arr) {
+      // Filter by session
+      if (rule.session && rule.session !== 'any' && t.session !== rule.session) return false;
+      // Filter by direction
+      if (rule.direction && rule.direction !== 'any' && t.direction !== rule.direction) return false;
+      // Filter by day of week
+      if (rule.dayOfWeek != null && rule.dayOfWeek !== 'any') {
+        var dow = new Date(t.date + 'T12:00:00').getDay();
+        var dowMap = { 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5 };
+        if (dow !== dowMap[rule.dayOfWeek]) return false;
+      }
+      // Filter by minimum discipline
+      if (rule.minDisc != null && (t.disc == null || t.disc < rule.minDisc)) return false;
+      // Filter by stat respect
+      if (rule.statRespect && rule.statRespect !== 'any' && t.statRespect !== rule.statRespect) return false;
+      return true;
+    });
+  }
+
+  var baseline = calc(trades);
+
+  var html = '<div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">Crée tes propres filtres pour voir leur impact sur tes résultats historiques.</div>';
+
+  // Baseline
+  html += '<div style="background:var(--ink3);border-radius:8px;padding:10px 12px;margin-bottom:12px">' +
+    '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;margin-bottom:4px">RÉFÉRENCE (TOUS LES TRADES)</div>' +
+    '<div style="display:flex;gap:14px;align-items:baseline">' +
+      '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:' + (baseline.pnl>=0?'var(--green2)':'var(--red2)') + ';white-space:nowrap">' + (baseline.pnl>=0?'+':'') + '$' + fNum(Math.abs(baseline.pnl)) + '</div>' +
+      '<div style="font-family:var(--mono);font-size:11px;color:var(--text2)">' + baseline.count + ' trades · ' + baseline.wr + '% WR</div>' +
+    '</div>' +
+  '</div>';
+
+  // Existing custom rules
+  if (S.customRules.length > 0) {
+    html += '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:8px">TES RÈGLES CUSTOM</div>';
+    S.customRules.forEach(function(rule, idx) {
+      var filtered = applyRule(rule, trades);
+      var s = calc(filtered);
+      var diff = s.pnl - baseline.pnl;
+      var color = diff > 50 ? 'var(--green2)' : diff < -50 ? 'var(--red2)' : 'var(--text2)';
+
+      html += '<div style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:10px">' +
+          '<div style="font-size:12px;font-weight:600;color:var(--text);flex:1">' + escapeHtml(rule.name) + '</div>' +
+          '<button onclick="deleteCustomRule(' + idx + ')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0">✕</button>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:11px">' +
+          '<div><div style="color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em">P&L</div>' +
+          '<div style="font-family:var(--mono);color:' + (s.pnl>=0?'var(--green2)':'var(--red2)') + ';font-weight:700;white-space:nowrap">' + (s.pnl>=0?'+':'') + '$' + fNum(Math.abs(s.pnl)) + '</div>' +
+          '<div style="font-family:var(--mono);font-size:10px;color:' + color + '">' + (diff>=0?'+':'') + '$' + fNum(Math.abs(diff)) + '</div></div>' +
+          '<div><div style="color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em">WR</div>' +
+          '<div style="font-family:var(--mono);font-weight:700">' + s.wr + '%</div>' +
+          '<div style="font-family:var(--mono);font-size:10px;color:var(--text3)">' + (s.wr - baseline.wr >= 0 ? '+' : '') + (s.wr - baseline.wr) + ' pts</div></div>' +
+          '<div><div style="color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em">Trades</div>' +
+          '<div style="font-family:var(--mono);font-weight:700">' + s.count + '</div></div>' +
+        '</div>' +
+      '</div>';
+    });
+  }
+
+  html += '<button onclick="openCustomRuleModal()" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--ink3);color:var(--text);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;margin-top:6px">+ Ajouter une règle custom</button>';
+
+  el.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function openCustomRuleModal() {
+  // Reset form
+  var nameEl = document.getElementById('cr-name');
+  if (nameEl) nameEl.value = '';
+  ['cr-session','cr-direction','cr-dow','cr-stat'].forEach(function(id){
+    var e = document.getElementById(id); if (e) e.value = 'any';
+  });
+  var minDisc = document.getElementById('cr-mindisc');
+  if (minDisc) minDisc.value = '';
+  openOv('custom-rule-ov');
+}
+
+function saveCustomRule() {
+  var name = (document.getElementById('cr-name') || {}).value;
+  if (!name || !name.trim()) { alert('Donne un nom à ta règle.'); return; }
+  if (!S.customRules) S.customRules = [];
+
+  var rule = {
+    name: name.trim(),
+    session: (document.getElementById('cr-session')||{}).value || 'any',
+    direction: (document.getElementById('cr-direction')||{}).value || 'any',
+    dayOfWeek: (document.getElementById('cr-dow')||{}).value || 'any',
+    statRespect: (document.getElementById('cr-stat')||{}).value || 'any',
+  };
+  var minDiscVal = (document.getElementById('cr-mindisc')||{}).value;
+  if (minDiscVal && !isNaN(parseFloat(minDiscVal))) rule.minDisc = parseFloat(minDiscVal);
+
+  S.customRules.push(rule);
+  save();
+  closeOv('custom-rule-ov');
+  renderCustomBacktest();
+}
+
+function deleteCustomRule(idx) {
+  if (!confirm('Supprimer cette règle ?')) return;
+  S.customRules.splice(idx, 1);
+  save();
+  renderCustomBacktest();
+}
+
+window.openCustomRuleModal = openCustomRuleModal;
+window.saveCustomRule = saveCustomRule;
+window.deleteCustomRule = deleteCustomRule;
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: WEEKLY REVIEW QUESTIONS (Friday or Sunday)
+// Forced 3-question reflection saved with timestamp
+// ═══════════════════════════════════════════════════════════
+function renderWeeklyReview() {
+  var el = document.getElementById('weekly-review-card');
+  if (!el) return;
+
+  if (!S.weeklyReviews) S.weeklyReviews = [];
+
+  // Determine current week key (Mon-based)
+  var now = new Date();
+  var dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+  var monday = new Date(now);
+  monday.setDate(now.getDate() - dow);
+  monday.setHours(0,0,0,0);
+  var weekKey = monday.toISOString().slice(0,10);
+
+  var thisWeekReview = S.weeklyReviews.find(function(r){return r.weekKey === weekKey;});
+  var pastReviews = S.weeklyReviews.filter(function(r){return r.weekKey !== weekKey;}).sort(function(a,b){return b.weekKey.localeCompare(a.weekKey);});
+
+  var html = '';
+
+  // Status: weekend or weekday?
+  var dayOfWeek = now.getDay(); // 0=Sun, 5=Fri, 6=Sat
+  var isReviewTime = dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0;
+
+  if (thisWeekReview) {
+    html += '<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:12px;margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+        '<div style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--green2);letter-spacing:.1em">✓ REVUE FAITE CETTE SEMAINE</div>' +
+        '<button onclick="openWeeklyReviewModal(true)" style="font-size:10px;background:var(--ink4);border:1px solid var(--bdr2);border-radius:6px;color:var(--text3);padding:2px 7px;cursor:pointer">Modifier</button>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text3)">Semaine du ' + new Date(weekKey + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + '</div>' +
+    '</div>';
+  } else if (isReviewTime) {
+    html += '<div style="background:linear-gradient(135deg,rgba(252,211,77,.1),rgba(252,211,77,.02));border:1px solid rgba(252,211,77,.25);border-radius:10px;padding:14px;margin-bottom:14px">' +
+      '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber);letter-spacing:.1em;margin-bottom:6px">📝 REVUE DE LA SEMAINE</div>' +
+      '<div style="font-size:12px;color:var(--text);line-height:1.55;margin-bottom:10px">3 questions courtes pour clore ta semaine. Elles seront sauvegardées et tu pourras les relire dans 3 mois pour voir si tu progresses.</div>' +
+      '<button onclick="openWeeklyReviewModal(false)" style="width:100%;padding:10px;border-radius:8px;border:none;background:var(--amber);color:#000;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer">Faire ma revue (2 min)</button>' +
+    '</div>';
+  } else {
+    html += '<div style="background:var(--ink3);border-radius:10px;padding:12px;margin-bottom:14px">' +
+      '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:4px">REVUE HEBDOMADAIRE</div>' +
+      '<div style="font-size:11px;color:var(--text3);line-height:1.5">Disponible le vendredi soir ou le week-end.</div>' +
+    '</div>';
+  }
+
+  // Past reviews
+  if (pastReviews.length > 0) {
+    html += '<div style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:8px">HISTORIQUE</div>';
+    pastReviews.slice(0, 12).forEach(function(r) {
+      var d = new Date(r.weekKey + 'T12:00:00');
+      var label = 'Semaine du ' + d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+      html += '<div onclick="viewWeeklyReview(\'' + r.weekKey + '\')" style="background:var(--ink3);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+          '<div style="font-size:12px;font-weight:600;color:var(--text)">' + label + '</div>' +
+          '<div style="font-size:10px;color:var(--acc2)">Voir →</div>' +
+        '</div>' +
+        (r.bestTrade ? '<div style="font-size:10px;color:var(--text3);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🏆 ' + escapeHtml(r.bestTrade.slice(0,80)) + '</div>' : '') +
+      '</div>';
+    });
+  }
+
+  el.innerHTML = html;
+}
+
+function openWeeklyReviewModal(isEdit) {
+  var now = new Date();
+  var dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+  var monday = new Date(now);
+  monday.setDate(now.getDate() - dow);
+  monday.setHours(0,0,0,0);
+  var weekKey = monday.toISOString().slice(0,10);
+
+  if (!S.weeklyReviews) S.weeklyReviews = [];
+  var existing = isEdit ? S.weeklyReviews.find(function(r){return r.weekKey === weekKey;}) : null;
+
+  ['wr-best','wr-worst','wr-rule'].forEach(function(id, i) {
+    var el = document.getElementById(id);
+    if (el) el.value = existing ? (i === 0 ? existing.bestTrade : i === 1 ? existing.worstTrade : existing.ruleNextWeek) : '';
+  });
+
+  document.getElementById('wr-week-key').value = weekKey;
+  document.getElementById('wr-modal-title').textContent = isEdit ? 'Modifier ma revue' : 'Revue de la semaine';
+  openOv('weekly-review-ov');
+}
+
+function saveWeeklyReview() {
+  var weekKey = document.getElementById('wr-week-key').value;
+  var bestTrade = (document.getElementById('wr-best')||{}).value || '';
+  var worstTrade = (document.getElementById('wr-worst')||{}).value || '';
+  var ruleNextWeek = (document.getElementById('wr-rule')||{}).value || '';
+
+  if (!bestTrade.trim() && !worstTrade.trim() && !ruleNextWeek.trim()) {
+    alert('Réponds au moins à une question.'); return;
+  }
+
+  if (!S.weeklyReviews) S.weeklyReviews = [];
+  var existingIdx = S.weeklyReviews.findIndex(function(r){return r.weekKey === weekKey;});
+  var review = {
+    weekKey: weekKey,
+    bestTrade: bestTrade.trim(),
+    worstTrade: worstTrade.trim(),
+    ruleNextWeek: ruleNextWeek.trim(),
+    ts: Date.now(),
+  };
+  if (existingIdx >= 0) S.weeklyReviews[existingIdx] = review;
+  else S.weeklyReviews.push(review);
+  save();
+  closeOv('weekly-review-ov');
+  renderWeeklyReview();
+}
+
+function viewWeeklyReview(weekKey) {
+  var r = (S.weeklyReviews||[]).find(function(x){return x.weekKey === weekKey;});
+  if (!r) return;
+  var d = new Date(weekKey + 'T12:00:00');
+  var label = 'Semaine du ' + d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+
+  var html = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px">' +
+    '<div><div style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.1em">📝 REVUE</div>' +
+    '<div style="font-size:14px;font-weight:700;color:var(--text);margin-top:4px;text-transform:capitalize">' + label + '</div></div>' +
+    '<button onclick="closeOv(\'day-trades-ov\')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)">✕</button></div>';
+
+  if (r.bestTrade) {
+    html += '<div style="background:rgba(34,197,94,.06);border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+      '<div style="font-size:9px;color:var(--green2);font-weight:700;letter-spacing:.08em;margin-bottom:4px">🏆 MEILLEUR TRADE / POURQUOI</div>' +
+      '<div style="font-size:12px;color:var(--text);line-height:1.55;white-space:pre-wrap">' + escapeHtml(r.bestTrade) + '</div>' +
+    '</div>';
+  }
+  if (r.worstTrade) {
+    html += '<div style="background:rgba(239,68,68,.06);border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+      '<div style="font-size:9px;color:var(--red2);font-weight:700;letter-spacing:.08em;margin-bottom:4px">📉 PIRE TRADE / À FAIRE DIFFÉREMMENT</div>' +
+      '<div style="font-size:12px;color:var(--text);line-height:1.55;white-space:pre-wrap">' + escapeHtml(r.worstTrade) + '</div>' +
+    '</div>';
+  }
+  if (r.ruleNextWeek) {
+    html += '<div style="background:rgba(96,165,250,.06);border-radius:8px;padding:10px 12px;margin-bottom:8px">' +
+      '<div style="font-size:9px;color:var(--acc2);font-weight:700;letter-spacing:.08em;margin-bottom:4px">🎯 RÈGLE À MIEUX RESPECTER</div>' +
+      '<div style="font-size:12px;color:var(--text);line-height:1.55;white-space:pre-wrap">' + escapeHtml(r.ruleNextWeek) + '</div>' +
+    '</div>';
+  }
+
+  document.getElementById('day-trades-content').innerHTML = html;
+  openOv('day-trades-ov');
+}
+
+window.openWeeklyReviewModal = openWeeklyReviewModal;
+window.saveWeeklyReview = saveWeeklyReview;
+window.viewWeeklyReview = viewWeeklyReview;
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE: FED WATCH + MACRO REGIME CLASSIFIER
+// Fetches Fed funds futures probabilities + computes regime
+// ═══════════════════════════════════════════════════════════
+async function loadFedWatchAndRegime() {
+  var el = document.getElementById('home-macro-box');
+  if (!el) return;
+
+  el.innerHTML = '<div style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px"><div style="font-size:11px;color:var(--text3)">Chargement contexte macro...</div></div>';
+  el.style.display = 'block';
+
+  var fedToken = window.FINNHUB_TOKEN || 'd7an9p9r01qtpbh952vgd7an9p9r01qtpbh95300';
+
+  // Fetch ETF proxies for regime classification (parallel)
+  var symbols = ['QQQ', 'XLK', 'XLE', 'XLF', 'XLU', 'TLT', 'GLD', 'UUP'];
+  var promises = symbols.map(function(s) {
+    return fetch('https://finnhub.io/api/v1/quote?symbol=' + s + '&token=' + fedToken)
+      .then(function(r){return r.ok ? r.json() : null;})
+      .catch(function(){return null;});
+  });
+
+  try {
+    var results = await Promise.all(promises);
+    var data = {};
+    symbols.forEach(function(s, i) {
+      if (results[i] && typeof results[i].c === 'number' && results[i].c > 0) {
+        data[s] = { price: results[i].c, change: results[i].dp || 0 };
+      }
+    });
+
+    renderMacroBox(data);
+  } catch (e) {
+    console.error('Macro fetch error:', e);
+    el.innerHTML = '<div style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px"><div style="font-size:11px;color:var(--text3)">Données macro indisponibles</div></div>';
+  }
+}
+
+function renderMacroBox(data) {
+  var el = document.getElementById('home-macro-box');
+  if (!el) return;
+
+  // ─── REGIME CLASSIFIER ──────────────────────────────────
+  // Calculate based on:
+  // - Tech (XLK) vs Defensives (XLU) → growth vs defensive
+  // - Energy (XLE) outperforming → cyclical / inflation
+  // - TLT (bonds) → if bonds up, yields down = dovish
+  // - QQQ direction
+  // - DXY (UUP) strength
+
+  var qqq = data.QQQ ? data.QQQ.change : 0;
+  var xlk = data.XLK ? data.XLK.change : 0;
+  var xle = data.XLE ? data.XLE.change : 0;
+  var xlf = data.XLF ? data.XLF.change : 0;
+  var xlu = data.XLU ? data.XLU.change : 0;
+  var tlt = data.TLT ? data.TLT.change : 0;
+  var gld = data.GLD ? data.GLD.change : 0;
+  var uup = data.UUP ? data.UUP.change : 0;
+
+  // Risk score: positive = risk-on, negative = risk-off
+  var riskScore = 0;
+  riskScore += qqq * 1.5;       // Tech up = risk-on
+  riskScore += xlk * 1.5;        // Tech up = risk-on
+  riskScore += xlf * 0.8;        // Financials up = risk-on
+  riskScore -= xlu * 1.0;        // Utilities up = risk-off (defensive)
+  riskScore -= tlt * 0.5;        // Bonds up = sometimes risk-off (flight to safety)
+  riskScore -= uup * 0.7;        // DXY up = risk-off
+  riskScore -= gld * 0.3;        // Gold up = risk-off (mild)
+
+  // Tech vs cyclicals divergence (key for NQ trader)
+  var techVsCycl = xlk - xle;
+
+  var regime, regimeColor, regimeBg, regimeIcon, narrative;
+  if (riskScore >= 1.5 && techVsCycl >= 0) {
+    regime = 'RISK-ON · TECH LEADERSHIP';
+    regimeColor = 'var(--green2)';
+    regimeBg = 'rgba(34,197,94,.08)';
+    regimeIcon = '🟢';
+    narrative = 'Environnement favorable au NQ. Tech mène le marché, les flux risk-on dominent. Privilégie les longs sur retracement.';
+  } else if (riskScore >= 0.5) {
+    regime = 'RISK-ON MODÉRÉ';
+    regimeColor = 'var(--green2)';
+    regimeBg = 'rgba(34,197,94,.05)';
+    regimeIcon = '🟢';
+    narrative = 'Sentiment positif mais sans conviction marquée. Setups longs valides mais reste sélectif.';
+  } else if (riskScore >= -0.5) {
+    regime = 'NEUTRE · INDÉCIS';
+    regimeColor = 'var(--amber)';
+    regimeBg = 'rgba(252,211,77,.05)';
+    regimeIcon = '🟡';
+    narrative = 'Marché indécis. Pas de biais directionnel clair. Setups range plus probables que breakouts directionnels.';
+  } else if (riskScore >= -1.5) {
+    regime = 'RISK-OFF MODÉRÉ';
+    regimeColor = 'var(--red2)';
+    regimeBg = 'rgba(239,68,68,.05)';
+    regimeIcon = '🟠';
+    narrative = 'Pression baissière. Tech sous-performe. Privilégie les shorts ou attends une stabilisation avant les longs.';
+  } else {
+    regime = 'RISK-OFF MARQUÉ';
+    regimeColor = 'var(--red2)';
+    regimeBg = 'rgba(239,68,68,.1)';
+    regimeIcon = '🔴';
+    narrative = 'Stress important sur le marché. Volatilité élevée probable. Réduis la taille ou passe ton tour si setup pas clair.';
+  }
+
+  // Sectoral leaders/laggers
+  var sectors = [
+    { name: 'Tech', sym: 'XLK', chg: xlk },
+    { name: 'Energy', sym: 'XLE', chg: xle },
+    { name: 'Financials', sym: 'XLF', chg: xlf },
+    { name: 'Utilities', sym: 'XLU', chg: xlu },
+  ].filter(function(s){return data[s.sym];}).sort(function(a,b){return b.chg - a.chg;});
+
+  var html = '<div style="background:' + regimeBg + ';border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px">';
+
+  // Header with regime
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+  html += '<div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);font-weight:700;letter-spacing:.1em">RÉGIME MACRO</div>';
+  html += '<div style="font-size:13px;font-weight:700;color:' + regimeColor + ';margin-top:2px">' + regimeIcon + ' ' + regime + '</div></div>';
+  html += '<button onclick="loadFedWatchAndRegime()" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer" title="Rafraîchir">↻</button>';
+  html += '</div>';
+
+  // Narrative
+  html += '<div style="font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:10px">' + narrative + '</div>';
+
+  // Sector grid
+  if (sectors.length > 0) {
+    html += '<div style="display:grid;grid-template-columns:repeat(' + sectors.length + ',1fr);gap:4px;margin-bottom:6px">';
+    sectors.forEach(function(s) {
+      var col = s.chg >= 0.5 ? 'var(--green2)' : s.chg <= -0.5 ? 'var(--red2)' : 'var(--text2)';
+      html += '<div style="background:var(--ink3);border-radius:6px;padding:6px 4px;text-align:center">' +
+        '<div style="font-size:9px;color:var(--text3);font-weight:600">' + s.name + '</div>' +
+        '<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:' + col + ';margin-top:2px">' + (s.chg>=0?'+':'') + s.chg.toFixed(2) + '%</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    html += '<div style="font-size:9px;color:var(--text3);text-align:center;font-style:italic">Performance sectoriellle ETF · jour</div>';
+  }
+
+  // FedWatch placeholder (CME data is not free via API; we'd need scraping)
+  // Add a note for now
+  html += '<div style="font-size:10px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr2);text-align:center">FedWatch live à venir · Pour le moment, lis le sentiment Fed dans ton briefing matin</div>';
+
+  html += '</div>';
+
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+
+window.loadFedWatchAndRegime = loadFedWatchAndRegime;
+
 
 // ── CALENDAR ──────────────────────────────────────────────────────
 let calY=new Date().getFullYear(),calM=new Date().getMonth();
@@ -2988,6 +4051,7 @@ function showKillPopup(tier, streakN) {
 
 
 function renderHome() {
+  setTimeout(function(){renderPsychState();loadFedWatchAndRegime();}, 100);
   // Read trades directly from localStorage - most reliable source
   var trades = [];
   try {
@@ -4551,7 +5615,7 @@ function renderRevue() {
     html += '</div>';
   }
 
-  el.innerHTML = html;
+  el.innerHTML = html + '<div class="sl" style="margin-top:18px">📝 Mes revues hebdomadaires</div><div class="card" id="weekly-review-card" style="padding:14px 16px"></div>';
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4703,7 +5767,7 @@ function renderBacktest() {
 
   if (all.length < 10) {
     html += '<div style="text-align:center;padding:20px 0;color:var(--text3);font-size:12px;font-style:italic">Minimum 10 trades requis pour un backtest pertinent. Actuellement : ' + all.length + '.</div></div>';
-    el.innerHTML = html;
+    el.innerHTML = html + '<div class="sl" style="margin-top:14px">🛠️ Règles Custom</div><div class="card" id="custom-backtest-card" style="padding:14px 16px"></div>';
     return;
   }
 
@@ -4749,7 +5813,7 @@ function renderBacktest() {
   });
 
   html += '</div>';
-  el.innerHTML = html;
+  el.innerHTML = html + '<div class="sl" style="margin-top:14px">🛠️ Règles Custom</div><div class="card" id="custom-backtest-card" style="padding:14px 16px"></div>';
 }
 
 // ═══════════════════════════════════════════════════════════
