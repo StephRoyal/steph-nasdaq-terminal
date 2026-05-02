@@ -317,6 +317,31 @@ canvas{display:block;width:100%}
   </div>
 </div>
 
+<!-- BUCKET WATCH CONFIG modal -->
+<div id="bucket-cfg-ov" class="ov" style="align-items:center;padding:20px">
+  <div class="ov-box" style="max-width:380px;width:100%">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800">⚙️ Seuils Bucket Watch</div>
+      <button onclick="closeOv('bucket-cfg-ov')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.5">Définis quand un bucket est considéré comme solide, à surveiller, ou à reconsidérer.</div>
+    <div class="fg"><label class="fl">Seuil VERT (WR ≥ %)</label><input type="number" id="bcfg-green" class="fi" min="50" max="95" placeholder="55"/></div>
+    <div class="fg"><label class="fl">Seuil ROUGE (WR &lt; %)</label><input type="number" id="bcfg-red" class="fi" min="20" max="60" placeholder="45"/></div>
+    <div class="fg"><label class="fl">Échantillon minimum (trades)</label><input type="number" id="bcfg-min" class="fi" min="3" max="50" placeholder="15"/></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="resetBucketCfg()" class="btn bg bs" style="flex:1">Reset défaut</button>
+      <button onclick="saveBucketCfg()" class="btn ba bs" style="flex:1">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUCKET WATCH DRILL-DOWN modal -->
+<div id="bucket-detail-ov" class="ov" style="align-items:flex-start;padding:20px;padding-top:40px">
+  <div class="ov-box" style="max-width:480px;width:100%;max-height:85vh;overflow-y:auto">
+    <div id="bucket-detail-content"></div>
+  </div>
+</div>
+
 <!-- CUSTOM RULE modal -->
 <div id="custom-rule-ov" class="ov" style="align-items:center;padding:20px">
   <div class="ov-box" style="max-width:420px;width:100%;max-height:85vh;overflow-y:auto">
@@ -585,6 +610,9 @@ canvas{display:block;width:100%}
     <button onclick="setEdgeDay(4,this)" class="edge-day-btn" style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);cursor:pointer;white-space:nowrap">JEU</button>
     <button onclick="setEdgeDay(5,this)" class="edge-day-btn" style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text3);cursor:pointer;white-space:nowrap">VEN</button>
   </div>
+
+  <!-- BUCKET WATCH -->
+  <div id="bucket-watch-card" style="background:var(--ink2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:18px"></div>
 
   <!-- Edge cards container -->
   <div id="edge-content"></div>
@@ -908,6 +936,7 @@ function goPage(id, btn) {
   if (id === 'journal') { renderStats(); checkDailyAlerts(); }
   if (id === 'eco') { loadEcoCalendar(0, document.getElementById('eco-today-btn')); }
   if (id === 'sim') runSim();
+  if (id === 'edge') { setTimeout(initEdge, 50); }
 }
 function showTab(id, btn) {
   ['stats','calendar','revue','goals','backtest','news','list','csv'].forEach(t => {
@@ -4870,6 +4899,9 @@ function edgeAccordion(id, icon, title, source, signalPct, content) {
 }
 
 function renderEdge() {
+  // Render Bucket Watch (cumul rolling all-time)
+  try { renderBucketWatch(); } catch(e) { console.error('renderBucketWatch error:', e); }
+
   var d = EDGE_DATA[_edgeDay];
   if (!d) return;
 
@@ -5928,6 +5960,403 @@ function renderNewsCorr() {
   html += '</div>';
   el.innerHTML = html;
 }
+
+
+// ═══════════════════════════════════════════════════════════
+// BUCKET WATCH — Cumul rolling all-time par session × direction
+// ═══════════════════════════════════════════════════════════
+
+var BUCKET_CFG_DEFAULT = { green: 55, red: 45, minSample: 15 };
+var _bucketCollapsed = false;
+
+function getBucketCfg() {
+  var cfg = (S && S.bucketWatchCfg) || {};
+  return {
+    green:     typeof cfg.green     === 'number' ? cfg.green     : BUCKET_CFG_DEFAULT.green,
+    red:       typeof cfg.red       === 'number' ? cfg.red       : BUCKET_CFG_DEFAULT.red,
+    minSample: typeof cfg.minSample === 'number' ? cfg.minSample : BUCKET_CFG_DEFAULT.minSample
+  };
+}
+
+function calcBucketStats(session, direction) {
+  var trades = (S.trades || []).filter(function(t) {
+    return t.session === session && t.direction === direction;
+  });
+  // Sort chronologically by date then ts
+  trades.sort(function(a, b) {
+    var da = (a.date || '') + ' ' + (a.ts || 0);
+    var db = (b.date || '') + ' ' + (b.ts || 0);
+    return da < db ? -1 : da > db ? 1 : 0;
+  });
+  var w = trades.filter(function(t) { return t.status === 'Win'; }).length;
+  var l = trades.filter(function(t) { return t.status === 'Loss'; }).length;
+  var wl = w + l;
+  var wr = wl > 0 ? Math.round((w / wl) * 100) : 0;
+  var pnl = Math.round(trades.reduce(function(s, t) {
+    return s + (parseFloat(t.pnl) || 0);
+  }, 0));
+  return { trades: trades, count: trades.length, w: w, l: l, wr: wr, pnl: pnl };
+}
+
+function getBucketStatus(stats) {
+  var cfg = getBucketCfg();
+  if (stats.count < cfg.minSample) {
+    return { color: '#3B82F6', icon: '🔵', label: 'Échantillon faible',
+             border: 'rgba(59,130,246,.3)', bg: 'rgba(59,130,246,.05)' };
+  }
+  if (stats.wr >= cfg.green && stats.pnl > 0) {
+    return { color: '#22C55E', icon: '🟢', label: 'Solide',
+             border: 'rgba(34,197,94,.3)', bg: 'rgba(34,197,94,.05)' };
+  }
+  if (stats.wr < cfg.red && stats.pnl < 0) {
+    return { color: '#EF4444', icon: '🔴', label: 'À reconsidérer',
+             border: 'rgba(239,68,68,.3)', bg: 'rgba(239,68,68,.05)' };
+  }
+  return { color: '#F59E0B', icon: '🟡', label: 'À surveiller',
+           border: 'rgba(245,158,11,.3)', bg: 'rgba(245,158,11,.05)' };
+}
+
+// "Above seuil depuis X trades" / "Below seuil depuis X trades"
+// Calcule en partant de la fin: tant que le rolling WR reste du même côté du seuil, on incrémente
+function getBucketStreak(stats) {
+  var cfg = getBucketCfg();
+  if (stats.count < cfg.minSample) return null;
+  var t = stats.trades;
+  var n = t.length;
+  // Calc current side based on full sample
+  var w = stats.w, total = stats.w + stats.l;
+  var currentWR = total > 0 ? (w / total) * 100 : 0;
+  // Use midpoint between green and red as the reference threshold
+  var ref = (cfg.green + cfg.red) / 2;
+  var aboveRef = currentWR >= ref;
+  // Walk back: as long as removing the oldest trade keeps us on the same side
+  // Simpler approach: count how many recent trades since the bucket "flipped" side
+  // We do this by computing rolling WR from the end backwards
+  var streakCount = 0;
+  var rollW = 0, rollL = 0;
+  for (var i = n - 1; i >= 0; i--) {
+    var tr = t[i];
+    if (tr.status === 'Win') rollW++;
+    else if (tr.status === 'Loss') rollL++;
+    var rollTotal = rollW + rollL;
+    if (rollTotal < 5) { streakCount = rollTotal; continue; }
+    var rollWR = (rollW / rollTotal) * 100;
+    var rollAbove = rollWR >= ref;
+    if (rollAbove === aboveRef) {
+      streakCount = rollTotal;
+    } else {
+      break;
+    }
+  }
+  return { count: streakCount, above: aboveRef };
+}
+
+// Theoretical Edgeful WR for this day/session/direction
+// Pour London Long et London Short on utilise r1b (asia→london correlation)
+// Pour NY Long et NY Short on utilise r1a (london→ny correlation)
+// Note: ce sont des proxies imparfaits mais c'est ce qu'on a dans EDGE_DATA
+function getEdgefulWR(day, session, direction) {
+  if (typeof EDGE_DATA === 'undefined' || !EDGE_DATA[day]) return null;
+  var d = EDGE_DATA[day];
+  // Pour le bucket session+direction du jour, on prend la stat la plus représentative
+  if (session === 'London') {
+    // r1b: asia green → london green (long), asia red → london red (short)
+    if (direction === 'Long')  return d.r1b ? d.r1b.asiaGreen  : null;
+    if (direction === 'Short') return d.r1b ? d.r1b.asiaRedRed : null;
+  }
+  if (session === 'New York') {
+    // r1a: london green → ny green (long), london red→green inversé pour short
+    if (direction === 'Long')  return d.r1a ? d.r1a.ldnGreen      : null;
+    if (direction === 'Short') return d.r1a ? (100 - d.r1a.ldnRedGreen) : null;
+  }
+  return null;
+}
+
+function getBucketMonthly(session, direction) {
+  var trades = (S.trades || []).filter(function(t) {
+    return t.session === session && t.direction === direction;
+  });
+  var byMonth = {};
+  trades.forEach(function(t) {
+    var d = (t.date || '').slice(0, 7); // YYYY-MM
+    if (!d) return;
+    if (!byMonth[d]) byMonth[d] = [];
+    byMonth[d].push(t);
+  });
+  var months = Object.keys(byMonth).sort();
+  return months.map(function(m) {
+    var arr = byMonth[m];
+    var w = arr.filter(function(t) { return t.status === 'Win'; }).length;
+    var l = arr.filter(function(t) { return t.status === 'Loss'; }).length;
+    var wl = w + l;
+    var wr = wl > 0 ? Math.round((w / wl) * 100) : 0;
+    var pnl = Math.round(arr.reduce(function(s, t) {
+      return s + (parseFloat(t.pnl) || 0);
+    }, 0));
+    return { month: m, count: arr.length, wr: wr, pnl: pnl };
+  });
+}
+
+function fmtMonthShort(ym) {
+  // "2026-04" -> "avr 26"
+  var parts = ym.split('-');
+  if (parts.length !== 2) return ym;
+  var months = ['janv','févr','mars','avr','mai','juin','juil','août','sept','oct','nov','déc'];
+  var mIdx = parseInt(parts[1], 10) - 1;
+  var mLabel = months[mIdx] || parts[1];
+  return mLabel + ' ' + parts[0].slice(2);
+}
+
+function renderBucketWatch() {
+  var el = document.getElementById('bucket-watch-card');
+  if (!el) return;
+
+  var cfg = getBucketCfg();
+  var today = new Date().getDay();
+  var todayWeekday = (today >= 1 && today <= 5) ? today : 1;
+  var sessNow = (typeof getEdgeSession === 'function') ? getEdgeSession() : 'london';
+  var sessKey = sessNow === 'ny' ? 'New York' : 'London';
+
+  var buckets = [
+    { session: 'London',   direction: 'Long',  label: '🇬🇧 LONDON · LONG',  key: 'LL' },
+    { session: 'London',   direction: 'Short', label: '🇬🇧 LONDON · SHORT', key: 'LS' },
+    { session: 'New York', direction: 'Long',  label: '🇺🇸 NY · LONG',      key: 'NL' },
+    { session: 'New York', direction: 'Short', label: '🇺🇸 NY · SHORT',     key: 'NS' }
+  ];
+
+  // Header
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:' + (_bucketCollapsed ? '0' : '12px') + '">' +
+    '<div style="display:flex;align-items:center;gap:8px">' +
+      '<div style="font-size:13px;font-weight:800;letter-spacing:.02em">🔍 Bucket Watch</div>' +
+      '<div style="font-size:10px;color:var(--text3);font-family:var(--mono)">cumul all-time</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:6px;align-items:center">' +
+      '<button onclick="openBucketCfg()" title="Configurer les seuils" style="background:var(--ink3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);cursor:pointer;font-size:11px">⚙️</button>' +
+      '<button onclick="toggleBucketWatch()" title="Plier/déplier" style="background:var(--ink3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text3);cursor:pointer;font-size:11px">' + (_bucketCollapsed ? '▼' : '▲') + '</button>' +
+    '</div>' +
+  '</div>';
+
+  if (_bucketCollapsed) {
+    el.innerHTML = html;
+    return;
+  }
+
+  var totalTrades = (S.trades || []).length;
+  if (totalTrades === 0) {
+    html += '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px;font-style:italic">Aucun trade pour analyser les buckets</div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  // Grid 2x2
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+
+  buckets.forEach(function(b) {
+    var stats = calcBucketStats(b.session, b.direction);
+    var status = getBucketStatus(stats);
+    var streak = getBucketStreak(stats);
+    var theoWR = getEdgefulWR(todayWeekday, b.session, b.direction);
+    var isActive = (b.session === sessKey);
+    // Today's bias direction from EDGE_DATA r1b/r1a — best long/short for today
+    var todayBest = getTodayBestBucket(todayWeekday, sessKey);
+    var isFocus = isActive && todayBest && todayBest.session === b.session && todayBest.direction === b.direction;
+
+    var activeBoxShadow = isFocus ? 'box-shadow:0 0 0 2px ' + status.color + '4D, 0 4px 12px rgba(0,0,0,.3);' : '';
+    var activeBadge = isFocus
+      ? '<div style="position:absolute;top:-7px;right:8px;background:var(--acc);color:#fff;font-size:8px;font-weight:800;padding:2px 6px;border-radius:99px;letter-spacing:.06em">FOCUS DU JOUR</div>'
+      : '';
+
+    var pnlColor = stats.pnl >= 0 ? 'var(--green2)' : 'var(--red2)';
+    var wrColor = stats.count < cfg.minSample
+      ? 'var(--text2)'
+      : (stats.wr >= cfg.green ? 'var(--green2)' : (stats.wr < cfg.red ? 'var(--red2)' : 'var(--amber)'));
+
+    html += '<div onclick="openBucketDetail(\'' + b.session + '\',\'' + b.direction + '\')" ' +
+      'style="position:relative;background:' + status.bg + ';border:1px solid ' + status.border + ';border-radius:10px;padding:10px;cursor:pointer;' + activeBoxShadow + '">';
+
+    html += activeBadge;
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+              '<span style="font-size:9px;color:var(--text2);font-weight:700;letter-spacing:.06em">' + b.label + '</span>' +
+              '<span style="font-size:11px">' + status.icon + '</span>' +
+            '</div>';
+
+    if (stats.count === 0) {
+      html += '<div style="font-size:11px;color:var(--text3);font-style:italic">Aucun trade</div>';
+    } else {
+      html += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">' +
+                '<span style="font-family:var(--mono);font-size:18px;font-weight:700;color:' + wrColor + '">' + stats.wr + '%</span>' +
+                '<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:' + pnlColor + '">' + (stats.pnl >= 0 ? '+' : '') + '$' + fNum(Math.abs(stats.pnl)) + '</span>' +
+              '</div>';
+      html += '<div style="font-size:9px;color:var(--text3);margin-bottom:4px">' + stats.count + ' trades · ' + stats.w + 'W·' + stats.l + 'L</div>';
+
+      // Status label
+      html += '<div style="font-size:9px;color:' + status.color + ';font-weight:700;letter-spacing:.04em">' + status.label + '</div>';
+
+      // Streak info — idea B
+      if (streak && streak.count >= 5 && stats.count >= cfg.minSample) {
+        var streakLabel = streak.above ? 'Au-dessus' : 'Sous';
+        html += '<div style="font-size:9px;color:var(--text3);margin-top:3px;font-style:italic">' + streakLabel + ' seuil · ' + streak.count + ' trades</div>';
+      }
+
+      // Edgeful comparison — idea C
+      if (theoWR !== null && stats.count >= cfg.minSample) {
+        var diff = stats.wr - theoWR;
+        var diffStr = (diff >= 0 ? '+' : '') + diff + ' pts';
+        var diffCol = diff >= 5 ? 'var(--green2)' : (diff <= -5 ? 'var(--red2)' : 'var(--text3)');
+        html += '<div style="font-size:9px;margin-top:3px;color:var(--text3)">vs Edgeful ' + Math.round(theoWR) + '% · <span style="color:' + diffCol + ';font-weight:700">' + diffStr + '</span></div>';
+      }
+    }
+
+    html += '</div>';
+  });
+
+  html += '</div>';
+
+  // Legend / config summary
+  html += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr2);font-size:9px;color:var(--text3);display:flex;gap:10px;flex-wrap:wrap;justify-content:center">' +
+    '<span>🟢 ≥' + cfg.green + '%</span>' +
+    '<span>🟡 zone</span>' +
+    '<span>🔴 &lt;' + cfg.red + '%</span>' +
+    '<span>🔵 &lt;' + cfg.minSample + ' trades</span>' +
+  '</div>';
+
+  el.innerHTML = html;
+}
+
+// Determine today's best bucket — for the FOCUS DU JOUR highlight
+function getTodayBestBucket(day, sessKey) {
+  if (typeof EDGE_DATA === 'undefined' || !EDGE_DATA[day]) return null;
+  var d = EDGE_DATA[day];
+  if (sessKey === 'London') {
+    if (!d.r1b) return null;
+    var asG = d.r1b.asiaGreen, asR = d.r1b.asiaRedRed;
+    if (asG >= asR) return { session: 'London', direction: 'Long' };
+    return { session: 'London', direction: 'Short' };
+  }
+  if (sessKey === 'New York') {
+    if (!d.r1a) return null;
+    var ldG = d.r1a.ldnGreen, ldRG = d.r1a.ldnRedGreen;
+    // ldnGreen high => long bias; ldnRedGreen high => mean-reversion long after red london
+    // We use ldnGreen for long, (100 - ldnRedGreen) as short signal
+    var longSig = ldG;
+    var shortSig = 100 - ldRG;
+    if (longSig >= shortSig) return { session: 'New York', direction: 'Long' };
+    return { session: 'New York', direction: 'Short' };
+  }
+  return null;
+}
+
+function toggleBucketWatch() {
+  _bucketCollapsed = !_bucketCollapsed;
+  renderBucketWatch();
+}
+
+function openBucketCfg() {
+  var cfg = getBucketCfg();
+  document.getElementById('bcfg-green').value = cfg.green;
+  document.getElementById('bcfg-red').value = cfg.red;
+  document.getElementById('bcfg-min').value = cfg.minSample;
+  openOv('bucket-cfg-ov');
+}
+
+function saveBucketCfg() {
+  var g = parseInt(document.getElementById('bcfg-green').value, 10);
+  var r = parseInt(document.getElementById('bcfg-red').value, 10);
+  var m = parseInt(document.getElementById('bcfg-min').value, 10);
+  if (isNaN(g) || g < 50 || g > 95) { alert('Seuil vert: entre 50 et 95'); return; }
+  if (isNaN(r) || r < 20 || r > 60) { alert('Seuil rouge: entre 20 et 60'); return; }
+  if (isNaN(m) || m < 3  || m > 50) { alert('Échantillon mini: entre 3 et 50'); return; }
+  if (g <= r) { alert('Le seuil vert doit être supérieur au seuil rouge'); return; }
+  S.bucketWatchCfg = { green: g, red: r, minSample: m };
+  save();
+  closeOv('bucket-cfg-ov');
+  renderBucketWatch();
+}
+
+function resetBucketCfg() {
+  document.getElementById('bcfg-green').value = BUCKET_CFG_DEFAULT.green;
+  document.getElementById('bcfg-red').value   = BUCKET_CFG_DEFAULT.red;
+  document.getElementById('bcfg-min').value   = BUCKET_CFG_DEFAULT.minSample;
+}
+
+// Drill-down modal — idea D
+function openBucketDetail(session, direction) {
+  var stats = calcBucketStats(session, direction);
+  var monthly = getBucketMonthly(session, direction);
+  var status = getBucketStatus(stats);
+  var label = (session === 'London' ? '🇬🇧 London' : '🇺🇸 NY') + ' · ' + direction;
+
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+    '<div>' +
+      '<div style="font-size:15px;font-weight:800">' + label + '</div>' +
+      '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + status.icon + ' ' + status.label + '</div>' +
+    '</div>' +
+    '<button onclick="closeOv(\'bucket-detail-ov\')" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)">✕</button>' +
+  '</div>';
+
+  if (stats.count === 0) {
+    html += '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;font-style:italic">Aucun trade dans ce bucket</div>';
+    document.getElementById('bucket-detail-content').innerHTML = html;
+    openOv('bucket-detail-ov');
+    return;
+  }
+
+  // Top stats row
+  var pnlColor = stats.pnl >= 0 ? 'var(--green2)' : 'var(--red2)';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">' +
+    '<div style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-family:var(--mono);font-size:18px;font-weight:700">' + stats.wr + '%</div>' +
+      '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Win Rate</div>' +
+    '</div>' +
+    '<div style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-family:var(--mono);font-size:18px;font-weight:700;color:' + pnlColor + '">' + (stats.pnl >= 0 ? '+' : '') + '$' + fNum(Math.abs(stats.pnl)) + '</div>' +
+      '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">P&L total</div>' +
+    '</div>' +
+    '<div style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">' +
+      '<div style="font-family:var(--mono);font-size:18px;font-weight:700">' + stats.count + '</div>' +
+      '<div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px">Trades</div>' +
+    '</div>' +
+  '</div>';
+
+  // Monthly history — idea G
+  if (monthly.length > 0) {
+    html += '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px">📅 Historique mensuel</div>';
+    html += '<div style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:14px">';
+    monthly.forEach(function(m) {
+      var pCol = m.pnl >= 0 ? 'var(--green2)' : 'var(--red2)';
+      var wrCol = m.wr >= 55 ? 'var(--green2)' : (m.wr < 45 ? 'var(--red2)' : 'var(--amber)');
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid var(--bdr2);font-size:11px">' +
+        '<span style="font-weight:600">' + fmtMonthShort(m.month) + '</span>' +
+        '<div style="display:flex;gap:14px;align-items:center">' +
+          '<span style="font-family:var(--mono);color:var(--text3);font-size:10px">' + m.count + 'tr</span>' +
+          '<span style="font-family:var(--mono);font-weight:700;color:' + wrCol + '">' + m.wr + '%</span>' +
+          '<span style="font-family:var(--mono);font-weight:700;color:' + pCol + ';min-width:60px;text-align:right">' + (m.pnl >= 0 ? '+' : '') + '$' + fNum(Math.abs(m.pnl)) + '</span>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Last 10 trades
+  html += '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px">📋 10 derniers trades</div>';
+  html += '<div style="background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:6px">';
+  var last10 = stats.trades.slice(-10).reverse();
+  last10.forEach(function(t) {
+    var p = parseFloat(t.pnl) || 0;
+    var col = p >= 0 ? 'var(--green2)' : 'var(--red2)';
+    var icon = t.status === 'Win' ? '✅' : (t.status === 'Loss' ? '❌' : '➖');
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid var(--bdr2);font-size:11px">' +
+      '<span>' + icon + ' <span style="color:var(--text3);font-family:var(--mono);font-size:10px">' + (t.date || '—') + '</span></span>' +
+      '<span style="font-family:var(--mono);font-weight:700;color:' + col + '">' + (p >= 0 ? '+' : '') + '$' + fNum(Math.abs(p)) + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+
+  document.getElementById('bucket-detail-content').innerHTML = html;
+  openOv('bucket-detail-ov');
+}
+
 
 </script>
 </body>
