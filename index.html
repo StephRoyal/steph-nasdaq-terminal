@@ -6114,8 +6114,10 @@ function renderBucketWatch() {
   var cfg = getBucketCfg();
   var today = new Date().getDay();
   var todayWeekday = (today >= 1 && today <= 5) ? today : 1;
-  var sessNow = (typeof getEdgeSession === 'function') ? getEdgeSession() : 'london';
-  var sessKey = sessNow === 'ny' ? 'New York' : 'London';
+  // Use the active session toggle (_edgeSess) so badges follow user's clicks,
+  // not just the current real-world time
+  var activeSess = (typeof _edgeSess !== 'undefined') ? _edgeSess : 'london';
+  var sessKey = activeSess === 'ny' ? 'New York' : 'London';
 
   var buckets = [
     { session: 'London',   direction: 'Long',  label: '🇬🇧 LONDON · LONG',  key: 'LL' },
@@ -6151,19 +6153,56 @@ function renderBucketWatch() {
   // Grid 2x2
   html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
 
+  // Compute Today's Edgeful focus (théorique) — once
+  var todayBest = getTodayBestBucket(todayWeekday, sessKey);
+  // Compute YOUR best bucket on active session (perso) — once
+  var yourBest = getYourBestBucket(sessKey);
+  // A+ setup = Edgeful focus AND ton best perso pointent sur le même bucket
+  var aPlusBucket = null;
+  if (todayBest && yourBest &&
+      todayBest.session === yourBest.session &&
+      todayBest.direction === yourBest.direction) {
+    aPlusBucket = todayBest;
+  }
+
   buckets.forEach(function(b) {
     var stats = calcBucketStats(b.session, b.direction);
     var status = getBucketStatus(stats);
     var streak = getBucketStreak(stats);
     var theoWR = getEdgefulWR(todayWeekday, b.session, b.direction);
     var isActive = (b.session === sessKey);
-    // Today's bias direction from EDGE_DATA r1b/r1a — best long/short for today
-    var todayBest = getTodayBestBucket(todayWeekday, sessKey);
-    var isFocus = isActive && todayBest && todayBest.session === b.session && todayBest.direction === b.direction;
+    var isFocus    = isActive && todayBest && todayBest.session === b.session && todayBest.direction === b.direction;
+    var isYourBest = isActive && yourBest  && yourBest.session  === b.session && yourBest.direction  === b.direction;
+    var isAPlus    = isActive && aPlusBucket && aPlusBucket.session === b.session && aPlusBucket.direction === b.direction;
 
-    var activeBoxShadow = isFocus ? 'box-shadow:0 0 0 2px ' + status.color + '4D, 0 4px 12px rgba(0,0,0,.3);' : '';
-    var activeBadge = isFocus
-      ? '<div style="position:absolute;top:-7px;right:8px;background:var(--acc);color:#fff;font-size:8px;font-weight:800;padding:2px 6px;border-radius:99px;letter-spacing:.06em">FOCUS DU JOUR</div>'
+    // Badge logic: A+ wins over Focus + Your Best individually
+    var badgeBg, badgeColor, badgeText, badgeShadow;
+    if (isAPlus) {
+      // A+ SETUP: glow + double-color badge
+      badgeBg = 'linear-gradient(90deg,#F59E0B,#22C55E)';
+      badgeColor = '#fff';
+      badgeText = '🔥 A+ SETUP';
+      badgeShadow = 'box-shadow:0 0 0 2px rgba(245,158,11,.5), 0 4px 16px rgba(34,197,94,.3);';
+    } else if (isFocus) {
+      badgeBg = 'var(--acc)';
+      badgeColor = '#fff';
+      badgeText = '🎯 FOCUS DU JOUR';
+      badgeShadow = 'box-shadow:0 0 0 2px ' + status.color + '4D, 0 4px 12px rgba(0,0,0,.3);';
+    } else if (isYourBest) {
+      badgeBg = 'rgba(245,158,11,.85)';
+      badgeColor = '#fff';
+      badgeText = '⭐ TON BEST';
+      badgeShadow = 'box-shadow:0 0 0 2px rgba(245,158,11,.4), 0 4px 12px rgba(0,0,0,.3);';
+    } else {
+      badgeBg = '';
+      badgeColor = '';
+      badgeText = '';
+      badgeShadow = '';
+    }
+
+    var activeBoxShadow = badgeShadow;
+    var activeBadge = badgeText
+      ? '<div style="position:absolute;top:-7px;right:8px;background:' + badgeBg + ';color:' + badgeColor + ';font-size:8px;font-weight:800;padding:2px 7px;border-radius:99px;letter-spacing:.06em;white-space:nowrap">' + badgeText + '</div>'
       : '';
 
     var pnlColor = stats.pnl >= 0 ? 'var(--green2)' : 'var(--red2)';
@@ -6245,6 +6284,35 @@ function getTodayBestBucket(day, sessKey) {
     return { session: 'New York', direction: 'Short' };
   }
   return null;
+}
+
+// Determine YOUR best bucket on active session — based on personal history
+// Criteria: best P&L per trade, only buckets with sample >= cfg.minSample
+function getYourBestBucket(sessKey) {
+  var cfg = getBucketCfg();
+  var dirs = ['Long', 'Short'];
+  var candidates = [];
+  dirs.forEach(function(dir) {
+    var stats = calcBucketStats(sessKey, dir);
+    if (stats.count >= cfg.minSample) {
+      var pnlPerTrade = stats.count > 0 ? stats.pnl / stats.count : 0;
+      candidates.push({
+        session: sessKey,
+        direction: dir,
+        pnlPerTrade: pnlPerTrade,
+        wr: stats.wr,
+        count: stats.count,
+        pnl: stats.pnl
+      });
+    }
+  });
+  if (candidates.length === 0) return null;
+  // Sort by P&L per trade (descending). Only return if positive.
+  candidates.sort(function(a, b) { return b.pnlPerTrade - a.pnlPerTrade; });
+  var best = candidates[0];
+  // Only crown a "best" if it's actually profitable per trade
+  if (best.pnlPerTrade <= 0) return null;
+  return best;
 }
 
 function toggleBucketWatch() {
