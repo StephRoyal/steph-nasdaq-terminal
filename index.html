@@ -812,8 +812,13 @@ canvas{display:block;width:100%}
       <div><label class="fl">Take Profit</label><input type="number" class="fi" id="e-tp" step="0.25"/></div>
     </div>
     <div class="frow fg">
-      <div><label class="fl">P&amp;L Réel ($)</label><input type="number" class="fi" id="e-pnl" step="0.01" oninput="autoSignEdit()"/></div>
+      <div><label class="fl">P&amp;L Réel ($)</label><input type="number" class="fi" id="e-pnl" step="0.01" oninput="autoSignEdit();calcMaxHoldEdit()"/></div>
       <div><label class="fl">Contrats</label><input type="number" class="fi" id="e-size" step="1"/></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Prix Max Hold <span style="color:var(--acc2);font-size:10px;text-transform:none;letter-spacing:0">→ P&L si hold</span></label>
+      <input type="number" class="fi" id="e-maxprice" placeholder="Prix si tu avais hold plus longtemps" step="0.25" oninput="calcMaxHoldEdit()"/>
+      <div id="e-maxhold-preview" style="font-size:11px;color:var(--text3);margin-top:4px;font-style:italic"></div>
     </div>
     <div class="fg"><label class="fl">Stratégie</label>
       <select class="fs" id="e-strat">
@@ -1132,7 +1137,7 @@ function saveTrade(){
   let maxhold='';
   if(maxP&&tp){const ptsTP=dir==='Long'?tp-e:e-tp,ptsMax=dir==='Long'?maxP-e:e-maxP;if(ptsTP>0&&pnl)maxhold=(pnl*ptsMax/ptsTP).toFixed(0);}
   else if(maxP){const ct=document.querySelector('input[name="ct"]:checked')?.value||'mnq',ptsMax=dir==='Long'?maxP-e:e-maxP;maxhold=(ptsMax*(ct==='mnq'?2:20)*sz).toFixed(0);}
-  const disc = getDiscScore(); const acct = document.getElementById('f-account') ? document.getElementById('f-account').value : ''; S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details,account:acct,statRespect:document.getElementById('f-statrespect').value||null});
+  const disc = getDiscScore(); const acct = document.getElementById('f-account') ? document.getElementById('f-account').value : ''; S.trades.push({id:uid(),ts:Date.now(),date:document.getElementById('f-date').value||tod(),session:document.getElementById('f-session').value,direction:dir,status:document.getElementById('f-status').value,entry,sl:sl||'',tp:tp||'',pnl:pnl.toString(),maxhold,maxPrice:(maxP||''),size:sz.toString(),rr,strategy:document.getElementById('f-strat').value,note:document.getElementById('f-note').value,disc:disc.score,discDetails:disc.details,account:acct,statRespect:document.getElementById('f-statrespect').value||null});
   save();
   // Kill streak popup
   try {
@@ -3161,19 +3166,69 @@ function autoSignEdit(){
   const s=document.getElementById('e-status').value,el=document.getElementById('e-pnl'),v=parseFloat(el.value);
   if(isNaN(v))return; if(s==='Loss'&&v>0)el.value=-v; if(s==='Win'&&v<0)el.value=-v;
 }
+function calcMaxHoldEdit() {
+  const entryEl=document.getElementById('e-entry'), tpEl=document.getElementById('e-tp'),
+        maxEl=document.getElementById('e-maxprice'), pnlEl=document.getElementById('e-pnl'),
+        dirEl=document.getElementById('e-dir'), sizeEl=document.getElementById('e-size'),
+        prevEl=document.getElementById('e-maxhold-preview');
+  if(!prevEl) return;
+  const entry=parseFloat(entryEl.value), tp=parseFloat(tpEl.value),
+        maxP=parseFloat(maxEl.value), pnl=parseFloat(pnlEl.value),
+        dir=dirEl.value, sz=parseFloat(sizeEl.value)||1;
+  if(!maxP || !entry){ prevEl.textContent=''; return; }
+  let mh = 0;
+  if(tp && pnl){
+    const ptsTP = dir==='Long' ? tp-entry : entry-tp;
+    const ptsMax = dir==='Long' ? maxP-entry : entry-maxP;
+    if(ptsTP>0) mh = pnl * ptsMax / ptsTP;
+  } else {
+    const ct = document.querySelector('input[name="ct-edit"]:checked')?.value || 'mnq';
+    const ptsMax = dir==='Long' ? maxP-entry : entry-maxP;
+    mh = ptsMax * (ct==='mnq'?2:20) * sz;
+  }
+  const left = mh - (pnl||0);
+  if(mh){
+    const sign = mh>=0 ? '+' : '';
+    const leftSign = left>=0 ? '+' : '';
+    prevEl.innerHTML = '→ P&L si hold : <b style="color:'+(mh>=0?'var(--green2)':'var(--red2)')+'">'+sign+'$'+mh.toFixed(0)+'</b> · Laissé : <b style="color:var(--amber)">'+leftSign+'$'+left.toFixed(0)+'</b>';
+  } else {
+    prevEl.textContent='';
+  }
+}
 function openEdit(id){
   const t=S.trades.find(x=>x.id===id); if(!t)return;
-  ['e-id:id','e-date:date','e-entry:entry','e-sl:sl','e-tp:tp','e-pnl:pnl','e-size:size','e-note:note']
+  ['e-id:id','e-date:date','e-entry:entry','e-sl:sl','e-tp:tp','e-pnl:pnl','e-size:size','e-note:note','e-maxprice:maxPrice']
     .forEach(s=>{const[eid,tk]=s.split(':');const el=document.getElementById(eid);if(el)el.value=t[tk]||'';});
   const setOpt=(eid,val)=>{const el=document.getElementById(eid);if(!el)return;Array.from(el.options).forEach(o=>o.selected=o.value===val||o.text===val);};
   setOpt('e-session',t.session);setOpt('e-dir',t.direction);setOpt('e-status',t.status);setOpt('e-strat',t.strategy);
   EDK.forEach(k=>{editDiscState[k]=t.discDetails?!!t.discDetails[k]:false;setEditDiscBtn(k,editDiscState[k]);});
   updateEditDiscPreview();
+  calcMaxHoldEdit();
   openOv('ov-edit');
 }
 function saveEdit(){
   const id=document.getElementById('e-id').value,idx=S.trades.findIndex(t=>t.id===id);if(idx===-1)return;
   const ok=EDK.filter(k=>editDiscState[k]).length;
+  // Recompute maxhold from maxPrice if provided
+  const entry=parseFloat(document.getElementById('e-entry').value),
+        tp=parseFloat(document.getElementById('e-tp').value),
+        maxP=parseFloat(document.getElementById('e-maxprice').value),
+        pnl=parseFloat(document.getElementById('e-pnl').value)||0,
+        dir=document.getElementById('e-dir').value,
+        sz=parseFloat(document.getElementById('e-size').value)||1;
+  let maxhold='';
+  if(maxP && entry){
+    if(tp && pnl){
+      const ptsTP = dir==='Long' ? tp-entry : entry-tp;
+      const ptsMax = dir==='Long' ? maxP-entry : entry-maxP;
+      if(ptsTP>0) maxhold = (pnl*ptsMax/ptsTP).toFixed(0);
+    } else {
+      // Fallback: use stored contract type from original trade or default to mnq
+      const ct = (S.trades[idx].contractType) || 'mnq';
+      const ptsMax = dir==='Long' ? maxP-entry : entry-maxP;
+      maxhold = (ptsMax * (ct==='mnq'?2:20) * sz).toFixed(0);
+    }
+  }
   S.trades[idx]={...S.trades[idx],
     date:document.getElementById('e-date').value,session:document.getElementById('e-session').value,
     direction:document.getElementById('e-dir').value,status:document.getElementById('e-status').value,
@@ -3181,6 +3236,8 @@ function saveEdit(){
     tp:document.getElementById('e-tp').value,pnl:document.getElementById('e-pnl').value,
     size:document.getElementById('e-size').value,strategy:document.getElementById('e-strat').value,
     note:document.getElementById('e-note').value,disc:Math.round(ok/EDK.length*100),discDetails:{...editDiscState},
+    maxPrice:document.getElementById('e-maxprice').value||'',
+    maxhold:maxhold,
   };
   save();closeOv('ov-edit');renderStats();renderList();checkDailyAlerts();
 }
